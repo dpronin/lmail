@@ -11,6 +11,7 @@
 #include "types.hpp"
 #include "user.hpp"
 #include "utility.hpp"
+#include "inbox.hpp"
 
 namespace lmail
 {
@@ -18,11 +19,13 @@ namespace lmail
 class CmdRead
 {
 public:
-    explicit CmdRead(args_t args, User const &user, std::shared_ptr<Storage> storage)
-        : args_(std::move(args)), user_(std::addressof(user)), storage_(std::move(storage))
+    explicit CmdRead(args_t args, User const &user, std::shared_ptr<Storage> storage, std::shared_ptr<Inbox> inbox)
+        : args_(std::move(args)), user_(std::addressof(user)), storage_(std::move(storage)), inbox_(std::move(inbox))
     {
         if (!storage_)
             throw std::invalid_argument("storage provided cannot be empty");
+        if (!inbox_)
+            throw std::invalid_argument("inbox provided cannot be empty");
     }
 
     void operator()()
@@ -30,41 +33,46 @@ public:
     {
         using namespace sqlite_orm;
 
-        std::string msg_id_str;
+        std::string msg_idx_str;
         if (!args_.empty() && !args_.front().empty())
         {
-            msg_id_str = args_.front();
+            msg_idx_str = args_.front();
         }
-        else if (!uread(msg_id_str, "Enter message ID: "))
+        else if (!uread(msg_idx_str, "Enter message inbox index: "))
         {
             return;
         }
-        else if (msg_id_str.empty())
+        else if (msg_idx_str.empty())
         {
-            std::cerr << "message ID is not specified\n";
+            std::cerr << "message inbox index is not specified\n";
             return;
         }
 
-        auto const msg_id   = boost::lexical_cast<msg_id_t>(msg_id_str);
-        auto const messages = (*storage_)->select(columns(&Message::topic, &Message::body),
-                                                  where(c(&Message::id) == msg_id &&
-                                                        c(&Message::dest_user_id) == user_->id));
-        if (messages.empty())
+        auto const msg_idx  = boost::lexical_cast<msg_idx_t>(msg_idx_str);
+        if (auto const msg_id = inbox_->find(msg_idx))
         {
-            std::cerr << "message #" << msg_id << " does not exist for the user " << user_->username << '\n';
-            return;
-        }
+            auto const messages = (*storage_)->select(columns(&Message::id, &Message::topic, &Message::body),
+                                                      where(c(&Message::id) == *msg_id &&
+                                                            c(&Message::dest_user_id) == user_->id));
+            if (messages.empty())
+            {
+                std::cerr << "message #" << msg_idx << " does not exist for the user " << user_->username << '\n';
+                inbox_->erase(msg_idx);
+                return;
+            }
 
-        if (messages.size() != 1)
+            if (messages.size() != 1)
+            {
+                std::cerr << "FATAL: inconsistent data base\n";
+                exit(EXIT_FAILURE);
+            }
+
+            inbox_->sync(msg_idx, std::move(messages.front()));
+        }
+        else
         {
-            std::cerr << "FATAL: inconsistent data base\n";
-            exit(EXIT_FAILURE);
+            std::cerr << "There is no message #" << msg_idx << "in inbox. Sync it first\n";
         }
-
-        auto const &msg = messages.front();
-        std::cout << "\tTopic: " << std::get<0>(msg) << "\n\n";
-        std::cout << "\tMessage: " << '\n';
-        std::cout << '\t' << std::get<1>(msg) << '\n';
     }
     catch (boost::bad_lexical_cast const &)
     {
@@ -83,6 +91,7 @@ private:
     args_t                   args_;
     User const *             user_;
     std::shared_ptr<Storage> storage_;
+    std::shared_ptr<Inbox>   inbox_;
 };
 
 } // namespace lmail

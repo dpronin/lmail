@@ -9,6 +9,7 @@
 
 #include "storage.hpp"
 #include "types.hpp"
+#include "inbox.hpp"
 
 namespace lmail
 {
@@ -16,25 +17,44 @@ namespace lmail
 class CmdRemove
 {
 public:
-    explicit CmdRemove(args_t args, User const &user, std::shared_ptr<Storage> storage)
-        : args_(std::move(args)), user_(std::addressof(user)), storage_(std::move(storage))
+    explicit CmdRemove(args_t args, User const &user, std::shared_ptr<Storage> storage, std::shared_ptr<Inbox> inbox)
+        : args_(std::move(args)), user_(std::addressof(user)), storage_(std::move(storage)), inbox_(std::move(inbox))
     {
         if (!storage_)
             throw std::invalid_argument("storage provided cannot be empty");
+        if (!inbox_)
+            throw std::invalid_argument("inbox provided cannot be empty");
     }
 
     void operator()()
     try
     {
         using namespace sqlite_orm;
-        if (args_.empty())
+
+        std::string msg_idx_str;
+        if (!args_.empty() && !args_.front().empty())
         {
-            std::cerr << "message ID expected\n";
+            msg_idx_str = args_.front();
+        }
+        else if (!uread(msg_idx_str, "Enter message inbox index: "))
+        {
             return;
         }
-        auto const message_id = boost::lexical_cast<msg_id_t>(args_.front());
-        (*storage_)->remove_all<Message>(where(c(&Message::id) == message_id && c(&Message::dest_user_id) == user_->id));
-        std::cout << "message #" << message_id << " successfully removed\n";
+        else if (msg_idx_str.empty())
+        {
+            std::cerr << "message inbox index is not specified\n";
+            return;
+        }
+
+        auto const msg_idx  = boost::lexical_cast<msg_idx_t>(msg_idx_str);
+        if (auto const msg_id = inbox_->erase(msg_idx))
+            (*storage_)->remove_all<Message>(where(c(&Message::id) == *msg_id && c(&Message::dest_user_id) == user_->id));
+
+        std::cout << "message #" << msg_idx << " successfully removed\n";
+    }
+    catch (boost::bad_lexical_cast const &)
+    {
+        std::cerr << "error: message ID expected as an integer number\n";
     }
     catch (std::exception const &ex)
     {
@@ -49,6 +69,7 @@ private:
     args_t                   args_;
     User const *             user_;
     std::shared_ptr<Storage> storage_;
+    std::shared_ptr<Inbox>   inbox_;
 };
 
 } // namespace lmail

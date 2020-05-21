@@ -8,6 +8,7 @@
 #include "storage.hpp"
 #include "types.hpp"
 #include "user.hpp"
+#include "inbox.hpp"
 
 namespace lmail
 {
@@ -62,7 +63,7 @@ private:
 class LoggedInState : public CliState
 {
 public:
-    explicit LoggedInState(CliFsm &fsm, User user, std::shared_ptr<Storage> storage);
+    explicit LoggedInState(CliFsm &fsm, User user, std::shared_ptr<Storage> storage, std::shared_ptr<Inbox> inbox);
     ~LoggedInState() override = default;
 
 protected:
@@ -78,6 +79,7 @@ public:
 private:
     User                     user_;
     std::shared_ptr<Storage> storage_;
+    std::shared_ptr<Inbox>   inbox_;
 };
 
 } // namespace lmail

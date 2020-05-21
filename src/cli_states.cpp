@@ -6,6 +6,8 @@
 #include <boost/algorithm/string/join.hpp>
 
 #include "types.hpp"
+#include "inbox.hpp"
+#include "user.hpp"
 
 #include "cmds/cmd_help.hpp"
 #include "cmds/cmd_inbox.hpp"
@@ -83,11 +85,13 @@ void MainState::process(args_t args)
 
 // LoggedInState
 
-LoggedInState::LoggedInState(CliFsm &fsm, User user, std::shared_ptr<Storage> storage)
-    : CliState(fsm), user_(std::move(user)), storage_(std::move(storage))
+LoggedInState::LoggedInState(CliFsm &fsm, User user, std::shared_ptr<Storage> storage, std::shared_ptr<Inbox> inbox)
+    : CliState(fsm), user_(std::move(user)), storage_(std::move(storage)), inbox_(std::move(inbox))
 {
     if (!storage_)
         throw std::invalid_argument("storage provided cannot be empty");
+    if (!inbox_)
+        throw std::invalid_argument("inbox provided cannot be empty");
 }
 
 std::string LoggedInState::prompt() { return "lmail " + user_.username + " > "; }
@@ -101,7 +105,7 @@ void LoggedInState::OnEnter()
 {
     std::cout << "You're logged in as " << user_.username << std::endl;
     std::cout << "Inbox:\n";
-    CmdInbox(user_, storage_)();
+    CmdInbox(user_, storage_, inbox_)();
     CliState::OnEnter();
 }
 
@@ -125,13 +129,13 @@ void LoggedInState::process(args_t args)
     else if ("users-list" == cmd)
         cmd_f = CmdUsersList(user_, storage_);
     else if ("inbox" == cmd)
-        cmd_f = CmdInbox(user_, storage_);
+        cmd_f = CmdInbox(user_, storage_, inbox_);
     else if ("send" == cmd)
         cmd_f = CmdSend(std::move(args), user_, storage_);
     else if ("read" == cmd)
-        cmd_f = CmdRead(std::move(args), user_, storage_);
+        cmd_f = CmdRead(std::move(args), user_, storage_, inbox_);
     else if ("remove" == cmd)
-        cmd_f = CmdRemove(std::move(args), user_, storage_);
+        cmd_f = CmdRemove(std::move(args), user_, storage_, inbox_);
     else if ("quit" == cmd)
         cmd_f = CmdQuit(*fsm_);
     else if ("help" == cmd)

@@ -24,6 +24,8 @@ set(HEADERS
     user.hpp
     utility.hpp
     application.hpp
+    inbox.hpp
+    inbox_message.hpp
 )
 
 add_executable(lmail ${SOURCES} ${HEADERS})
