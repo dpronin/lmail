@@ -35,7 +35,7 @@ public:
         {
             std::cout << "* " << username;
             if (username == user_->username)
-                std::cout << " (me)";
+                std::cout << " (" << colored("me", color_e::green) << ")";
             std::cout << '\n';
         }
     }

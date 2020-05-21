@@ -26,6 +26,7 @@ public:
         cstate_ = std::move(new_state);
         cstate_->OnEnter();
         pstate_ = std::move(pstate);
+        on_state_changed();
     }
 
     template <typename T>
@@ -33,10 +34,11 @@ public:
     is_in_state() const noexcept { return dynamic_cast<T const*>(cstate_.get()); }
 
 protected:
-    std::shared_ptr<StateT> cstate_;
+    virtual void on_state_changed() { }
 
-private:
+protected:
     std::shared_ptr<StateT> pstate_;
+    std::shared_ptr<StateT> cstate_;
 };
 
 } // namespace lmail

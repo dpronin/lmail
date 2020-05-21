@@ -26,6 +26,7 @@ set(HEADERS
     application.hpp
     inbox.hpp
     inbox_message.hpp
+    color.hpp
 )
 
 add_executable(lmail ${SOURCES} ${HEADERS})
@@ -36,3 +37,4 @@ install(TARGETS lmail RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 target_link_libraries(lmail PRIVATE CONAN_PKG::boost)
 target_link_libraries(lmail PRIVATE CONAN_PKG::sqlite_orm)
 target_link_libraries(lmail PRIVATE CONAN_PKG::cryptopp)
+target_link_libraries(lmail PRIVATE CONAN_PKG::readline)

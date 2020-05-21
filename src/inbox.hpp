@@ -17,35 +17,35 @@ public:
     using messages_t = std::deque<InboxMessage>;
 
 public:
-    void sync(std::vector<std::tuple<msg_id_t, topic_t>> records)
+    void sync(std::vector<std::tuple<msg_id_t, topic_t>> records, std::ostream &out)
     {
         size_t new_messages = 0;
         for (auto &record : records)
             new_messages += sync(std::tuple_cat(std::move(record), std::tuple<body_t>{})).second;
 
         if (messages_.empty())
-            std::cout << "There are no messages\n";
+            out << "There are no messages\n";
         else if (messages_.size() == 1)
-            std::cout << "There is 1 message (" << new_messages << " new)" << ":\n";
+            out << "There is 1 message (" << new_messages << " new)" << ":\n";
         else
-            std::cout << "There are " << messages_.size()
-                      << " messages (" << new_messages << " new)" << ":\n";
+            out << "There are " << messages_.size()
+                << " messages (" << new_messages << " new)" << ":\n";
 
         msg_idx_t msg_idx = 0;
         for (auto const &msg : messages_)
-            std::cout << '\t' << (++msg_idx) << ". " << msg.topic << '\n';
+            out << '\t' << (++msg_idx) << ". " << msg.topic << '\n';
     }
 
-    void sync(msg_idx_t msg_idx, std::tuple<msg_id_t, topic_t, body_t> message)
+    void sync(msg_idx_t msg_idx, std::tuple<msg_id_t, topic_t, body_t> message, std::ostream &out)
     {
         if (msg_idx <= 0 || messages_.size() < msg_idx)
             return;
         auto &msg = messages_[msg_idx - 1];
         msg = {std::get<0>(message), std::move(std::get<1>(message)), std::move(std::get<2>(message))};
-        std::cout << "\tIndex: " << msg_idx << "\n\n";
-        std::cout << "\tTopic: " << msg.topic << "\n\n";
-        std::cout << "\tMessage: " << '\n';
-        std::cout << '\t' << msg.body << '\n';
+        out << "\tIndex: " << msg_idx << "\n\n";
+        out << "\tTopic: " << msg.topic << "\n\n";
+        out << "\tMessage: " << '\n';
+        out << '\t' << msg.body << '\n';
     }
 
     std::optional<msg_id_t> find(msg_idx_t msg_idx)

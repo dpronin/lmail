@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstring>
+#include <cstdlib>
 
 #include <iostream>
 #include <string>
@@ -8,11 +9,14 @@
 
 #include <boost/algorithm/hex.hpp>
 
-#include <cryptopp/cryptlib.h>
-#include <cryptopp/sha3.h>
-
 #include <unistd.h>
 #include <termios.h>
+
+#include <readline/readline.h>
+#include <readline/history.h>
+
+#include <cryptopp/cryptlib.h>
+#include <cryptopp/sha3.h>
 
 namespace lmail
 {

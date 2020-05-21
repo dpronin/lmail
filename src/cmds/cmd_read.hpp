@@ -67,11 +67,11 @@ public:
                 exit(EXIT_FAILURE);
             }
 
-            inbox_->sync(msg_idx, std::move(messages.front()));
+            inbox_->sync(msg_idx, std::move(messages.front()), std::cout);
         }
         else
         {
-            std::cerr << "There is no message #" << msg_idx << "in inbox. Sync it first\n";
+            std::cerr << "There is no message #" << msg_idx << " in inbox. Sync it first\n";
         }
     }
     catch (boost::bad_lexical_cast const &)

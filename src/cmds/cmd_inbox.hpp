@@ -4,6 +4,7 @@
 #include <memory>
 #include <stdexcept>
 #include <utility>
+#include <ostream>
 
 #include "message.hpp"
 #include "storage.hpp"
@@ -16,8 +17,8 @@ namespace lmail
 class CmdInbox
 {
 public:
-    explicit CmdInbox(User const &user, std::shared_ptr<Storage> storage, std::shared_ptr<Inbox> inbox)
-        : user_(std::addressof(user)), storage_(std::move(storage)), inbox_(std::move(inbox))
+    explicit CmdInbox(User const &user, std::shared_ptr<Storage> storage, std::shared_ptr<Inbox> inbox, std::ostream &os)
+        : user_(std::addressof(user)), storage_(std::move(storage)), inbox_(std::move(inbox)), os_(std::addressof(os))
     {
         if (!storage_)
             throw std::invalid_argument("storage provided cannot be empty");
@@ -30,7 +31,7 @@ public:
     {
         using namespace sqlite_orm;
         auto items = (*storage_)->select(columns(&Message::id, &Message::topic), where(c(&Message::dest_user_id) == user_->id));
-        inbox_->sync(std::move(items));
+        inbox_->sync(std::move(items), *os_);
     }
     catch (std::exception const &ex)
     {
@@ -45,6 +46,7 @@ private:
     User const *             user_;
     std::shared_ptr<Storage> storage_;
     std::shared_ptr<Inbox>   inbox_;
+    std::ostream             *os_;
 };
 
 } // namespace lmail

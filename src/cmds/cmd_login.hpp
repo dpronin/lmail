@@ -78,7 +78,7 @@ public:
 
             b_success  = user.username == username && user.password == sha256(password);
             if (b_success)
-                cli_fsm_->change_state(std::make_shared<LoggedInState>(*cli_fsm_, std::move(user), storage_, std::make_shared<Inbox>()));
+                cli_fsm_->change_state(std::make_shared<LoggedInState>(*cli_fsm_, storage_, std::move(user), std::make_shared<Inbox>()));
         }
 
         if (!b_success)

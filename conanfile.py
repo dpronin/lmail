@@ -4,7 +4,7 @@ from conans import ConanFile, CMake, tools
 
 class LMail(ConanFile):
     name = "lmail"
-    version = "0.1.1"
+    version = "0.2.0"
     author = "Denis Pronin"
     url = "https://github.com/dannftk/lmail"
     description = "A tool for mailing in a local host"
@@ -13,7 +13,8 @@ class LMail(ConanFile):
 
     requires = "boost/[~1.73]", \
         "sqlite_orm/[~1.4]@bincrafters/stable", \
-        "cryptopp/[~8.2]@bincrafters/stable"
+        "cryptopp/[~8.2]@bincrafters/stable", \
+        "readline/[~7.0]@bincrafters/stable"
 
     build_requires = \
         "gtest/[~1.10]"

@@ -8,7 +8,8 @@ using namespace lmail;
 
 int main(int argc, char const *argv[]) try
 {
-    return Cli(Application::instance().parse_conf()).run();
+    Cli(Application::instance().parse_conf()).run();
+    return 0;
 }
 catch (std::exception const &ex)
 {

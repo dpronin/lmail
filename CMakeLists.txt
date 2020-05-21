@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.9.6 FATAL_ERROR)
+project(lmail VERSION 0.2.0 LANGUAGES CXX)
 
 if (NOT EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake AND GEN_CONAN_BUILD_INFO)
     execute_process(COMMAND conan install ${CMAKE_CURRENT_LIST_DIR}/ -if ${CMAKE_BINARY_DIR}/ -pr default -s build_type=${CMAKE_BUILD_TYPE} --build missing RESULT_VARIABLE CONAN_INSTALL_RESULT)
@@ -11,7 +12,6 @@ if (NOT EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
     message(FATAL_ERROR "conanbuildinfo.cmake required is missing")
 endif()
 
-project(lmail VERSION 0.1.1 LANGUAGES CXX)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup(TARGETS)
 

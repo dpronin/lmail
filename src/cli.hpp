@@ -7,11 +7,14 @@ namespace lmail
 {
 
 class CliState;
-class Cli : public Fsm<CliState>
+class Cli final : public Fsm<CliState>
 {
 public:
     explicit Cli(Application::Conf const &conf);
-    int run() noexcept;
+    void run();
+
+private:
+    void on_state_changed() override;
 
 private:
     Application::Conf conf_;
