@@ -28,7 +28,7 @@ protected:
 public:
     void OnEnter() override;
 
-    virtual std::string prompt();
+    virtual prompt_t prompt();
     virtual void process(args_t args);
 
 protected:
@@ -49,7 +49,7 @@ public:
     ~MainState() override = default;
 
 protected:
-    std::string prompt() override;
+    prompt_t prompt() override;
     std::vector<cmd_t> commands() override;
 
 public:
@@ -72,7 +72,7 @@ public:
     void OnEnter() override;
     void OnExit() override;
 
-    std::string prompt() override;
+    prompt_t prompt() override;
     void process(args_t args) override;
 
 private:

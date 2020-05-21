@@ -30,28 +30,28 @@ public:
     {
         using namespace sqlite_orm;
 
-        std::string msg_id;
+        std::string msg_id_str;
         if (!args_.empty() && !args_.front().empty())
         {
-            msg_id = args_.front();
+            msg_id_str = args_.front();
         }
-        else if (!uread(msg_id, "Enter message ID: "))
+        else if (!uread(msg_id_str, "Enter message ID: "))
         {
             return;
         }
-        else if (msg_id.empty())
+        else if (msg_id_str.empty())
         {
             std::cerr << "message ID is not specified\n";
             return;
         }
 
-        auto const message_id = boost::lexical_cast<int>(msg_id);
-        auto const messages   = (*storage_)->select(columns(&Message::topic, &Message::body),
-                                                    where(c(&Message::id) == message_id &&
-                                                          c(&Message::dest_user_id) == user_->id));
+        auto const msg_id   = boost::lexical_cast<msg_id_t>(msg_id_str);
+        auto const messages = (*storage_)->select(columns(&Message::topic, &Message::body),
+                                                  where(c(&Message::id) == msg_id &&
+                                                        c(&Message::dest_user_id) == user_->id));
         if (messages.empty())
         {
-            std::cerr << "message #" << message_id << " does not exist for the user " << user_->username << '\n';
+            std::cerr << "message #" << msg_id << " does not exist for the user " << user_->username << '\n';
             return;
         }
 

@@ -7,6 +7,8 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 
+#include "types.hpp"
+
 namespace lmail
 {
 
@@ -21,7 +23,7 @@ public:
 
     struct Conf
     {
-        std::string db_path;
+        db_path_t db_path;
     };
 
 public:
