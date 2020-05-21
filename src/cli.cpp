@@ -14,13 +14,15 @@
 
 using namespace lmail;
 
-Cli::Cli(Application::Conf const &conf) : Fsm(std::make_shared<MainState>(*this, std::make_unique<Storage>(conf.db_path)))
+Cli::Cli(Application::Conf const &conf) : Fsm(std::make_shared<InitState>(*this)), conf_(conf)
 {
 }
 
 int Cli::run() noexcept
 {
-    for (user_input_t user_input; !is_in_state<QuitState>() && uread(user_input, cstate_->prompt());)
+    std::cout << "Welcome to lmail!" << std::endl;
+    change_state(std::make_shared<MainState>(*this, std::make_unique<Storage>(conf_.db_path)));
+    for (user_input_t user_input; !is_in_state<InitState>() && uread(user_input, cstate_->prompt());)
     {
         args_t args;
         boost::algorithm::split(args, user_input, boost::is_any_of(" "));
@@ -28,5 +30,6 @@ int Cli::run() noexcept
         if (!args.empty())
             cstate_->process(std::move(args));
     }
+    std::cout << "Quitting lmail. Bye!" << std::endl;
     return EXIT_SUCCESS;
 }

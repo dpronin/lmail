@@ -30,32 +30,45 @@ public:
     {
         using namespace sqlite_orm;
 
-        if (args_.empty())
+        std::string msg_id;
+        if (!args_.empty() && !args_.front().empty())
         {
-            std::cerr << "message ID expected\n";
+            msg_id = args_.front();
+        }
+        else if (!uread(msg_id, "Enter message ID: "))
+        {
+            return;
+        }
+        else if (msg_id.empty())
+        {
+            std::cerr << "message ID is not specified\n";
             return;
         }
 
-        auto const message_id = boost::lexical_cast<int>(args_.front());
-        auto const items      = (*storage_)->select(columns(&Message::topic, &Message::body),
+        auto const message_id = boost::lexical_cast<int>(msg_id);
+        auto const messages   = (*storage_)->select(columns(&Message::topic, &Message::body),
                                                     where(c(&Message::id) == message_id &&
                                                           c(&Message::dest_user_id) == user_->id));
-        if (items.empty())
+        if (messages.empty())
         {
             std::cerr << "message #" << message_id << " does not exist for the user " << user_->username << '\n';
             return;
         }
 
-        if (items.size() != 1)
+        if (messages.size() != 1)
         {
             std::cerr << "FATAL: inconsistent data base\n";
             exit(EXIT_FAILURE);
         }
 
-        auto const &m = items.front();
-        std::cout << "\tTopic: " << std::get<0>(m) << "\n\n";
+        auto const &msg = messages.front();
+        std::cout << "\tTopic: " << std::get<0>(msg) << "\n\n";
         std::cout << "\tMessage: " << '\n';
-        std::cout << '\t' << std::get<1>(m) << '\n';
+        std::cout << '\t' << std::get<1>(msg) << '\n';
+    }
+    catch (boost::bad_lexical_cast const &)
+    {
+        std::cerr << "error: message ID expected as an integer number\n";
     }
     catch (std::exception const &ex)
     {

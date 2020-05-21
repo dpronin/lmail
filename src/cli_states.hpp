@@ -35,6 +35,13 @@ protected:
     CliFsm *fsm_;
 };
 
+class InitState : public CliState
+{
+public:
+    ~InitState() override = default;
+    explicit InitState(CliFsm &fsm);
+};
+
 class MainState : public CliState
 {
 public:
@@ -71,15 +78,6 @@ public:
 private:
     User                     user_;
     std::shared_ptr<Storage> storage_;
-};
-
-class QuitState : public CliState
-{
-public:
-    ~QuitState() override = default;
-    explicit QuitState(CliFsm &fsm);
-
-    void OnEnter() override;
 };
 
 } // namespace lmail

@@ -18,7 +18,7 @@ public:
             throw std::invalid_argument("fsm provided cannot be empty");
     }
 
-    void operator()() { cli_fsm_->change_state(std::make_shared<QuitState>(*cli_fsm_)); }
+    void operator()() { cli_fsm_->change_state(std::make_shared<InitState>(*cli_fsm_)); }
 
 private:
     CliFsm *cli_fsm_;

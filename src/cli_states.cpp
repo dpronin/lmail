@@ -38,6 +38,12 @@ void CliState::process(args_t args)
     std::cerr << "cannot process '" << boost::algorithm::join(args, " ") << "'\n";
 }
 
+// InitState
+
+InitState::InitState(CliFsm &fsm) : CliState(fsm)
+{
+}
+
 // MainState
 
 std::string MainState::prompt() { return "lmail > "; }
@@ -94,9 +100,9 @@ std::vector<cmd_t> LoggedInState::commands()
 void LoggedInState::OnEnter()
 {
     std::cout << "You're logged in as " << user_.username << std::endl;
-    CliState::OnEnter();
     std::cout << "Inbox:\n";
     CmdInbox(user_, storage_)();
+    CliState::OnEnter();
 }
 
 void LoggedInState::OnExit()
@@ -135,18 +141,6 @@ void LoggedInState::process(args_t args)
         cmd_f();
     else
         std::cerr << "unknown command '" << cmd << "'\n";
-}
-
-// QuitState
-
-QuitState::QuitState(CliFsm &fsm) : CliState(fsm)
-{
-}
-
-void QuitState::OnEnter()
-{
-    CliState::OnEnter();
-    std::cout << "quitting..." << std::endl;
 }
 
 } // namespace lmail

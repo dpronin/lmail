@@ -11,7 +11,7 @@ if (NOT EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
     message(FATAL_ERROR "conanbuildinfo.cmake required is missing")
 endif()
 
-project(lmail VERSION 0.1.0 LANGUAGES CXX)
+project(lmail VERSION 0.1.1 LANGUAGES CXX)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup(TARGETS)
 
