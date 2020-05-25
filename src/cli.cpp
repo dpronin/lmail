@@ -9,6 +9,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <filesystem>
 
 #include <boost/range/algorithm/remove_copy_if.hpp>
 

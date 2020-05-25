@@ -40,7 +40,7 @@ public:
 
     void sync(msg_idx_t msg_idx, std::tuple<msg_id_t, topic_t, body_t> message, std::ostream &out)
     {
-        if (msg_idx <= 0 || messages_.size() < msg_idx)
+        if (0 == msg_idx || msg_idx > messages_.size())
             return;
         auto &msg = messages_[msg_idx - 1];
         msg       = {std::get<0>(message), std::move(std::get<1>(message)), std::move(std::get<2>(message))};
@@ -60,10 +60,11 @@ public:
 
     std::optional<msg_id_t> erase(msg_idx_t msg_idx)
     {
-        if (msg_idx <= 0 || messages_.size() < msg_idx)
-            return {};
-        auto       msg_it = std::next(messages_.begin(), msg_idx - 1);
-        auto const msg_id = msg_it->id;
+        std::optional<msg_id_t> msg_id;
+        if (0 == msg_idx || msg_idx > messages_.size())
+            return msg_id;
+        auto msg_it = std::next(messages_.begin(), msg_idx - 1);
+        msg_id = msg_it->id;
         messages_.erase(msg_it);
         return msg_id;
     }

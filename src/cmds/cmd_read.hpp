@@ -76,7 +76,7 @@ public:
     }
     catch (boost::bad_lexical_cast const &)
     {
-        std::cerr << "error: message ID expected as an integer number\n";
+        std::cerr << "error: message ID expected as a positive integer number\n";
     }
     catch (std::exception const &ex)
     {

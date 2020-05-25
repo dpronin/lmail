@@ -2,11 +2,13 @@
 
 #include <iostream>
 #include <utility>
+#include <filesystem>
 
 #include <string_view>
 
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <boost/process/environment.hpp>
 
 #include "types.hpp"
 
@@ -33,7 +35,7 @@ public:
         Conf conf;
 
         if (conf_path.empty())
-            conf_path = conf_path_def;
+            conf_path = kDefaultConfPath_;
 
         try
         {
@@ -50,17 +52,31 @@ public:
         }
 
         if (conf.db_path.empty())
-            conf.db_path = db_path_def;
+            conf.db_path = kDefaultDbPath_;
 
         return conf;
     }
 
-private:
-    Application() = default;
+    auto const& lmail_path() const noexcept { return lmail_path_; }
+
+    static constexpr auto default_keysize() noexcept { return kDefaultKeySize_; }
 
 private:
-    static constexpr char conf_path_def[] = CONF_PREFIX "/etc/lmail.conf";
-    static constexpr char db_path_def[]   = SCHEMA_DB_PREFIX "/lmail/schema.db";
+    Application() : lmail_path_(boost::this_process::environment()["HOME"].to_string())
+    {
+        if (lmail_path_.empty())
+            throw std::logic_error("to continue working with the application HOME env variable is supposed to be exported");
+        lmail_path_ /= kLmailDirName;
+    }
+
+private:
+    static constexpr size_t kDefaultKeySize_  = 3072u;
+    static constexpr char kLmailDirName[]     = ".lmail";
+    static constexpr char kDefaultConfPath_[] = CONF_PREFIX "/etc/lmail.conf";
+    static constexpr char kDefaultDbPath_[]   = SCHEMA_DB_PREFIX "/lmail/schema.db";
+
+private:
+    std::filesystem::path lmail_path_;
 };
 
 } // namespace lmail

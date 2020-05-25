@@ -28,10 +28,10 @@ help_cmds_t const &MainState::help_cmds()
 {
     // clang-format off
     static help_cmds_t cmds = {
-        {"login",    {"[username]"}, "Logs in as a user with username specified or entered"},
-        {"register", {"[username]"}, "Registers a new user with username specified or entered"},
-        {"quit",     {},             "Quits the application"},
-        {"help",     {},             "Shows this help page"}
+        { "login",    { "[username]" }, "Logs in as a user with username specified or entered" },
+        { "register", { "[username]" }, "Registers a new user with username specified or entered" },
+        { "quit",     {},               "Quits the application" },
+        { "help",     {},               "Shows this help page" }
     };
     // clang-format on
     return cmds;

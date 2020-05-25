@@ -24,6 +24,8 @@ set(HEADERS
     cmds/cmd_inbox.hpp
     cmds/cmd_read.hpp
     cmds/cmd_remove.hpp
+    cmds/cmd_keygen.hpp
+    cmds/cmd_keys_list.hpp
     fsm.hpp
     state.hpp
     types.hpp

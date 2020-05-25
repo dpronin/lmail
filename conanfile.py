@@ -4,7 +4,7 @@ from conans import ConanFile, CMake, tools
 
 class LMail(ConanFile):
     name = "lmail"
-    version = "0.2.1"
+    version = "0.2.2"
     author = "Denis Pronin"
     url = "https://github.com/dannftk/lmail"
     description = "A tool for mailing in a local host"
