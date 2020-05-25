@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cstring>
 #include <cstdlib>
+#include <cstring>
 
 #include <iostream>
 #include <string>
@@ -9,11 +9,8 @@
 
 #include <boost/algorithm/hex.hpp>
 
-#include <unistd.h>
 #include <termios.h>
-
-#include <readline/readline.h>
-#include <readline/history.h>
+#include <unistd.h>
 
 #include <cryptopp/cryptlib.h>
 #include <cryptopp/sha3.h>

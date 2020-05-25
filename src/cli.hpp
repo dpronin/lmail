@@ -1,7 +1,7 @@
 #pragma once
 
-#include "fsm.hpp"
 #include "application.hpp"
+#include "fsm.hpp"
 
 namespace lmail
 {

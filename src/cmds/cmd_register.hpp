@@ -5,11 +5,10 @@
 
 #include <boost/scope_exit.hpp>
 
-#include "cli_states.hpp"
 #include "storage.hpp"
+#include "types.hpp"
 #include "user.hpp"
 #include "utility.hpp"
-#include "types.hpp"
 
 namespace lmail
 {
@@ -17,11 +16,8 @@ namespace lmail
 class CmdRegister
 {
 public:
-    explicit CmdRegister(args_t args, CliFsm &fsm, std::shared_ptr<Storage> storage)
-        : args_(std::move(args)), fsm_(std::addressof(fsm)), storage_(std::move(storage))
+    explicit CmdRegister(args_t args, std::shared_ptr<Storage> storage) : args_(std::move(args)), storage_(std::move(storage))
     {
-        if (!fsm_)
-            throw std::invalid_argument("fsm provided cannot be empty");
         if (!storage_)
             throw std::invalid_argument("storage provided cannot be empty");
     }
@@ -45,7 +41,8 @@ public:
         }
 
         password_t password;
-        if (!uread_hidden(password, "Enter a new user's password: ")) return;
+        if (!uread_hidden(password, "Enter a new user's password: "))
+            return;
 
         if (password.empty())
         {
@@ -54,7 +51,8 @@ public:
         }
 
         password_t password_repeated;
-        if (!uread_hidden(password_repeated, "Repeat a new user's password: ")) return;
+        if (!uread_hidden(password_repeated, "Repeat a new user's password: "))
+            return;
 
         BOOST_SCOPE_EXIT_ALL(&password, &password_repeated)
         {
@@ -73,9 +71,15 @@ public:
         password += salt;
 
         User user{-1, std::move(username), sha256(password)};
-        if (auto const user_id = (*storage_)->insert(user); - 1 == user_id)
+        if (auto const user_id = (*storage_)->insert(user); - 1 != user_id)
+        {
+            std::cout << "Successfully registered a user " << colored(user.username, color_e::green) << std::endl;
+        }
+        else
+        {
             std::cerr << "couldn't register a new user '" << user.username << "'. "
-                      << "User name is busy or password has incorrect format";
+                      << "User name is busy or password has incorrect format\n";
+        }
     }
     catch (std::exception const &ex)
     {
@@ -88,7 +92,6 @@ public:
 
 private:
     args_t                   args_;
-    CliFsm *                 fsm_;
     std::shared_ptr<Storage> storage_;
 };
 

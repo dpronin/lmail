@@ -14,8 +14,8 @@ namespace lmail
 class CmdUsersList
 {
 public:
-    explicit CmdUsersList(User const &user, std::shared_ptr<Storage> storage)
-        : user_(std::addressof(user)), storage_(std::move(storage))
+    explicit CmdUsersList(std::shared_ptr<User> user, std::shared_ptr<Storage> storage)
+        : user_(std::move(user)), storage_(std::move(storage))
     {
         if (!storage_)
             throw std::invalid_argument("storage provided cannot be empty");
@@ -49,7 +49,7 @@ public:
     }
 
 private:
-    User const *             user_;
+    std::shared_ptr<User>    user_;
     std::shared_ptr<Storage> storage_;
 };
 

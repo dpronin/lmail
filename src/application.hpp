@@ -5,8 +5,8 @@
 
 #include <string_view>
 
-#include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 
 #include "types.hpp"
 
@@ -59,7 +59,7 @@ private:
     Application() = default;
 
 private:
-    static constexpr char conf_path_def[] = CONF_PREFIX      "/etc/lmail.conf";
+    static constexpr char conf_path_def[] = CONF_PREFIX "/etc/lmail.conf";
     static constexpr char db_path_def[]   = SCHEMA_DB_PREFIX "/lmail/schema.db";
 };
 

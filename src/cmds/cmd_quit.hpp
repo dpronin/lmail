@@ -4,7 +4,9 @@
 #include <stdexcept>
 #include <utility>
 
-#include "cli_states.hpp"
+#include "types.hpp"
+
+#include "states/init_state.hpp"
 
 namespace lmail
 {
@@ -18,7 +20,7 @@ public:
             throw std::invalid_argument("fsm provided cannot be empty");
     }
 
-    void operator()() { cli_fsm_->change_state(std::make_shared<InitState>(*cli_fsm_)); }
+    void operator()() { cli_fsm_->change_state(std::make_shared<InitState>()); }
 
 private:
     CliFsm *cli_fsm_;

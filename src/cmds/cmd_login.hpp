@@ -9,12 +9,12 @@
 
 #include <boost/scope_exit.hpp>
 
-#include "cli_states.hpp"
+#include "inbox.hpp"
+#include "states/logged_in_state.hpp"
 #include "storage.hpp"
+#include "types.hpp"
 #include "user.hpp"
 #include "utility.hpp"
-#include "types.hpp"
-#include "inbox.hpp"
 
 namespace lmail
 {
@@ -50,7 +50,8 @@ public:
         }
 
         password_t password;
-        if (!uread_hidden(password, "Enter password: ")) return;
+        if (!uread_hidden(password, "Enter password: "))
+            return;
 
         if (password.empty())
         {
@@ -76,9 +77,9 @@ public:
             password.push_back(':');
             password += salt;
 
-            b_success  = user.username == username && user.password == sha256(password);
+            b_success = user.username == username && user.password == sha256(password);
             if (b_success)
-                cli_fsm_->change_state(std::make_shared<LoggedInState>(*cli_fsm_, storage_, std::move(user), std::make_shared<Inbox>()));
+                cli_fsm_->change_state(std::make_shared<LoggedInState>(*cli_fsm_, storage_, std::make_unique<User>(std::move(user)), std::make_shared<Inbox>()));
         }
 
         if (!b_success)

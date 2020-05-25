@@ -1,8 +1,8 @@
 #pragma once
 
+#include <deque>
 #include <iostream>
 #include <tuple>
-#include <deque>
 
 #include <boost/range/algorithm/find_if.hpp>
 
@@ -26,10 +26,12 @@ public:
         if (messages_.empty())
             out << "There are no messages\n";
         else if (messages_.size() == 1)
-            out << "There is 1 message (" << new_messages << " new)" << ":\n";
+            out << "There is 1 message (" << new_messages << " new)"
+                << ":\n";
         else
             out << "There are " << messages_.size()
-                << " messages (" << new_messages << " new)" << ":\n";
+                << " messages (" << new_messages << " new)"
+                << ":\n";
 
         msg_idx_t msg_idx = 0;
         for (auto const &msg : messages_)
@@ -41,7 +43,7 @@ public:
         if (msg_idx <= 0 || messages_.size() < msg_idx)
             return;
         auto &msg = messages_[msg_idx - 1];
-        msg = {std::get<0>(message), std::move(std::get<1>(message)), std::move(std::get<2>(message))};
+        msg       = {std::get<0>(message), std::move(std::get<1>(message)), std::move(std::get<2>(message))};
         out << "\tIndex: " << msg_idx << "\n\n";
         out << "\tTopic: " << msg.topic << "\n\n";
         out << "\tMessage: " << '\n';
@@ -60,7 +62,7 @@ public:
     {
         if (msg_idx <= 0 || messages_.size() < msg_idx)
             return {};
-        auto msg_it = std::next(messages_.begin(), msg_idx - 1);
+        auto       msg_it = std::next(messages_.begin(), msg_idx - 1);
         auto const msg_id = msg_it->id;
         messages_.erase(msg_it);
         return msg_id;
@@ -70,7 +72,7 @@ private:
     std::pair<messages_t::iterator, bool> sync(std::tuple<msg_id_t, topic_t, body_t> message)
     {
         auto [msg_id, topic, body] = std::move(message);
-        auto msg_it = boost::find_if(messages_, [msg_id](auto const &msg){ return msg.id == msg_id; });
+        auto msg_it                = boost::find_if(messages_, [msg_id](auto const &msg) { return msg.id == msg_id; });
         if (msg_it != messages_.end())
         {
             if (msg_it->topic != topic)

@@ -31,10 +31,10 @@ public:
 
     template <typename T>
     std::enable_if_t<std::is_base_of_v<StateT, T>, bool>
-    is_in_state() const noexcept { return dynamic_cast<T const*>(cstate_.get()); }
+        is_in_state() const noexcept { return dynamic_cast<T const *>(cstate_.get()); }
 
 protected:
-    virtual void on_state_changed() { }
+    virtual void on_state_changed() {}
 
 protected:
     std::shared_ptr<StateT> pstate_;

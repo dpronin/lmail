@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 
 namespace lmail
 {
@@ -24,9 +25,9 @@ inline std::string color_escape(color_e color)
     return "\e[" + std::to_string(base + static_cast<int>(color)) + 'm';
 }
 
-inline std::string colored(std::string const &input, color_e color)
+inline std::string colored(std::string_view input, color_e color)
 {
-    return color_escape(color) + input + color_escape_reset();
+    return color_escape(color) + input.data() + color_escape_reset();
 }
 
 } // namespace lmail

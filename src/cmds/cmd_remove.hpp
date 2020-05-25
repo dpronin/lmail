@@ -7,9 +7,9 @@
 
 #include <boost/lexical_cast.hpp>
 
+#include "inbox.hpp"
 #include "storage.hpp"
 #include "types.hpp"
-#include "inbox.hpp"
 
 namespace lmail
 {
@@ -17,9 +17,11 @@ namespace lmail
 class CmdRemove
 {
 public:
-    explicit CmdRemove(args_t args, User const &user, std::shared_ptr<Storage> storage, std::shared_ptr<Inbox> inbox)
-        : args_(std::move(args)), user_(std::addressof(user)), storage_(std::move(storage)), inbox_(std::move(inbox))
+    explicit CmdRemove(args_t args, std::shared_ptr<User> user, std::shared_ptr<Storage> storage, std::shared_ptr<Inbox> inbox)
+        : args_(std::move(args)), user_(std::move(user)), storage_(std::move(storage)), inbox_(std::move(inbox))
     {
+        if (!user_)
+            throw std::invalid_argument("user provided cannot be empty");
         if (!storage_)
             throw std::invalid_argument("storage provided cannot be empty");
         if (!inbox_)
@@ -46,7 +48,7 @@ public:
             return;
         }
 
-        auto const msg_idx  = boost::lexical_cast<msg_idx_t>(msg_idx_str);
+        auto const msg_idx = boost::lexical_cast<msg_idx_t>(msg_idx_str);
         if (auto const msg_id = inbox_->erase(msg_idx))
             (*storage_)->remove_all<Message>(where(c(&Message::id) == *msg_id && c(&Message::dest_user_id) == user_->id));
 
@@ -67,7 +69,7 @@ public:
 
 private:
     args_t                   args_;
-    User const *             user_;
+    std::shared_ptr<User>    user_;
     std::shared_ptr<Storage> storage_;
     std::shared_ptr<Inbox>   inbox_;
 };

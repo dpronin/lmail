@@ -1,13 +1,19 @@
 set(SOURCES
     cli.cpp
-    cli_states.cpp
     main.cpp
     storage.hpp
+    states/cmd_state.cpp
+    states/main_state.cpp
+    states/logged_in_state.cpp
 )
 
 set(HEADERS
     cli.hpp
-    cli_states.hpp
+    states/cli_state.hpp
+    states/cmd_state.hpp
+    states/init_state.hpp
+    states/main_state.hpp
+    states/logged_in_state.hpp
     cmds/cmd_quit.hpp
     cmds/cmd_help.hpp
     cmds/cmd_login.hpp

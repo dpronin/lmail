@@ -6,9 +6,9 @@
 #include <utility>
 
 #include "storage.hpp"
+#include "types.hpp"
 #include "user.hpp"
 #include "utility.hpp"
-#include "types.hpp"
 
 namespace lmail
 {
@@ -16,9 +16,11 @@ namespace lmail
 class CmdSend
 {
 public:
-    explicit CmdSend(args_t args, User const &user, std::shared_ptr<Storage> storage)
-        : args_(std::move(args)), user_(std::addressof(user)), storage_(std::move(storage))
+    explicit CmdSend(args_t args, std::shared_ptr<User> user, std::shared_ptr<Storage> storage)
+        : args_(std::move(args)), user_(std::move(user)), storage_(std::move(storage))
     {
+        if (!user_)
+            throw std::invalid_argument("user provided cannot be empty");
         if (!storage_)
             throw std::invalid_argument("storage provided cannot be empty");
     }
@@ -63,7 +65,8 @@ public:
         }
 
         topic_t topic;
-        if (!uread(topic, "Enter the topic: ")) return;
+        if (!uread(topic, "Enter the topic: "))
+            return;
         if (topic.empty())
         {
             std::cerr << "topic cannot be empty\n";
@@ -71,7 +74,8 @@ public:
         }
 
         body_t body;
-        if (!uread(body, "Enter the message: ")) return;
+        if (!uread(body, "Enter the message: "))
+            return;
         if (body.empty())
         {
             std::cerr << "message cannot be empty\n";
@@ -95,7 +99,7 @@ public:
 
 private:
     args_t                   args_;
-    User const *             user_;
+    std::shared_ptr<User>    user_;
     std::shared_ptr<Storage> storage_;
 };
 

@@ -4,8 +4,10 @@
 #include <stdexcept>
 #include <utility>
 
-#include "cli_states.hpp"
 #include "storage.hpp"
+#include "types.hpp"
+
+#include "states/main_state.hpp"
 
 namespace lmail
 {

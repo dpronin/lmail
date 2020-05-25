@@ -1,9 +1,12 @@
 #pragma once
 
-#include <vector>
 #include <deque>
 #include <functional>
 #include <string>
+#include <tuple>
+#include <vector>
+
+#include "fsm.hpp"
 
 namespace lmail
 {
@@ -19,5 +22,8 @@ using help_cmds_t  = std::vector<help_cmd_t>;
 using cmd_f_t      = std::function<void()>;
 using db_path_t    = std::string;
 using prompt_t     = std::string;
+
+class CliState;
+using CliFsm = Fsm<CliState>;
 
 } // namespace lmail

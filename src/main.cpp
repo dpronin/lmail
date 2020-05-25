@@ -1,12 +1,13 @@
-#include <stdexcept>
 #include <iostream>
+#include <stdexcept>
 
-#include "cli.hpp"
 #include "application.hpp"
+#include "cli.hpp"
 
 using namespace lmail;
 
-int main(int argc, char const *argv[]) try
+int main(int argc, char const *argv[])
+try
 {
     Cli(Application::instance().parse_conf()).run();
     return 0;
