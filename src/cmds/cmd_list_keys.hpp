@@ -14,10 +14,10 @@
 namespace lmail
 {
 
-class CmdKeysList
+class CmdListKeys
 {
 public:
-    explicit CmdKeysList(std::filesystem::path profile_path) : profile_path_(std::move(profile_path))
+    explicit CmdListKeys(std::filesystem::path profile_path) : profile_path_(std::move(profile_path))
     {
         if (profile_path_.empty())
             throw std::invalid_argument("profile path provided cannot be empty");

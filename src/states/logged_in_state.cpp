@@ -10,12 +10,12 @@
 #include "cmds/cmd_inbox.hpp"
 #include "cmds/cmd_logout.hpp"
 #include "cmds/cmd_quit.hpp"
-#include "cmds/cmd_read.hpp"
-#include "cmds/cmd_remove.hpp"
-#include "cmds/cmd_send.hpp"
-#include "cmds/cmd_users_list.hpp"
+#include "cmds/cmd_readmsg.hpp"
+#include "cmds/cmd_rmmsg.hpp"
+#include "cmds/cmd_sendmsg.hpp"
+#include "cmds/cmd_list_users.hpp"
 #include "cmds/cmd_keygen.hpp"
-#include "cmds/cmd_keys_list.hpp"
+#include "cmds/cmd_list_keys.hpp"
 #include "cmds/cmd_rmkey.hpp"
 
 using namespace lmail;
@@ -38,9 +38,9 @@ help_cmds_t const &LoggedInState::help_cmds()
         { "logout",      {},               "Logs out current user" },
         { "lsusers",     {},               "Shows all registered users" },
         { "inbox",       {},               "Shows inbox" },
-        { "send",        { "[username]" }, "Initiates procedure of sending message to another user with a username specified or entered" },
-        { "read",        { "[id]" },       "Reads the message with ID specified or entered" },
-        { "remove",      { "[id]" },       "Removes the message with ID specified or entered. Removing performed from inbox and remote storage" },
+        { "sendmsg",     { "[username]" }, "Initiates procedure of sending message to another user with a username specified or entered" },
+        { "readmsg",     { "[id]" },       "Reads the message with ID specified or entered" },
+        { "rmmsg",       { "[id]" },       "Removes the message with ID specified or entered. Removing performed from inbox and remote storage" },
         { "quit",        {},               "Quits the application" },
         { "help",        {},               "Shows this help page" },
         { "keygen",      { "[keyname]" },  "Generates and stores a new RSA key with a name specified or entered" },
@@ -87,21 +87,21 @@ void LoggedInState::process(args_t args)
     if ("logout" == cmd)
         cmd_f = CmdLogout(*fsm_, storage_);
     else if ("lsusers" == cmd)
-        cmd_f = CmdUsersList(user_, storage_);
+        cmd_f = CmdListUsers(user_, storage_);
     else if ("inbox" == cmd)
         cmd_f = CmdInbox(user_, storage_, inbox_);
     else if ("send" == cmd)
-        cmd_f = CmdSend(std::move(args), user_, storage_);
+        cmd_f = CmdSendmsg(std::move(args), user_, storage_);
     else if ("read" == cmd)
-        cmd_f = CmdRead(std::move(args), user_, storage_, inbox_);
+        cmd_f = CmdReadmsg(std::move(args), user_, storage_, inbox_);
     else if ("remove" == cmd)
-        cmd_f = CmdRemove(std::move(args), user_, storage_, inbox_);
+        cmd_f = CmdRmmsg(std::move(args), user_, storage_, inbox_);
     else if ("keygen" == cmd)
         cmd_f = CmdKeygen(std::move(args), Application::instance().lmail_path() / user_->username);
     else if ("rmkey" == cmd)
         cmd_f = CmdRmkey(std::move(args), Application::instance().lmail_path() / user_->username);
     else if ("lskeys" == cmd)
-        cmd_f = CmdKeysList(Application::instance().lmail_path() / user_->username);
+        cmd_f = CmdListKeys(Application::instance().lmail_path() / user_->username);
     else if ("quit" == cmd)
         cmd_f = CmdQuit(*fsm_);
 

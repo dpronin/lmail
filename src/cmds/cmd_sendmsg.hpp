@@ -13,10 +13,10 @@
 namespace lmail
 {
 
-class CmdSend
+class CmdSendmsg
 {
 public:
-    explicit CmdSend(args_t args, std::shared_ptr<User> user, std::shared_ptr<Storage> storage)
+    explicit CmdSendmsg(args_t args, std::shared_ptr<User> user, std::shared_ptr<Storage> storage)
         : args_(std::move(args)), user_(std::move(user)), storage_(std::move(storage))
     {
         if (!user_)

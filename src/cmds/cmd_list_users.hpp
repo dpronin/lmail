@@ -11,10 +11,10 @@
 namespace lmail
 {
 
-class CmdUsersList
+class CmdListUsers
 {
 public:
-    explicit CmdUsersList(std::shared_ptr<User> user, std::shared_ptr<Storage> storage)
+    explicit CmdListUsers(std::shared_ptr<User> user, std::shared_ptr<Storage> storage)
         : user_(std::move(user)), storage_(std::move(storage))
     {
         if (!storage_)

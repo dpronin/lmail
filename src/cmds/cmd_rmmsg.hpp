@@ -14,10 +14,10 @@
 namespace lmail
 {
 
-class CmdRemove
+class CmdRmmsg
 {
 public:
-    explicit CmdRemove(args_t args, std::shared_ptr<User> user, std::shared_ptr<Storage> storage, std::shared_ptr<Inbox> inbox)
+    explicit CmdRmmsg(args_t args, std::shared_ptr<User> user, std::shared_ptr<Storage> storage, std::shared_ptr<Inbox> inbox)
         : args_(std::move(args)), user_(std::move(user)), storage_(std::move(storage)), inbox_(std::move(inbox))
     {
         if (!user_)

@@ -19,13 +19,13 @@ set(HEADERS
     cmds/cmd_login.hpp
     cmds/cmd_logout.hpp
     cmds/cmd_register.hpp
-    cmds/cmd_send.hpp
-    cmds/cmd_users_list.hpp
+    cmds/cmd_sendmsg.hpp
+    cmds/cmd_list_users.hpp
     cmds/cmd_inbox.hpp
-    cmds/cmd_read.hpp
-    cmds/cmd_remove.hpp
+    cmds/cmd_readmsg.hpp
+    cmds/cmd_rmmsg.hpp
     cmds/cmd_keygen.hpp
-    cmds/cmd_keys_list.hpp
+    cmds/cmd_list_keys.hpp
     fsm.hpp
     state.hpp
     types.hpp
