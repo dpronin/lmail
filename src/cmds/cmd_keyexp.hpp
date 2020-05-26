@@ -10,14 +10,15 @@
 
 #include "types.hpp"
 #include "utility.hpp"
+#include "application.hpp"
 
 namespace lmail
 {
 
-class CmdRmKey
+class CmdKeyExp
 {
 public:
-    explicit CmdRmKey(args_t args, std::filesystem::path profile_path)
+    explicit CmdKeyExp(args_t args, std::filesystem::path profile_path)
         : args_(std::move(args))
         , profile_path_(std::move(profile_path))
     {
@@ -28,6 +29,8 @@ public:
     void operator()()
     try
     {
+        namespace fs = std::filesystem;
+
         key_name_t keyname;
         if (!args_.empty() && !args_.front().empty())
         {
@@ -43,21 +46,22 @@ public:
             return;
         }
 
-        if (auto const key_path = find_key_pair_dir(profile_path_ / kKeysDirName, keyname); !key_path.empty())
+        if (auto const keys_pair_dir = find_key_pair_dir(profile_path_ / Application::kKeysDirName, keyname); !keys_pair_dir.empty())
         {
-            std::cout << "The key '" << keyname << "' is about to be removed" << std::endl;
-            std::string ans;
-            while (uread(ans, "Remove it? (y/n): ") && ans != "y" && ans != "n")
-                ;
-            if ("y" == ans)
-            {
-                std::error_code ec;
-                std::filesystem::remove_all(key_path, ec);
-                if (!ec)
-                    std::cout << "key '" << keyname << "' successfully removed\n";
-                else
-                    std::cerr << "failed to remove key '" << keyname << "'\n";
-            }
+            std::string copy_to_str;
+            fs::path key_path_dst = Application::instance().home_path() / keyname;
+            key_path_dst += Application::kPubKeySuffix;
+            if (!uread(copy_to_str, "Where is key '" + keyname + "' to be exported to? (default: " + key_path_dst.string() + "): "))
+                return;
+            if (!copy_to_str.empty())
+                key_path_dst = fs::path(std::move(copy_to_str));
+            std::cout << "exporting key '" << keyname << "' to " << key_path_dst << " ..." << std::endl;
+
+            std::error_code ec;
+            if (fs::copy_file(keys_pair_dir / Application::kPubKeyName, key_path_dst, fs::copy_options::overwrite_existing, ec))
+                std::cout << "successfully exported key '" << keyname << "'\n";
+            else
+                std::cerr << "failed to export key '" << keyname << "', reason: " << ec.message() << '\n';
         }
         else
         {
@@ -72,9 +76,6 @@ public:
     {
         std::cerr << "unknown exception\n";
     }
-
-private:
-    static constexpr char kKeysDirName[] = "keys";
 
 private:
     args_t                args_;

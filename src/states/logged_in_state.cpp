@@ -8,15 +8,19 @@
 #include "types.hpp"
 
 #include "cmds/cmd_inbox.hpp"
+#include "cmds/cmd_keyassoc.hpp"
+#include "cmds/cmd_keyexp.hpp"
+#include "cmds/cmd_keygen.hpp"
+#include "cmds/cmd_keyimp.hpp"
+#include "cmds/cmd_list_keys.hpp"
+#include "cmds/cmd_list_users.hpp"
 #include "cmds/cmd_logout.hpp"
 #include "cmds/cmd_quit.hpp"
 #include "cmds/cmd_readmsg.hpp"
+#include "cmds/cmd_rmkey.hpp"
+#include "cmds/cmd_rmkeyassoc.hpp"
 #include "cmds/cmd_rmmsg.hpp"
 #include "cmds/cmd_sendmsg.hpp"
-#include "cmds/cmd_list_users.hpp"
-#include "cmds/cmd_keygen.hpp"
-#include "cmds/cmd_list_keys.hpp"
-#include "cmds/cmd_rmkey.hpp"
 
 using namespace lmail;
 
@@ -43,9 +47,13 @@ help_cmds_t const &LoggedInState::help_cmds()
         { "rmmsg",       { "[id]" },       "Removes the message with ID specified or entered. Removing performed from inbox and remote storage" },
         { "quit",        {},               "Quits the application" },
         { "help",        {},               "Shows this help page" },
-        { "keygen",      { "[keyname]" },  "Generates and stores a new RSA key with a name specified or entered" },
-        { "lskeys",      {},               "Shows all the keys generated and available for use" },
-        { "rmkey",       { "[id]" },       "Remove the key with ID specified or entered" }
+        { "keygen",      { "[keyname]" },  "Generates and stores a new RSA key with name specified or entered" },
+        { "keyexp",      { "[keyname]" },  "Exports the RSA public key with name specified or entered into a file given as path" },
+        { "keyimp",      {},               "Initiates procedure of importing an RSA public key" },
+        { "keyassoc",    { "[keyname]" },  "Associates the RSA key with name specified or entered with a user entered" },
+        { "lskeys",      {},               "Shows all RSA key pairs generated and available for use" },
+        { "rmkey",       { "[keyname]" },  "Removes the RSA key pair with name specified or entered" },
+        { "rmkeyassoc",  { "[keyname]" },  "Removes an association between RSA key pair and a user" }
     };
     // clang-format on
     return cmds;
@@ -91,17 +99,25 @@ void LoggedInState::process(args_t args)
     else if ("inbox" == cmd)
         cmd_f = CmdInbox(user_, storage_, inbox_);
     else if ("send" == cmd)
-        cmd_f = CmdSendmsg(std::move(args), user_, storage_);
+        cmd_f = CmdSendMsg(std::move(args), user_, storage_);
     else if ("read" == cmd)
-        cmd_f = CmdReadmsg(std::move(args), user_, storage_, inbox_);
+        cmd_f = CmdReadMsg(std::move(args), user_, storage_, inbox_);
     else if ("remove" == cmd)
-        cmd_f = CmdRmmsg(std::move(args), user_, storage_, inbox_);
+        cmd_f = CmdRmMsg(std::move(args), user_, storage_, inbox_);
     else if ("keygen" == cmd)
-        cmd_f = CmdKeygen(std::move(args), Application::instance().lmail_path() / user_->username);
+        cmd_f = CmdKeyGen(std::move(args), Application::profile_path(*user_));
     else if ("rmkey" == cmd)
-        cmd_f = CmdRmkey(std::move(args), Application::instance().lmail_path() / user_->username);
+        cmd_f = CmdRmKey(std::move(args), Application::profile_path(*user_));
+    else if ("keyexp" == cmd)
+        cmd_f = CmdKeyExp(std::move(args), Application::profile_path(*user_));
+    else if ("keyimp" == cmd)
+        cmd_f = CmdKeyImp(Application::profile_path(*user_));
+    else if ("keyassoc" == cmd)
+        cmd_f = CmdKeyAssoc(std::move(args), user_, Application::profile_path(*user_));
+    else if ("rmkeyassoc" == cmd)
+        cmd_f = CmdRmKeyAssoc(std::move(args), Application::profile_path(*user_));
     else if ("lskeys" == cmd)
-        cmd_f = CmdListKeys(Application::instance().lmail_path() / user_->username);
+        cmd_f = CmdListKeys(Application::profile_path(*user_));
     else if ("quit" == cmd)
         cmd_f = CmdQuit(*fsm_);
 

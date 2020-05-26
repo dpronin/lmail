@@ -9,6 +9,7 @@
 #include "types.hpp"
 #include "user.hpp"
 #include "utility.hpp"
+#include "application.hpp"
 
 namespace lmail
 {
@@ -68,7 +69,7 @@ public:
 
         // salting the password
         password.push_back(':');
-        password += salt;
+        password += Application::kSalt;
 
         User user{-1, std::move(username), sha256(password)};
         if (auto const user_id = (*storage_)->insert(user); - 1 != user_id)

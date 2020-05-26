@@ -11,6 +11,7 @@
 #include <boost/process/environment.hpp>
 
 #include "types.hpp"
+#include "user.hpp"
 
 namespace lmail
 {
@@ -35,7 +36,7 @@ public:
         Conf conf;
 
         if (conf_path.empty())
-            conf_path = kDefaultConfPath_;
+            conf_path = kDefaultConfPath;
 
         try
         {
@@ -52,28 +53,39 @@ public:
         }
 
         if (conf.db_path.empty())
-            conf.db_path = kDefaultDbPath_;
+            conf.db_path = kDefaultDbPath;
 
         return conf;
     }
 
+
     auto const& lmail_path() const noexcept { return lmail_path_; }
 
-    static constexpr auto default_keysize() noexcept { return kDefaultKeySize_; }
+    static std::filesystem::path profile_path(User const &user) { return Application::instance().lmail_path() / user.username; }
+    static std::filesystem::path home_path() noexcept { return boost::this_process::environment()["HOME"].to_string(); }
 
 private:
-    Application() : lmail_path_(boost::this_process::environment()["HOME"].to_string())
+    Application() : lmail_path_(home_path())
     {
         if (lmail_path_.empty())
             throw std::logic_error("to continue working with the application HOME env variable is supposed to be exported");
         lmail_path_ /= kLmailDirName;
     }
 
-private:
-    static constexpr size_t kDefaultKeySize_  = 3072u;
-    static constexpr char kLmailDirName[]     = ".lmail";
-    static constexpr char kDefaultConfPath_[] = CONF_PREFIX "/etc/lmail.conf";
-    static constexpr char kDefaultDbPath_[]   = SCHEMA_DB_PREFIX "/lmail/schema.db";
+// application properties
+public:
+    static constexpr size_t kDefaultKeySize      = 3072u;
+    static constexpr char   kLmailDirName[]      = ".lmail";
+    static constexpr char   kDefaultConfPath[]   = CONF_PREFIX "/etc/lmail.conf";
+    static constexpr char   kDefaultDbPath[]     = SCHEMA_DB_PREFIX "/lmail/schema.db";
+    static constexpr char   kSalt[]              = "2cipo6snetwdvhf384qbnxgyar51z7";
+    static constexpr char   kPrivKeyName[]       = "key";
+    static constexpr char   kPubKeySuffix[]      = ".pub";
+    static constexpr char   kPubKeyName[]        = "key.pub";
+    static constexpr char   kKeysDirName[]       = ".keys";
+    static constexpr char   kAssocsDirName[]     = ".assocs";
+    static constexpr char   kCypherDirName[]     = "cypher";
+    static constexpr char   kUserKeyLinkSuffix[] = ".key";
 
 private:
     std::filesystem::path lmail_path_;

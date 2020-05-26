@@ -10,11 +10,13 @@
 #include <boost/scope_exit.hpp>
 
 #include "inbox.hpp"
-#include "states/logged_in_state.hpp"
 #include "storage.hpp"
 #include "types.hpp"
 #include "user.hpp"
 #include "utility.hpp"
+#include "application.hpp"
+
+#include "states/logged_in_state.hpp"
 
 namespace lmail
 {
@@ -75,7 +77,7 @@ public:
 
             // salting the password
             password.push_back(':');
-            password += salt;
+            password += Application::kSalt;
 
             b_success = user.username == username && user.password == sha256(password);
             if (b_success)

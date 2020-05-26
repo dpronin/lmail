@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
-project(lmail VERSION 0.2.3 LANGUAGES CXX)
+project(lmail VERSION 0.2.4 LANGUAGES CXX)
 
 if (NOT EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake AND GEN_CONAN_BUILD_INFO)
-    execute_process(COMMAND conan install ${CMAKE_CURRENT_LIST_DIR}/ -if ${CMAKE_BINARY_DIR}/ -pr default -s build_type=${CMAKE_BUILD_TYPE} --build missing RESULT_VARIABLE CONAN_INSTALL_RESULT)
+    execute_process(COMMAND conan install ${CMAKE_CURRENT_LIST_DIR}/ -if ${CMAKE_BINARY_DIR}/ -pr default -s compiler.libcxx=libstdc++11 -s build_type=${CMAKE_BUILD_TYPE} --build missing RESULT_VARIABLE CONAN_INSTALL_RESULT)
     if(NOT CONAN_INSTALL_RESULT EQUAL 0)
         message(FATAL_ERROR "Failed to conan install")
     endif()

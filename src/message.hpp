@@ -18,6 +18,7 @@ struct Message
     user_id_t dest_user_id;
     topic_t   topic;
     body_t    body;
+    bool      cyphered;
 };
 
 } // namespace lmail

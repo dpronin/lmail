@@ -22,7 +22,7 @@ using help_cmds_t  = std::vector<help_cmd_t>;
 using cmd_f_t      = std::function<void()>;
 using db_path_t    = std::string;
 using prompt_t     = std::string;
-using key_fname_t  = std::string;
+using key_name_t   = std::string;
 
 class CliState;
 using CliFsm = Fsm<CliState>;

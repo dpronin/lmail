@@ -8,11 +8,17 @@
 #include <utility>
 #include <stdexcept>
 #include <filesystem>
+#include <system_error>
+#include <algorithm>
+#include <string_view>
 
 #include <boost/algorithm/hex.hpp>
 
 #include <termios.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include <cryptopp/cryptlib.h>
 #include <cryptopp/sha3.h>
@@ -21,10 +27,11 @@
 #include <cryptopp/files.h>
 #include <cryptopp/queue.h>
 
+#include "application.hpp"
+#include "types.hpp"
+
 namespace lmail
 {
-
-constexpr char salt[] = "2cipo6snetwdvhf384qbnxgyar51z7";
 
 inline auto sha256(std::string const &data)
 {
@@ -56,7 +63,7 @@ inline auto uread_hidden(std::string &input, std::string_view prompt = {})
 
     auto const res = uread(input, prompt);
 
-    // restoring flags in STDIN
+    // restoring flags on STDIN
     tcgetattr(STDIN_FILENO, &ts);
     ts.c_lflag = old_flags;
     tcsetattr(STDIN_FILENO, TCSANOW, &ts);
@@ -71,31 +78,94 @@ void secure_memset(Args &&... args) noexcept
     f(std::forward<Args>(args)...);
 }
 
-inline void create_rsa_key(std::filesystem::path const &keys_dir, size_t keysize)
+namespace detail
 {
-    constexpr char kKeyName[]      = "key";
-    constexpr char kPubKeySuffix[] = ".pub";
 
+template <typename KeyT>
+void save_key(KeyT const &key, std::filesystem::path const &key_path, int perms)
+{
     using namespace CryptoPP;
-    auto save_key = [](auto const &key, std::filesystem::path const &keypath) {
-        ByteQueue q;
-        key.Save(q);
-        FileSink file(keypath.c_str());
-        q.CopyTo(file);
-        file.MessageEnd();
+    auto const fd = creat(key_path.c_str(), perms);
+    if (fd < 0)
+        throw std::runtime_error("couldn't create a key-related file");
+    close(fd);
+    ByteQueue q;
+    key.Save(q);
+    FileSink file(key_path.c_str());
+    q.CopyTo(file);
+    file.MessageEnd();
+}
+
+} // namespace detail
+
+template <typename UnaryFunction>
+void for_each_dir_entry(std::filesystem::path const &dir, UnaryFunction f)
+{
+    std::error_code ec;
+    for (auto const &dir_entry : std::filesystem::directory_iterator(dir, ec))
+        f(dir_entry);
+}
+
+template <typename Comp, typename UnaryFunction>
+void for_each_dir_entry_if(std::filesystem::path const &dir, Comp comp, UnaryFunction f)
+{
+    std::error_code ec;
+    for (auto const &dir_entry : std::filesystem::directory_iterator(dir, ec))
+    {
+        if (comp(dir_entry))
+            f(dir_entry);
+    }
+}
+
+template <typename Comp>
+auto find_dir_entry_if(std::filesystem::path const &dir, Comp comp)
+{
+    namespace fs = std::filesystem;
+    fs::directory_entry dir_entry;
+    std::error_code ec;
+    auto const rng    = fs::directory_iterator(dir, ec);
+    auto dir_entry_it = std::find_if(fs::begin(rng), fs::end(rng), comp);
+    if (fs::end(rng) != dir_entry_it)
+        dir_entry = *dir_entry_it;
+    return dir_entry;
+}
+
+inline auto find_assoc(std::filesystem::path const &dir, std::string_view username)
+{
+    return find_dir_entry_if(dir, [username](auto const &dir_entry){
+        return dir_entry.path().filename().stem() == username;
+    }).path();
+}
+
+inline auto find_key_pair_dir(std::filesystem::path const &dir, std::string_view keyname)
+{
+    return find_dir_entry_if(dir, [keyname](auto const &dir_entry){ return dir_entry.path().filename() == keyname; }).path();
+}
+
+inline void create_rsa_key(std::filesystem::path const &keys_pair_dir, size_t keysize)
+{
+    using namespace CryptoPP;
+    namespace fs = std::filesystem;
+
+    auto save_priv_key = [](auto const &key, fs::path const &keypath) {
+        detail::save_key(key, keypath, S_IRUSR | S_IWUSR);
     };
 
-    if (!std::filesystem::exists(keys_dir) && !std::filesystem::create_directories(keys_dir)
-        || !std::filesystem::is_directory(keys_dir))
-        throw std::runtime_error("couldn't create '" + std::string(keys_dir) + "' directory\n");
+    auto save_pub_key = [](auto const &key, fs::path const &keypath) {
+        detail::save_key(key, keypath, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    };
 
-    AutoSeededRandomPool rng;
-    RSA::PrivateKey private_key;
-    private_key.GenerateRandomWithKeySize(rng, keysize);
-    auto key_path = keys_dir / kKeyName;
-    save_key(private_key, key_path);
-    key_path += kPubKeySuffix;
-    save_key(RSA::PublicKey(private_key), key_path);
+    if (fs::exists(keys_pair_dir) && !fs::is_directory(keys_pair_dir)
+        || !fs::exists(keys_pair_dir) && !fs::create_directory(keys_pair_dir))
+    {
+        throw std::runtime_error("couldn't create key pair");
+    }
+
+    AutoSeededRandomPool rnd;
+    RSA::PrivateKey priv_key;
+    priv_key.GenerateRandomWithKeySize(rnd, keysize);
+    save_priv_key(priv_key, keys_pair_dir / Application::kPrivKeyName);
+    save_pub_key(RSA::PublicKey(priv_key), keys_pair_dir / Application::kPubKeyName);
 }
 
 } // namespace lmail
