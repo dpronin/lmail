@@ -27,6 +27,7 @@ set(HEADERS
     cmds/cmd_register.hpp
     cmds/cmd_rmmsg.hpp
     cmds/cmd_sendmsg.hpp
+    cmds/cmd_base_args.hpp
     color.hpp
     fsm.hpp
     inbox.hpp

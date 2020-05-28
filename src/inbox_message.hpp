@@ -15,9 +15,11 @@ using body_t    = std::string;
 
 struct InboxMessage
 {
-    msg_id_t id;
-    topic_t  topic;
-    body_t   body;
+    msg_id_t   id;
+    topic_t    topic;
+    body_t     body;
+    bool       cyphered;
+    username_t user_from;
 };
 
 } // namespace lmail

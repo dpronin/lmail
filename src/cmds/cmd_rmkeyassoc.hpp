@@ -10,25 +10,23 @@
 #include <utility>
 #include <algorithm>
 
-#include <boost/range/algorithm_ext/erase.hpp>
-
 #include "types.hpp"
 #include "utility.hpp"
 #include "application.hpp"
+#include "cmd_base_args.hpp"
 
 namespace lmail
 {
 
-class CmdRmKeyAssoc
+class CmdRmKeyAssoc final : CmdBaseArgs
 {
 public:
     explicit CmdRmKeyAssoc(args_t args, std::filesystem::path profile_path)
-        : args_(std::move(args))
+        : CmdBaseArgs(std::move(args))
         , profile_path_(std::move(profile_path))
     {
         if (profile_path_.empty())
             throw std::invalid_argument("profile path provided cannot be empty");
-        boost::remove_erase_if(args_, [](auto const &arg){ return arg.empty(); });
     }
 
     void operator()()
@@ -41,7 +39,7 @@ public:
         {
             username_tgt = args_.front();
         }
-        else if (!uread(username_tgt, "Enter a target user name: "))
+        else if (!uread(username_tgt, "Enter a target user name the association is linked to: "))
         {
             return;
         }
@@ -50,7 +48,6 @@ public:
             std::cerr << "target user name is not specified\n";
             return;
         }
-
 
         if (auto const assoc_path = find_assoc(profile_path_ / Application::kAssocsDirName, username_tgt); !assoc_path.empty())
         {
@@ -96,7 +93,6 @@ public:
     }
 
 private:
-    args_t                args_;
     std::shared_ptr<User> user_;
     std::filesystem::path profile_path_;
 };

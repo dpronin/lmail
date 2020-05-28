@@ -101,7 +101,7 @@ void LoggedInState::process(args_t args)
     else if ("inbox" == cmd)
         cmd_f = CmdInbox(user_, storage_, inbox_);
     else if ("sendmsg" == cmd)
-        cmd_f = CmdSendMsg(std::move(args), user_, storage_);
+        cmd_f = CmdSendMsg(std::move(args), user_, storage_, Application::profile_path(*user_));
     else if ("readmsg" == cmd)
         cmd_f = CmdReadMsg(std::move(args), user_, storage_, inbox_);
     else if ("rmmsg" == cmd)

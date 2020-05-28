@@ -11,6 +11,7 @@
 #include <system_error>
 #include <algorithm>
 #include <string_view>
+#include <type_traits>
 
 #include <boost/algorithm/hex.hpp>
 
@@ -33,7 +34,7 @@
 namespace lmail
 {
 
-inline auto sha256(std::string const &data)
+inline auto sha3_256(std::string const &data)
 {
     using namespace CryptoPP;
     SHA3_256 sha256_algo;
@@ -78,25 +79,43 @@ void secure_memset(Args &&... args) noexcept
     f(std::forward<Args>(args)...);
 }
 
-namespace detail
-{
+// concept
+template <typename KeyT, typename ReturnT = KeyT>
+using return_if_rsa = std::enable_if_t<std::is_same_v<KeyT, CryptoPP::RSA::PrivateKey> || std::is_same_v<KeyT, CryptoPP::RSA::PublicKey>, ReturnT>;
 
 template <typename KeyT>
-void save_key(KeyT const &key, std::filesystem::path const &key_path, int perms)
+return_if_rsa<KeyT, void> save_key(KeyT const &key, std::filesystem::path const &key_path, int perms)
 {
     using namespace CryptoPP;
     auto const fd = creat(key_path.c_str(), perms);
     if (fd < 0)
         throw std::runtime_error("couldn't create a key-related file");
     close(fd);
-    ByteQueue q;
-    key.Save(q);
+    ByteQueue bq;
+    if constexpr (std::is_same_v<KeyT, RSA::PrivateKey>)
+        key.DEREncodePrivateKey(bq);
+    else
+        key.DEREncodePublicKey(bq);
     FileSink file(key_path.c_str());
-    q.CopyTo(file);
+    bq.CopyTo(file);
     file.MessageEnd();
 }
 
-} // namespace detail
+template <typename KeyT>
+return_if_rsa<KeyT> load_key(std::filesystem::path const &key_path)
+{
+    using namespace CryptoPP;
+    KeyT key;
+    FileSource file(key_path.c_str(), true);
+    ByteQueue bq;
+    file.TransferTo(bq);
+    bq.MessageEnd();
+    if constexpr (std::is_same_v<KeyT, RSA::PrivateKey>)
+        key.BERDecodePrivateKey(bq, false, bq.MaxRetrievable());
+    else
+        key.BERDecodePublicKey(bq, false, bq.MaxRetrievable());
+    return key;
+}
 
 template <typename UnaryFunction>
 void for_each_dir_entry(std::filesystem::path const &dir, UnaryFunction f)
@@ -130,24 +149,27 @@ auto find_dir_entry_if(std::filesystem::path const &dir, Comp comp)
     return dir_entry;
 }
 
-inline auto find_key(std::filesystem::path const &dir, std::string_view username)
+template <typename T>
+T const& username_to_keyname(T const &username) { return username; }
+
+inline auto find_key(std::filesystem::path const &dir, std::string_view keyname)
 {
-    return find_dir_entry_if(dir, [username](auto const &dir_entry){return dir_entry.path().filename().stem() == username; }).path();
+    return find_dir_entry_if(dir, [keyname](auto const &dir_entry){return dir_entry.path().filename().stem() == keyname; }).path();
 }
 
-inline auto find_assoc(std::filesystem::path const &dir, std::string_view username) { return find_key(dir, username); }
+inline auto find_assoc(std::filesystem::path const &dir, std::string_view keyname) { return find_key(dir, keyname); }
 
-inline void create_rsa_key(std::filesystem::path const &keys_pair_dir, size_t keysize)
+inline void generate_rsa_key_pair(std::filesystem::path const &keys_pair_dir, size_t key_size)
 {
     using namespace CryptoPP;
     namespace fs = std::filesystem;
 
     auto save_priv_key = [](auto const &key, fs::path const &keypath) {
-        detail::save_key(key, keypath, S_IRUSR | S_IWUSR);
+        save_key(key, keypath, S_IRUSR | S_IWUSR);
     };
 
     auto save_pub_key = [](auto const &key, fs::path const &keypath) {
-        detail::save_key(key, keypath, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+        save_key(key, keypath, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     };
 
     if (fs::exists(keys_pair_dir) && !fs::is_directory(keys_pair_dir)
@@ -158,11 +180,30 @@ inline void create_rsa_key(std::filesystem::path const &keys_pair_dir, size_t ke
 
     AutoSeededRandomPool rnd;
     RSA::PrivateKey priv_key;
-    priv_key.GenerateRandomWithKeySize(rnd, keysize);
+    priv_key.GenerateRandomWithKeySize(rnd, key_size);
     auto key_path = keys_pair_dir / Application::kPrivKeyName;
     save_priv_key(priv_key, key_path);
     key_path += Application::kPubKeySuffix;
     save_pub_key(RSA::PublicKey(priv_key), key_path);
+}
+
+inline void encrypt(std::string &msg, CryptoPP::RSA::PublicKey const &key)
+{
+    using namespace CryptoPP;
+    Integer m(reinterpret_cast<byte const*>(msg.data()), msg.size());
+    std::ostringstream oss;
+    oss << std::hex << key.ApplyFunction(m);
+    msg = oss.str();
+}
+
+inline void decrypt(std::string &msg, CryptoPP::RSA::PrivateKey const &key)
+{
+    using namespace CryptoPP;
+    AutoSeededRandomPool rng;
+    Integer c(msg.data());
+    auto r = key.CalculateInverse(rng, c);
+    msg.resize(r.MinEncodedSize());
+    r.Encode(reinterpret_cast<byte*>(msg.data()), msg.size());
 }
 
 } // namespace lmail

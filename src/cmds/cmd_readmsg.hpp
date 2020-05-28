@@ -6,22 +6,22 @@
 #include <utility>
 
 #include <boost/lexical_cast.hpp>
-#include <boost/range/algorithm_ext/erase.hpp>
 
 #include "inbox.hpp"
 #include "storage.hpp"
 #include "types.hpp"
 #include "user.hpp"
 #include "utility.hpp"
+#include "cmd_base_args.hpp"
 
 namespace lmail
 {
 
-class CmdReadMsg
+class CmdReadMsg final : CmdBaseArgs
 {
 public:
     explicit CmdReadMsg(args_t args, std::shared_ptr<User> user, std::shared_ptr<Storage> storage, std::shared_ptr<Inbox> inbox)
-        : args_(std::move(args)), user_(std::move(user)), storage_(std::move(storage)), inbox_(std::move(inbox))
+        : CmdBaseArgs(std::move(args)), user_(std::move(user)), storage_(std::move(storage)), inbox_(std::move(inbox))
     {
         if (!user_)
             throw std::invalid_argument("user provided cannot be empty");
@@ -29,7 +29,6 @@ public:
             throw std::invalid_argument("storage provided cannot be empty");
         if (!inbox_)
             throw std::invalid_argument("inbox provided cannot be empty");
-        boost::remove_erase_if(args_, [](auto const &arg){ return arg.empty(); });
     }
 
     void operator()()
@@ -55,7 +54,9 @@ public:
         auto const msg_idx = boost::lexical_cast<msg_idx_t>(msg_idx_str);
         if (auto const msg_id = inbox_->find(msg_idx))
         {
-            auto const messages = (*storage_)->select(columns(&Message::id, &Message::topic, &Message::body), where(c(&Message::id) == *msg_id && c(&Message::dest_user_id) == user_->id));
+            auto const messages = (*storage_)->select(columns(&Message::id, &Message::topic, &Message::cyphered, &User::username, &Message::body),
+                                                      join<User>(on(c(&Message::orig_user_id) == &User::id)),
+                                                      where(c(&Message::id) == *msg_id));
             if (messages.empty())
             {
                 std::cerr << "message #" << msg_idx << " does not exist for the user " << user_->username << '\n';
@@ -69,7 +70,8 @@ public:
                 exit(EXIT_FAILURE);
             }
 
-            inbox_->sync(msg_idx, std::move(messages.front()), std::cout);
+            inbox_->sync(msg_idx, std::move(messages.front()));
+            inbox_->show(msg_idx, std::cout);
         }
         else
         {
@@ -90,7 +92,6 @@ public:
     }
 
 private:
-    args_t                   args_;
     std::shared_ptr<User>    user_;
     std::shared_ptr<Storage> storage_;
     std::shared_ptr<Inbox>   inbox_;

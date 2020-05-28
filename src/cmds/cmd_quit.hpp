@@ -11,7 +11,7 @@
 namespace lmail
 {
 
-class CmdQuit
+class CmdQuit final
 {
 public:
     explicit CmdQuit(CliFsm &cli_fsm) : cli_fsm_(std::addressof(cli_fsm))

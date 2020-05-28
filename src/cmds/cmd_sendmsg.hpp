@@ -4,41 +4,43 @@
 #include <memory>
 #include <stdexcept>
 #include <utility>
+#include <fstream>
 
-#include <boost/range/algorithm_ext/erase.hpp>
+#include <cryptopp/rsa.h>
 
 #include "storage.hpp"
 #include "types.hpp"
 #include "user.hpp"
 #include "utility.hpp"
+#include "cmd_base_args.hpp"
 
 namespace lmail
 {
 
-class CmdSendMsg
+class CmdSendMsg final : CmdBaseArgs
 {
 public:
-    explicit CmdSendMsg(args_t args, std::shared_ptr<User> user, std::shared_ptr<Storage> storage)
-        : args_(std::move(args)), user_(std::move(user)), storage_(std::move(storage))
+    explicit CmdSendMsg(args_t args, std::shared_ptr<User> user, std::shared_ptr<Storage> storage, std::filesystem::path profile_path)
+        : CmdBaseArgs(std::move(args)), user_(std::move(user)), storage_(std::move(storage)), profile_path_(std::move(profile_path))
     {
         if (!user_)
             throw std::invalid_argument("user provided cannot be empty");
         if (!storage_)
             throw std::invalid_argument("storage provided cannot be empty");
-        boost::remove_erase_if(args_, [](auto const &arg){ return arg.empty(); });
     }
 
     void operator()()
     try
     {
         using namespace sqlite_orm;
+        namespace fs = std::filesystem;
 
         username_t username_tgt;
         if (!args_.empty())
         {
             username_tgt = args_.front();
         }
-        else if (!uread(username_tgt, "Enter a target user: "))
+        else if (!uread(username_tgt, "Enter a target user the message is sent to: "))
         {
             return;
         }
@@ -85,7 +87,30 @@ public:
             return;
         }
 
-        Message message{-1, user_->id, users_ids_to.front(), std::move(topic), std::move(body), false};
+        bool cyphered = false;
+        if (auto const key_path = find_key(profile_path_ / Application::kCypherDirName, username_to_keyname(username_tgt)); !key_path.empty())
+        {
+            std::string ans;
+            while (uread(ans, "Would you like to cypher message? (y/n): ") && ans != "y" && ans != "n")
+                ;
+            if ("y" == ans)
+            {
+                encrypt(key_path, topic, body);
+                cyphered = true;
+            }
+        }
+        else
+        {
+            std::cout << "The message will be sent as plain text" << std::endl;
+        }
+
+        std::string ans;
+        while (uread(ans, "Send the message? (y/n): ") && ans != "y" && ans != "n")
+            ;
+        if (ans == "n")
+            return;
+
+        Message message{-1, user_->id, users_ids_to.front(), std::move(topic), std::move(body), cyphered};
         if (auto const msg_id = (*storage_)->insert(message); - 1 != msg_id)
             std::cout << "message successfully sent to " << username_tgt << '\n';
         else
@@ -101,9 +126,22 @@ public:
     }
 
 private:
-    args_t                   args_;
+    void encrypt(std::filesystem::path const &key_path, topic_t &topic, body_t &body)
+    try
+    {
+        auto const key = load_key<CryptoPP::RSA::PublicKey>(key_path);
+        ::lmail::encrypt(topic, key);
+        ::lmail::encrypt(body, key);
+    }
+    catch (std::exception const &ex)
+    {
+        std::cerr << "error occurred while cyphering message, reason: " << ex.what() << '\n';
+    }
+
+private:
     std::shared_ptr<User>    user_;
     std::shared_ptr<Storage> storage_;
+    std::filesystem::path    profile_path_;
 };
 
 } // namespace lmail

@@ -12,7 +12,7 @@
 namespace lmail
 {
 
-class CmdLogout
+class CmdLogout final
 {
 public:
     explicit CmdLogout(CliFsm &cli_fsm, std::shared_ptr<Storage> storage)

@@ -15,7 +15,7 @@
 namespace lmail
 {
 
-class CmdKeyImp
+class CmdKeyImp final
 {
 public:
     explicit CmdKeyImp(std::shared_ptr<User> user, std::filesystem::path profile_path)
@@ -59,7 +59,7 @@ public:
         }
 
         username_t username_tgt;
-        if (!uread(username_tgt, "Enter a target user that the key is imported from: "))
+        if (!uread(username_tgt, "Enter a target user that the key is linked to: "))
             return;
 
         username_tgt = fs::path(username_tgt).filename();
@@ -87,7 +87,7 @@ public:
         if (fs::copy_file(key_path_src, key_path_dst, ec))
             std::cout << "successfully imported key " << key_path_src
                       <<  " as '" << key_path_dst.filename().string()
-                      << "' and assigned to user '" << username_tgt << "' for cyphering\n";
+                      << "' and associated with user '" << username_tgt << "' for cyphering\n";
         else
             std::cerr << "failed to import key '" << key_path_src << "', reason: " << ec.message() << '\n';
     }

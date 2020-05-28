@@ -8,25 +8,23 @@
 #include <utility>
 #include <algorithm>
 
-#include <boost/range/algorithm_ext/erase.hpp>
-
 #include "types.hpp"
 #include "utility.hpp"
 #include "application.hpp"
+#include "cmd_base_args.hpp"
 
 namespace lmail
 {
 
-class CmdKeyExp
+class CmdKeyExp final : CmdBaseArgs
 {
 public:
     explicit CmdKeyExp(args_t args, std::filesystem::path profile_path)
-        : args_(std::move(args))
+        : CmdBaseArgs(std::move(args))
         , profile_path_(std::move(profile_path))
     {
         if (profile_path_.empty())
             throw std::invalid_argument("profile path provided cannot be empty");
-        boost::remove_erase_if(args_, [](auto const &arg){ return arg.empty(); });
     }
 
     void operator()()
@@ -83,7 +81,6 @@ public:
     }
 
 private:
-    args_t                args_;
     std::filesystem::path profile_path_;
 };
 

@@ -6,20 +6,20 @@
 #include <utility>
 
 #include <boost/lexical_cast.hpp>
-#include <boost/range/algorithm_ext/erase.hpp>
 
 #include "inbox.hpp"
 #include "storage.hpp"
 #include "types.hpp"
+#include "cmd_base_args.hpp"
 
 namespace lmail
 {
 
-class CmdRmMsg
+class CmdRmMsg final : CmdBaseArgs
 {
 public:
     explicit CmdRmMsg(args_t args, std::shared_ptr<User> user, std::shared_ptr<Storage> storage, std::shared_ptr<Inbox> inbox)
-        : args_(std::move(args)), user_(std::move(user)), storage_(std::move(storage)), inbox_(std::move(inbox))
+        : CmdBaseArgs(std::move(args)), user_(std::move(user)), storage_(std::move(storage)), inbox_(std::move(inbox))
     {
         if (!user_)
             throw std::invalid_argument("user provided cannot be empty");
@@ -27,7 +27,6 @@ public:
             throw std::invalid_argument("storage provided cannot be empty");
         if (!inbox_)
             throw std::invalid_argument("inbox provided cannot be empty");
-        boost::remove_erase_if(args_, [](auto const &arg){ return arg.empty(); });
     }
 
     void operator()()
@@ -70,7 +69,6 @@ public:
     }
 
 private:
-    args_t                   args_;
     std::shared_ptr<User>    user_;
     std::shared_ptr<Storage> storage_;
     std::shared_ptr<Inbox>   inbox_;

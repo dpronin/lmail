@@ -3,10 +3,15 @@
 #include <deque>
 #include <iostream>
 #include <tuple>
+#include <utility>
+#include <optional>
+#include <filesystem>
 
 #include <boost/range/algorithm/find_if.hpp>
 
 #include "inbox_message.hpp"
+#include "application.hpp"
+#include "utility.hpp"
 
 namespace lmail
 {
@@ -17,45 +22,30 @@ public:
     using messages_t = std::deque<InboxMessage>;
 
 public:
-    void sync(std::vector<std::tuple<msg_id_t, topic_t>> records, std::ostream &out)
+    explicit Inbox(std::filesystem::path profile_path) : profile_path_(std::move(profile_path))
+    {}
+
+public:
+    std::pair<size_t, size_t> sync(std::vector<std::tuple<msg_id_t, topic_t, bool, username_t>> records)
     {
+        size_t old_messages = messages_.size();
         size_t new_messages = 0;
         for (auto &record : records)
             new_messages += sync(std::tuple_cat(std::move(record), std::tuple<body_t>{})).second;
+        return { old_messages, new_messages };
+    }
 
-        if (messages_.empty())
-            out << "There are no messages\n";
-        else if (messages_.size() == 1)
-            out << "There is 1 message (" << new_messages << " new)"
-                << ":\n";
-        else
-            out << "There are " << messages_.size()
-                << " messages (" << new_messages << " new)"
-                << ":\n";
+    void sync(msg_idx_t msg_idx, std::tuple<msg_id_t, topic_t, bool, username_t, body_t> message)
+    {
+        if (0 < msg_idx && msg_idx <= messages_.size())
+            sync(messages_.begin() + msg_idx - 1, std::move(message));
+    }
 
+    void show_topics(std::ostream &out) const
+    {
         msg_idx_t msg_idx = 0;
         for (auto const &msg : messages_)
-            out << '\t' << (++msg_idx) << ". " << msg.topic << '\n';
-    }
-
-    void sync(msg_idx_t msg_idx, std::tuple<msg_id_t, topic_t, body_t> message, std::ostream &out)
-    {
-        if (0 == msg_idx || msg_idx > messages_.size())
-            return;
-        auto &msg = messages_[msg_idx - 1];
-        msg       = {std::get<0>(message), std::move(std::get<1>(message)), std::move(std::get<2>(message))};
-        out << "\tIndex: " << msg_idx << "\n\n";
-        out << "\tTopic: " << msg.topic << "\n\n";
-        out << "\tMessage: " << '\n';
-        out << '\t' << msg.body << '\n';
-    }
-
-    std::optional<msg_id_t> find(msg_idx_t msg_idx)
-    {
-        std::optional<msg_id_t> msg_id;
-        if (1 <= msg_idx && msg_idx <= messages_.size())
-            msg_id = messages_[msg_idx - 1].id;
-        return msg_id;
+            show_topic(++msg_idx, msg, out);
     }
 
     std::optional<msg_id_t> erase(msg_idx_t msg_idx)
@@ -63,35 +53,84 @@ public:
         std::optional<msg_id_t> msg_id;
         if (0 == msg_idx || msg_idx > messages_.size())
             return msg_id;
-        auto msg_it = std::next(messages_.begin(), msg_idx - 1);
+        auto msg_it = messages_.begin() + msg_idx - 1;
         msg_id = msg_it->id;
         messages_.erase(msg_it);
         return msg_id;
     }
 
-private:
-    std::pair<messages_t::iterator, bool> sync(std::tuple<msg_id_t, topic_t, body_t> message)
+    void show(msg_idx_t msg_idx, std::ostream &out) const
     {
-        auto [msg_id, topic, body] = std::move(message);
-        auto msg_it                = boost::find_if(messages_, [msg_id](auto const &msg) { return msg.id == msg_id; });
-        if (msg_it != messages_.end())
-        {
-            if (msg_it->topic != topic)
-            {
-                msg_it->topic = std::move(topic);
-                msg_it->body  = std::move(body);
-            }
-            return {msg_it, false};
-        }
-        else
-        {
-            messages_.push_front({msg_id, std::move(topic), std::move(body)});
-            return {messages_.begin(), true};
-        }
+        if (1 <= msg_idx && msg_idx <= messages_.size())
+            show(msg_idx, messages_[msg_idx - 1], out);
+    }
+
+    std::optional<msg_id_t> find(msg_idx_t msg_idx) const
+    {
+        std::optional<msg_id_t> msg_id;
+        if (1 <= msg_idx && msg_idx <= messages_.size())
+            msg_id = messages_[msg_idx - 1].id;
+        return msg_id;
     }
 
 private:
-    messages_t messages_;
+    void show_topic(msg_idx_t idx, InboxMessage const &msg, std::ostream &out) const
+    {
+        out << '\t' << idx << ". (from " << msg.user_from << ") Topic: "
+            << (msg.cyphered ? decrypt(msg.topic, msg.user_from) : msg.topic) << '\n';
+    }
+
+    void show(msg_idx_t idx, InboxMessage const &msg, std::ostream &out) const
+    {
+        out << "\tIndex: " << idx << '\n';
+        out << "\tFrom: " << msg.user_from << '\n';
+        out << "\tTopic: " << (msg.cyphered ? decrypt(msg.topic, msg.user_from) : msg.topic) << "\n\n";
+        out << "\tMessage: " << '\n';
+        out << '\t' << (msg.cyphered ? decrypt(msg.body, msg.user_from) : msg.body) << '\n';
+    }
+
+    void sync(messages_t::iterator msg_it, std::tuple<msg_id_t, topic_t, bool, username_t, body_t> message)
+    {
+        std::tie(msg_it->id, msg_it->topic, msg_it->cyphered, msg_it->user_from, msg_it->body) = std::move(message);
+    }
+
+    std::pair<messages_t::iterator, bool> sync(std::tuple<msg_id_t, topic_t, bool, username_t, body_t> message)
+    {
+        auto msg_it  = boost::find_if(messages_, [msg_id = std::get<0>(message)](auto const &msg) { return msg.id == msg_id; });
+        bool new_msg = messages_.end() == msg_it;
+        if (new_msg)
+        {
+            messages_.emplace_front();
+            msg_it  = messages_.begin();
+        }
+        sync(msg_it, std::move(message));
+        return { msg_it, new_msg };
+    }
+
+    std::string decrypt(std::string_view cyphered_msg, username_t const &user_from) const
+    {
+        if (auto const keys_pair_dir = find_key(profile_path_ / Application::kAssocsDirName, username_to_keyname(user_from)); !keys_pair_dir.empty())
+            return decrypt(cyphered_msg, keys_pair_dir / Application::kPrivKeyName);
+        return { cyphered_msg.cbegin(), cyphered_msg.cend() };
+    }
+
+    std::string decrypt(std::string_view cyphered_msg, std::filesystem::path const &key_path) const
+    {
+        std::string msg{ cyphered_msg.cbegin(), cyphered_msg.end() };
+        try
+        {
+            ::lmail::decrypt(msg, load_key<CryptoPP::RSA::PrivateKey>(key_path));
+        }
+        catch (std::exception const &ex)
+        {
+            std::cerr << "error occurred while decrypting message, reason: " << ex.what() << '\n';
+        }
+        return msg;
+    }
+
+private:
+    std::filesystem::path profile_path_;
+    messages_t            messages_;
 };
 
 } // namespace lmail

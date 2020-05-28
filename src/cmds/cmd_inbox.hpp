@@ -13,7 +13,7 @@
 namespace lmail
 {
 
-class CmdInbox
+class CmdInbox final
 {
 public:
     explicit CmdInbox(std::shared_ptr<User> user, std::shared_ptr<Storage> storage, std::shared_ptr<Inbox> inbox)
@@ -31,8 +31,19 @@ public:
     try
     {
         using namespace sqlite_orm;
-        auto items = (*storage_)->select(columns(&Message::id, &Message::topic), where(c(&Message::dest_user_id) == user_->id));
-        inbox_->sync(std::move(items), std::cout);
+        auto items = (*storage_)->select(columns(&Message::id, &Message::topic, &Message::cyphered, &User::username),
+                                         join<User>(on(c(&Message::orig_user_id) == &User::id)),
+                                         where(c(&Message::dest_user_id) == user_->id));
+        auto const [old_messages, new_messages] = inbox_->sync(std::move(items));
+        auto const all_messages = old_messages + new_messages;
+        if (0 == all_messages)
+            std::cout << "There are no messages\n";
+        else if (1 == all_messages)
+            std::cout << "There is 1 " << (1 == new_messages ? "new" : "") << " message:\n";
+        else
+            std::cout << "There are " << all_messages << " messages (" << new_messages << " new):\n";
+        inbox_->show_topics(std::cout);
+        std::cout.flush();
     }
     catch (std::exception const &ex)
     {

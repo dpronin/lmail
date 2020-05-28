@@ -15,7 +15,7 @@
 namespace lmail
 {
 
-class CmdHelp
+class CmdHelp final
 {
 public:
     explicit CmdHelp(help_cmds_t help_cmds = {}) : help_cmds_(std::move(help_cmds))

@@ -4,25 +4,24 @@
 #include <memory>
 
 #include <boost/scope_exit.hpp>
-#include <boost/range/algorithm_ext/erase.hpp>
 
 #include "storage.hpp"
 #include "types.hpp"
 #include "user.hpp"
 #include "utility.hpp"
 #include "application.hpp"
+#include "cmd_base_args.hpp"
 
 namespace lmail
 {
 
-class CmdRegister
+class CmdRegister final : CmdBaseArgs
 {
 public:
-    explicit CmdRegister(args_t args, std::shared_ptr<Storage> storage) : args_(std::move(args)), storage_(std::move(storage))
+    explicit CmdRegister(args_t args, std::shared_ptr<Storage> storage) : CmdBaseArgs(std::move(args)), storage_(std::move(storage))
     {
         if (!storage_)
             throw std::invalid_argument("storage provided cannot be empty");
-        boost::remove_erase_if(args_, [](auto const &arg){ return arg.empty(); });
     }
 
     void operator()()
@@ -73,7 +72,7 @@ public:
         password.push_back(':');
         password += Application::kSalt;
 
-        User user{-1, std::move(username), sha256(password)};
+        User user{-1, std::move(username), sha3_256(password)};
         if (auto const user_id = (*storage_)->insert(user); - 1 != user_id)
         {
             std::cout << "Successfully registered a user " << colored(user.username, color_e::green) << std::endl;
@@ -94,7 +93,6 @@ public:
     }
 
 private:
-    args_t                   args_;
     std::shared_ptr<Storage> storage_;
 };
 

@@ -11,7 +11,7 @@
 namespace lmail
 {
 
-class CmdListUsers
+class CmdListUsers final
 {
 public:
     explicit CmdListUsers(std::shared_ptr<User> user, std::shared_ptr<Storage> storage)

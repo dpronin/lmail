@@ -10,25 +10,23 @@
 #include <utility>
 #include <algorithm>
 
-#include <boost/range/algorithm_ext/erase.hpp>
-
 #include "types.hpp"
 #include "utility.hpp"
 #include "application.hpp"
+#include "cmd_base_args.hpp"
 
 namespace lmail
 {
 
-class CmdRmKeyImp
+class CmdRmKeyImp final : CmdBaseArgs
 {
 public:
     explicit CmdRmKeyImp(args_t args, std::filesystem::path profile_path)
-        : args_(std::move(args))
+        : CmdBaseArgs(std::move(args))
         , profile_path_(std::move(profile_path))
     {
         if (profile_path_.empty())
             throw std::invalid_argument("profile path provided cannot be empty");
-        boost::remove_erase_if(args_, [](auto const &arg){ return arg.empty(); });
     }
 
     void operator()()
@@ -41,7 +39,7 @@ public:
         {
             username_tgt = args_.front();
         }
-        else if (!uread(username_tgt, "Enter a target user name: "))
+        else if (!uread(username_tgt, "Enter a target user name the key is linked to: "))
         {
             return;
         }
@@ -51,7 +49,7 @@ public:
             return;
         }
 
-        if (auto const key_path = find_key(profile_path_ / Application::kCypherDirName, username_tgt); !key_path.empty())
+        if (auto const key_path = find_key(profile_path_ / Application::kCypherDirName, username_to_keyname(username_tgt)); !key_path.empty())
         {
             auto extract_keyname = [](auto const &key_path){ return key_path.filename().string(); };
             auto const keyname = extract_keyname(key_path);
@@ -90,7 +88,6 @@ public:
     }
 
 private:
-    args_t                args_;
     std::shared_ptr<User> user_;
     std::filesystem::path profile_path_;
 };

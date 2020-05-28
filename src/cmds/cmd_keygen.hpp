@@ -7,31 +7,32 @@
 #include <utility>
 
 #include <boost/lexical_cast.hpp>
-#include <boost/range/algorithm_ext/erase.hpp>
 
 #include "application.hpp"
 #include "types.hpp"
 #include "utility.hpp"
 #include "user.hpp"
+#include "cmd_base_args.hpp"
 
 namespace lmail
 {
 
-class CmdKeyGen
+class CmdKeyGen final : CmdBaseArgs
 {
 public:
     explicit CmdKeyGen(args_t args, std::filesystem::path const &profile_path)
-        : args_(std::move(args))
+        : CmdBaseArgs(std::move(args))
         , keys_dir_(profile_path / Application::kKeysDirName)
     {
         if (profile_path.empty())
             throw std::invalid_argument("profile path provided cannot be empty");
-        boost::remove_erase_if(args_, [](auto const &arg){ return arg.empty(); });
     }
 
     void operator()()
     try
     {
+        namespace fs = std::filesystem;
+
         key_name_t keyname;
         if (!args_.empty())
         {
@@ -47,7 +48,7 @@ public:
             return;
         }
 
-        keyname = std::filesystem::path(keyname).filename();
+        keyname = fs::path(keyname).filename();
         if (keyname.empty())
         {
             std::cerr << "key name provided cannot be empty\n";
@@ -58,32 +59,32 @@ public:
 
         auto keys_pair_dir = keys_dir_ / keyname;
         keys_pair_dir += Application::kUserKeyLinkSuffix;
-        if (std::filesystem::exists(keys_pair_dir))
+        if (fs::exists(keys_pair_dir))
         {
             std::cerr << "key with name '" << keyname << "' already exists\n"
                       << "Select another name for a new key\n";
             return;
         }
 
-        size_t keysize = Application::kDefaultKeySize;
-        std::string keysize_str;
-        if (!uread(keysize_str, "Enter a new RSA key's size (default: " + std::to_string(keysize) + "): "))
+        size_t key_size = Application::kDefaultKeySize;
+        std::string key_size_str;
+        if (!uread(key_size_str, "Enter a new RSA key's size (default: " + std::to_string(key_size) + "): "))
             return;
-        if (!keysize_str.empty())
+        if (!key_size_str.empty())
         {
-            if (auto const keysize_tmp = boost::lexical_cast<size_t>(keysize_str); 0 != keysize_tmp)
-                keysize = keysize_tmp;
+            if (auto const key_size_tmp = boost::lexical_cast<size_t>(key_size_str); 0 != key_size_tmp)
+                key_size = key_size_tmp;
             else
-                std::cerr << "key size cannot be 0. Used default size " << keysize << '\n';
+                std::cerr << "key size cannot be 0. Used default size " << key_size << '\n';
         }
         else
         {
-            std::cerr << "key size is unspecified. Used default size " << keysize << '\n';
+            std::cerr << "key size is unspecified. Used default size " << key_size << '\n';
         }
-        std::cout << "generation key '" << keyname << "', key size " << keysize << ". Wait a while ...";
+        std::cout << "generation key '" << keyname << "', key size " << key_size << ". Wait a while ...";
         std::cout.flush();
-        create_rsa_key(keys_pair_dir, keysize);
-        std::cout << "\nsuccessfully generated key '" << keyname << "', key size " << keysize << std::endl;
+        generate_rsa_key_pair(keys_pair_dir, key_size);
+        std::cout << "\nsuccessfully generated key '" << keyname << "', key size " << key_size << std::endl;
     }
     catch (boost::bad_lexical_cast const &)
     {
@@ -99,7 +100,6 @@ public:
     }
 
 private:
-    args_t                args_;
     std::filesystem::path keys_dir_;
 };
 

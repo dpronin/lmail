@@ -18,7 +18,7 @@
 namespace lmail
 {
 
-class CmdListKeys
+class CmdListKeys final
 {
 public:
     explicit CmdListKeys(std::filesystem::path profile_path) : profile_path_(std::move(profile_path))
@@ -49,13 +49,13 @@ private:
         size_t count = 0;
         for_each_dir_entry(profile_path_ / Application::kKeysDirName,
             [this, &count](auto const &dir_entry){
-                auto const key_path = dir_entry.path();
-                std::cout << "* " << key_path.stem().string();
+                auto const key_pair_path = dir_entry.path();
+                std::cout << "* " << key_pair_path.stem().string();
                 std::vector<std::string> usernames;
                 for_each_dir_entry_if(profile_path_ / Application::kAssocsDirName,
-                    [&key_path](auto const &dir_entry){
+                    [&key_pair_path](auto const &dir_entry){
                         std::error_code ec;
-                        return std::filesystem::read_symlink(dir_entry.path(), ec) == key_path && !ec;
+                        return std::filesystem::read_symlink(dir_entry.path(), ec) == key_pair_path && !ec;
                     },
                     [&usernames](auto const &dir_entry) { usernames.push_back(dir_entry.path().stem()); });
                 if (!usernames.empty())

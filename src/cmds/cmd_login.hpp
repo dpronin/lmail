@@ -8,7 +8,6 @@
 #include <utility>
 
 #include <boost/scope_exit.hpp>
-#include <boost/range/algorithm_ext/erase.hpp>
 
 #include "inbox.hpp"
 #include "storage.hpp"
@@ -16,23 +15,23 @@
 #include "user.hpp"
 #include "utility.hpp"
 #include "application.hpp"
+#include "cmd_base_args.hpp"
 
 #include "states/logged_in_state.hpp"
 
 namespace lmail
 {
 
-class CmdLogin
+class CmdLogin final : CmdBaseArgs
 {
 public:
     explicit CmdLogin(args_t args, CliFsm &cli_fsm, std::shared_ptr<Storage> storage)
-        : args_(std::move(args)), cli_fsm_(std::addressof(cli_fsm)), storage_(std::move(storage))
+        : CmdBaseArgs(std::move(args)), cli_fsm_(std::addressof(cli_fsm)), storage_(std::move(storage))
     {
         if (!cli_fsm_)
             throw std::invalid_argument("fsm provided cannot be empty");
         if (!storage_)
             throw std::invalid_argument("storage provided cannot be empty");
-        boost::remove_erase_if(args_, [](auto const &arg){ return arg.empty(); });
     }
 
     void operator()()
@@ -81,9 +80,12 @@ public:
             password.push_back(':');
             password += Application::kSalt;
 
-            b_success = user.username == username && user.password == sha256(password);
+            b_success = user.username == username && user.password == sha3_256(password);
             if (b_success)
-                cli_fsm_->change_state(std::make_shared<LoggedInState>(*cli_fsm_, storage_, std::make_unique<User>(std::move(user)), std::make_shared<Inbox>()));
+            {
+                auto inbox = std::make_shared<Inbox>(Application::profile_path(user));
+                cli_fsm_->change_state(std::make_shared<LoggedInState>(*cli_fsm_, storage_, std::make_unique<User>(std::move(user)), std::move(inbox)));
+            }
         }
 
         if (!b_success)
@@ -99,7 +101,6 @@ public:
     }
 
 private:
-    args_t                   args_;
     CliFsm *                 cli_fsm_;
     std::shared_ptr<Storage> storage_;
 };

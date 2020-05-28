@@ -10,21 +10,20 @@
 #include <utility>
 #include <algorithm>
 
-#include <boost/range/algorithm_ext/erase.hpp>
-
 #include "types.hpp"
 #include "utility.hpp"
 #include "application.hpp"
 #include "user.hpp"
+#include "cmd_base_args.hpp"
 
 namespace lmail
 {
 
-class CmdKeyAssoc
+class CmdKeyAssoc final : CmdBaseArgs
 {
 public:
     explicit CmdKeyAssoc(args_t args, std::shared_ptr<User> user, std::filesystem::path profile_path)
-        : args_(std::move(args))
+        : CmdBaseArgs(std::move(args))
         , user_(std::move(user))
         , profile_path_(std::move(profile_path))
     {
@@ -32,7 +31,6 @@ public:
             throw std::invalid_argument("user provided cannot be empty");
         if (profile_path_.empty())
             throw std::invalid_argument("profile path provided cannot be empty");
-        boost::remove_erase_if(args_, [](auto const &arg){ return arg.empty(); });
     }
 
     void operator()()
@@ -40,19 +38,18 @@ public:
     {
         namespace fs = std::filesystem;
 
-        auto args = args_;
+        auto extract_arg = [args = args_] () mutable {
+            arg_t arg;
+            if (!args.empty())
+                arg = std::move(args.front()), args.pop_front();
+            return arg;
+        };
 
-        key_name_t keyname;
-        if (!args.empty())
-        {
-            keyname = std::move(args.front());
-            args.pop_front();
-        }
-        else if (!uread(keyname, "Enter key name: "))
-        {
+        key_name_t keyname = extract_arg();
+        if (keyname.empty() && !uread(keyname, "Enter key name: "))
             return;
-        }
-        else if (keyname.empty())
+
+        if (keyname.empty())
         {
             std::cerr << "key name is not specified\n";
             return;
@@ -60,17 +57,11 @@ public:
 
         if (auto const keys_pair_dir = find_key(profile_path_ / Application::kKeysDirName, keyname); !keys_pair_dir.empty())
         {
-            username_t username_tgt;
-            if (!args.empty())
-            {
-                username_tgt = args.front();
-                args.pop_front();
-            }
-            else if (!uread(username_tgt, "Enter a target user name: "))
-            {
+            username_t username_tgt = extract_arg();
+            if (username_tgt.empty() && !uread(username_tgt, "Enter a target user name the key is linked to: "))
                 return;
-            }
-            else if (username_tgt.empty())
+
+            if (username_tgt.empty())
             {
                 std::cerr << "target user name cannot be empty\n";
                 return;
@@ -129,7 +120,6 @@ public:
     }
 
 private:
-    args_t                args_;
     std::shared_ptr<User> user_;
     std::filesystem::path profile_path_;
 };
