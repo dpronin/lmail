@@ -28,7 +28,7 @@ inline decltype(auto) make_sqlite3_storage(std::string_view db_path)
                                                    make_column("dest_user_id", &Message::dest_user_id),
                                                    make_column("topic", &Message::topic),
                                                    make_column("body", &Message::body),
-                                                   // make_column("cyphered", &Message::cyphered),
+                                                   make_column("cyphered", &Message::cyphered),
                                                    foreign_key(&Message::orig_user_id).references(&User::id),
                                                    foreign_key(&Message::dest_user_id).references(&User::id)));
     // clang-format on

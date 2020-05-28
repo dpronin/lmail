@@ -51,7 +51,7 @@ public:
             return;
         }
 
-        if (auto const key_path = find_keyimp(profile_path_ / Application::kCypherDirName, username_tgt); !key_path.empty())
+        if (auto const key_path = find_key(profile_path_ / Application::kCypherDirName, username_tgt); !key_path.empty())
         {
             auto extract_keyname = [](auto const &key_path){ return key_path.filename().string(); };
             auto const keyname = extract_keyname(key_path);

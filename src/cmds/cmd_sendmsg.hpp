@@ -85,7 +85,7 @@ public:
             return;
         }
 
-        Message message{-1, user_->id, users_ids_to.front(), std::move(topic), std::move(body)};
+        Message message{-1, user_->id, users_ids_to.front(), std::move(topic), std::move(body), false};
         if (auto const msg_id = (*storage_)->insert(message); - 1 != msg_id)
             std::cout << "message successfully sent to " << username_tgt << '\n';
         else

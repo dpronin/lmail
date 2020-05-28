@@ -58,7 +58,7 @@ public:
             return;
         }
 
-        if (auto const keys_pair_dir = find_key_pair_dir(profile_path_ / Application::kKeysDirName, keyname); !keys_pair_dir.empty())
+        if (auto const keys_pair_dir = find_key(profile_path_ / Application::kKeysDirName, keyname); !keys_pair_dir.empty())
         {
             username_t username_tgt;
             if (!args.empty())
@@ -98,16 +98,16 @@ public:
                 return;
             }
 
-            auto link_path = assocs_dir / username_tgt;
-            link_path += Application::kUserKeyLinkSuffix;
-            if (fs::exists(link_path))
+            auto assoc_path = assocs_dir / username_tgt;
+            assoc_path += Application::kUserKeyLinkSuffix;
+            if (fs::exists(assoc_path))
             {
                 std::cerr << "some key is already associated with user '" << username_tgt << "'\n";
                 return;
             }
 
             std::error_code ec;
-            fs::create_directory_symlink(keys_pair_dir, link_path, ec);
+            fs::create_directory_symlink(keys_pair_dir, assoc_path, ec);
             if (!ec)
                 std::cout << "successfully created key-user association" << std::endl;
             else

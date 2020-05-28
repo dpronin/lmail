@@ -37,13 +37,13 @@ public:
         {
             keyname = args_.front();
         }
-        else if (!uread(keyname, "Enter key file name: "))
+        else if (!uread(keyname, "Enter key name: "))
         {
             return;
         }
         else if (keyname.empty())
         {
-            std::cerr << "key file name cannot be empty\n";
+            std::cerr << "key name cannot be empty\n";
             return;
         }
 
@@ -53,9 +53,11 @@ public:
             std::cerr << "key name provided cannot be empty\n";
             return;
         }
+
         std::cout << "Trying to add key '" << keyname << "' key...\n";
 
-        auto const keys_pair_dir = keys_dir_ / keyname;
+        auto keys_pair_dir = keys_dir_ / keyname;
+        keys_pair_dir += Application::kUserKeyLinkSuffix;
         if (std::filesystem::exists(keys_pair_dir))
         {
             std::cerr << "key with name '" << keyname << "' already exists\n"

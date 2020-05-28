@@ -50,7 +50,7 @@ private:
         for_each_dir_entry(profile_path_ / Application::kKeysDirName,
             [this, &count](auto const &dir_entry){
                 auto const key_path = dir_entry.path();
-                std::cout << "* " << key_path.filename().string();
+                std::cout << "* " << key_path.stem().string();
                 std::vector<std::string> usernames;
                 for_each_dir_entry_if(profile_path_ / Application::kAssocsDirName,
                     [&key_path](auto const &dir_entry){
@@ -81,9 +81,6 @@ private:
         if (0 == count)
             std::cout << "There are no keys available" << std::endl;
     }
-
-private:
-    static constexpr char kKeysDirName[] = "keys";
 
 private:
     std::filesystem::path profile_path_;

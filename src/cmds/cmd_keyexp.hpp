@@ -49,7 +49,7 @@ public:
             return;
         }
 
-        if (auto const keys_pair_dir = find_key_pair_dir(profile_path_ / Application::kKeysDirName, keyname); !keys_pair_dir.empty())
+        if (auto const keys_pair_dir = find_key(profile_path_ / Application::kKeysDirName, keyname); !keys_pair_dir.empty())
         {
             std::string copy_to_str;
             fs::path key_path_dst = Application::instance().home_path() / keyname;

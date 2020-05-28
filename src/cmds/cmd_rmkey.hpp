@@ -46,7 +46,7 @@ public:
             return;
         }
 
-        if (auto const key_path = find_key_pair_dir(profile_path_ / kKeysDirName, keyname); !key_path.empty())
+        if (auto const key_path = find_key(profile_path_ / Application::kKeysDirName, keyname); !key_path.empty())
         {
             std::cout << "The key '" << keyname << "' is about to be removed" << std::endl;
             std::string ans;

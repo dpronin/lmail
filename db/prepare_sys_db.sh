@@ -51,7 +51,7 @@ if [ "x${DB_DIR_G_OWNER}" != "x${OWNER_GROUP}" -o "x${DB_FILE_G_OWNER}" != "x${O
     chown :${OWNER_GROUP} ${DB_DIR}
 fi
 
-echo "Making directory ${DB_DIR} be accessable for the owner group '${OWNER_GROUP}'"
+echo "Making directory ${DB_DIR} be accessible for the owner group '${OWNER_GROUP}'"
 chmod g+rwx ${DB_DIR}
 
 if [ "x${DB_FILE_G_OWNER}" != "x${OWNER_GROUP}" ]; then
@@ -59,7 +59,7 @@ if [ "x${DB_FILE_G_OWNER}" != "x${OWNER_GROUP}" ]; then
     chown :${OWNER_GROUP} ${DB_NEW_PATH}
 fi
 
-echo "Making database ${DB_NEW_PATH} be read/write accessable for the owner group '${OWNER_GROUP}'"
+echo "Making database ${DB_NEW_PATH} be read/write accessible for the owner group '${OWNER_GROUP}'"
 chmod g+rw ${DB_NEW_PATH}
 
 echo ""

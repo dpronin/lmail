@@ -130,19 +130,12 @@ auto find_dir_entry_if(std::filesystem::path const &dir, Comp comp)
     return dir_entry;
 }
 
-inline auto find_assoc(std::filesystem::path const &dir, std::string_view username)
+inline auto find_key(std::filesystem::path const &dir, std::string_view username)
 {
-    return find_dir_entry_if(dir, [username](auto const &dir_entry){
-        return dir_entry.path().filename().stem() == username;
-    }).path();
+    return find_dir_entry_if(dir, [username](auto const &dir_entry){return dir_entry.path().filename().stem() == username; }).path();
 }
 
-inline auto find_keyimp(std::filesystem::path const &dir, std::string_view username) { return find_assoc(dir, username); }
-
-inline auto find_key_pair_dir(std::filesystem::path const &dir, std::string_view keyname)
-{
-    return find_dir_entry_if(dir, [keyname](auto const &dir_entry){ return dir_entry.path().filename() == keyname; }).path();
-}
+inline auto find_assoc(std::filesystem::path const &dir, std::string_view username) { return find_key(dir, username); }
 
 inline void create_rsa_key(std::filesystem::path const &keys_pair_dir, size_t keysize)
 {
