@@ -19,10 +19,10 @@
 namespace lmail
 {
 
-class CmdRmKeyAssoc
+class CmdRmKeyImp
 {
 public:
-    explicit CmdRmKeyAssoc(args_t args, std::filesystem::path profile_path)
+    explicit CmdRmKeyImp(args_t args, std::filesystem::path profile_path)
         : args_(std::move(args))
         , profile_path_(std::move(profile_path))
     {
@@ -51,39 +51,33 @@ public:
             return;
         }
 
-
-        if (auto const assoc_path = find_assoc(profile_path_ / Application::kAssocsDirName, username_tgt); !assoc_path.empty())
+        if (auto const key_path = find_keyimp(profile_path_ / Application::kCypherDirName, username_tgt); !key_path.empty())
         {
-            auto extract_keyname = [](auto const &assoc_path){
-                std::error_code ec;
-                return fs::read_symlink(assoc_path, ec).filename().string();
-            };
-            auto const keyname = extract_keyname(assoc_path);
+            auto extract_keyname = [](auto const &key_path){ return key_path.filename().string(); };
+            auto const keyname = extract_keyname(key_path);
             if (keyname.empty())
             {
                 std::cerr << "couldn't extract key name\n";
                 return;
             }
 
-            std::cout << "The association between key '" << keyname << "' and user '" << username_tgt << "' is about to be removed" << std::endl;
+            std::cout << "The imported key '" << keyname << "' for user '" << username_tgt << "' is about to be removed" << std::endl;
             std::string ans;
             while (uread(ans, "Remove it? (y/n): ") && ans != "y" && ans != "n")
                 ;
             if ("y" == ans)
             {
                 std::error_code ec;
-                fs::remove(assoc_path, ec);
+                fs::remove(key_path, ec);
                 if (!ec)
-                    std::cout << "association between key '"
-                              << keyname << "' and user '" << username_tgt << "' successfully removed\n";
+                    std::cout << "imported key '" << keyname << "' for user '" << username_tgt << "' successfully removed\n";
                 else
-                    std::cerr << "failed to remove the association between key '"
-                              << keyname << "' and user '" << username_tgt << "'\n";
+                    std::cerr << "failed to remove the imported key '" << keyname << "' for user '" << username_tgt << "'\n";
             }
         }
         else
         {
-            std::cerr << "There is none key associated with user '" << username_tgt << "'\n";
+            std::cerr << "There is none public key associated with user '" << username_tgt << "'\n";
         }
     }
     catch (std::exception const &ex)

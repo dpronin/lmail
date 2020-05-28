@@ -18,8 +18,12 @@ namespace lmail
 class CmdKeyImp
 {
 public:
-    explicit CmdKeyImp(std::filesystem::path profile_path) : profile_path_(std::move(profile_path))
+    explicit CmdKeyImp(std::shared_ptr<User> user, std::filesystem::path profile_path)
+        : user_(std::move(user))
+        , profile_path_(std::move(profile_path))
     {
+        if (!user_)
+            throw std::invalid_argument("user provided cannot be empty");
         if (profile_path_.empty())
             throw std::invalid_argument("profile path provided cannot be empty");
     }
@@ -48,11 +52,46 @@ public:
         }
 
         auto const cypher_dir = profile_path_ / Application::kCypherDirName;
-        if (fs::exists(cypher_dir) && !fs::is_directory(cypher_dir) || !fs::exists(cypher_dir) && !fs::create_directory(cypher_dir))
+        if (fs::exists(cypher_dir) && !fs::is_directory(cypher_dir) || !fs::exists(cypher_dir) && !fs::create_directories(cypher_dir))
         {
             std::cerr << "couldn't create " << cypher_dir << '\n';
             return;
         }
+
+        username_t username_tgt;
+        if (!uread(username_tgt, "Enter a target user that the key is imported from: "))
+        {
+            return;
+        }
+
+        username_tgt = fs::path(username_tgt).filename();
+        if (username_tgt.empty())
+        {
+            std::cerr << "target user name cannot be empty\n";
+            return;
+        }
+
+        if (username_tgt == user_->username)
+        {
+            std::cerr << "you cannot import the key from yourself\n";
+            return;
+        }
+
+        auto key_path_dst = cypher_dir / username_tgt;
+        key_path_dst += Application::kUserKeyLinkSuffix;
+        if (fs::exists(key_path_dst))
+        {
+            std::cerr << "key from the user '" << username_tgt << "' has already been imported\n";
+            return;
+        }
+
+        std::error_code ec;
+        if (fs::copy_file(key_path_src, key_path_dst, ec))
+            std::cout << "successfully imported key " << key_path_src
+                      <<  " as '" << key_path_dst.filename().string()
+                      << "' and assigned to user '" << username_tgt << "' for cyphering\n";
+        else
+            std::cerr << "failed to import key '" << key_path_src << "', reason: " << ec.message() << '\n';
     }
     catch (std::exception const &ex)
     {
@@ -64,6 +103,7 @@ public:
     }
 
 private:
+    std::shared_ptr<User> user_;
     std::filesystem::path profile_path_;
 };
 

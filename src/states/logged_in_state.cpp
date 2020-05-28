@@ -21,6 +21,7 @@
 #include "cmds/cmd_rmkeyassoc.hpp"
 #include "cmds/cmd_rmmsg.hpp"
 #include "cmds/cmd_sendmsg.hpp"
+#include "cmds/cmd_rmkeyimp.hpp"
 
 using namespace lmail;
 
@@ -49,11 +50,12 @@ help_cmds_t const &LoggedInState::help_cmds()
         { "help",        {},               "Shows this help page" },
         { "keygen",      { "[keyname]" },  "Generates and stores a new RSA key with name specified or entered" },
         { "keyexp",      { "[keyname]" },  "Exports the RSA public key with name specified or entered into a file given as path" },
-        { "keyimp",      {},               "Initiates procedure of importing an RSA public key" },
+        { "keyimp",      {},               "Initiates procedure of importing an RSA public key and assigning it to a target user" },
         { "keyassoc",    { "[keyname]" },  "Associates the RSA key with name specified or entered with a user entered" },
         { "lskeys",      {},               "Shows all RSA key pairs generated and available for use" },
         { "rmkey",       { "[keyname]" },  "Removes the RSA key pair with name specified or entered" },
-        { "rmkeyassoc",  { "[keyname]" },  "Removes an association between RSA key pair and a user" }
+        { "rmkeyassoc",  { "[keyname]" },  "Removes an association between RSA key pair and a user" },
+        { "rmkeyimp",    { "[username]" }, "Removes an imported public RSA key assigned to a user" }
     };
     // clang-format on
     return cmds;
@@ -98,11 +100,11 @@ void LoggedInState::process(args_t args)
         cmd_f = CmdListUsers(user_, storage_);
     else if ("inbox" == cmd)
         cmd_f = CmdInbox(user_, storage_, inbox_);
-    else if ("send" == cmd)
+    else if ("sendmsg" == cmd)
         cmd_f = CmdSendMsg(std::move(args), user_, storage_);
-    else if ("read" == cmd)
+    else if ("readmsg" == cmd)
         cmd_f = CmdReadMsg(std::move(args), user_, storage_, inbox_);
-    else if ("remove" == cmd)
+    else if ("rmmsg" == cmd)
         cmd_f = CmdRmMsg(std::move(args), user_, storage_, inbox_);
     else if ("keygen" == cmd)
         cmd_f = CmdKeyGen(std::move(args), Application::profile_path(*user_));
@@ -111,11 +113,13 @@ void LoggedInState::process(args_t args)
     else if ("keyexp" == cmd)
         cmd_f = CmdKeyExp(std::move(args), Application::profile_path(*user_));
     else if ("keyimp" == cmd)
-        cmd_f = CmdKeyImp(Application::profile_path(*user_));
+        cmd_f = CmdKeyImp(user_, Application::profile_path(*user_));
     else if ("keyassoc" == cmd)
         cmd_f = CmdKeyAssoc(std::move(args), user_, Application::profile_path(*user_));
     else if ("rmkeyassoc" == cmd)
         cmd_f = CmdRmKeyAssoc(std::move(args), Application::profile_path(*user_));
+    else if ("rmkeyimp" == cmd)
+        cmd_f = CmdRmKeyImp(std::move(args), Application::profile_path(*user_));
     else if ("lskeys" == cmd)
         cmd_f = CmdListKeys(Application::profile_path(*user_));
     else if ("quit" == cmd)

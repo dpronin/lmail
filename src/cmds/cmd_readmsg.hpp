@@ -6,6 +6,7 @@
 #include <utility>
 
 #include <boost/lexical_cast.hpp>
+#include <boost/range/algorithm_ext/erase.hpp>
 
 #include "inbox.hpp"
 #include "storage.hpp"
@@ -28,6 +29,7 @@ public:
             throw std::invalid_argument("storage provided cannot be empty");
         if (!inbox_)
             throw std::invalid_argument("inbox provided cannot be empty");
+        boost::remove_erase_if(args_, [](auto const &arg){ return arg.empty(); });
     }
 
     void operator()()
@@ -36,7 +38,7 @@ public:
         using namespace sqlite_orm;
 
         std::string msg_idx_str;
-        if (!args_.empty() && !args_.front().empty())
+        if (!args_.empty())
         {
             msg_idx_str = args_.front();
         }

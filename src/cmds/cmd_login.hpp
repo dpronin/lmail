@@ -8,6 +8,7 @@
 #include <utility>
 
 #include <boost/scope_exit.hpp>
+#include <boost/range/algorithm_ext/erase.hpp>
 
 #include "inbox.hpp"
 #include "storage.hpp"
@@ -31,13 +32,14 @@ public:
             throw std::invalid_argument("fsm provided cannot be empty");
         if (!storage_)
             throw std::invalid_argument("storage provided cannot be empty");
+        boost::remove_erase_if(args_, [](auto const &arg){ return arg.empty(); });
     }
 
     void operator()()
     try
     {
         username_t username;
-        if (!args_.empty() && !args_.front().empty())
+        if (!args_.empty())
         {
             username = args_.front();
         }

@@ -137,6 +137,8 @@ inline auto find_assoc(std::filesystem::path const &dir, std::string_view userna
     }).path();
 }
 
+inline auto find_keyimp(std::filesystem::path const &dir, std::string_view username) { return find_assoc(dir, username); }
+
 inline auto find_key_pair_dir(std::filesystem::path const &dir, std::string_view keyname)
 {
     return find_dir_entry_if(dir, [keyname](auto const &dir_entry){ return dir_entry.path().filename() == keyname; }).path();
@@ -156,7 +158,7 @@ inline void create_rsa_key(std::filesystem::path const &keys_pair_dir, size_t ke
     };
 
     if (fs::exists(keys_pair_dir) && !fs::is_directory(keys_pair_dir)
-        || !fs::exists(keys_pair_dir) && !fs::create_directory(keys_pair_dir))
+        || !fs::exists(keys_pair_dir) && !fs::create_directories(keys_pair_dir))
     {
         throw std::runtime_error("couldn't create key pair");
     }
@@ -164,8 +166,10 @@ inline void create_rsa_key(std::filesystem::path const &keys_pair_dir, size_t ke
     AutoSeededRandomPool rnd;
     RSA::PrivateKey priv_key;
     priv_key.GenerateRandomWithKeySize(rnd, keysize);
-    save_priv_key(priv_key, keys_pair_dir / Application::kPrivKeyName);
-    save_pub_key(RSA::PublicKey(priv_key), keys_pair_dir / Application::kPubKeyName);
+    auto key_path = keys_pair_dir / Application::kPrivKeyName;
+    save_priv_key(priv_key, key_path);
+    key_path += Application::kPubKeySuffix;
+    save_pub_key(RSA::PublicKey(priv_key), key_path);
 }
 
 } // namespace lmail

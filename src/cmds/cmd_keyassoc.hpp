@@ -10,6 +10,8 @@
 #include <utility>
 #include <algorithm>
 
+#include <boost/range/algorithm_ext/erase.hpp>
+
 #include "types.hpp"
 #include "utility.hpp"
 #include "application.hpp"
@@ -30,6 +32,7 @@ public:
             throw std::invalid_argument("user provided cannot be empty");
         if (profile_path_.empty())
             throw std::invalid_argument("profile path provided cannot be empty");
+        boost::remove_erase_if(args_, [](auto const &arg){ return arg.empty(); });
     }
 
     void operator()()
@@ -37,10 +40,13 @@ public:
     {
         namespace fs = std::filesystem;
 
+        auto args = args_;
+
         key_name_t keyname;
-        if (!args_.empty() && !args_.front().empty())
+        if (!args.empty())
         {
-            keyname = args_.front();
+            keyname = std::move(args.front());
+            args.pop_front();
         }
         else if (!uread(keyname, "Enter key name: "))
         {
@@ -55,11 +61,12 @@ public:
         if (auto const keys_pair_dir = find_key_pair_dir(profile_path_ / Application::kKeysDirName, keyname); !keys_pair_dir.empty())
         {
             username_t username_tgt;
-            if (!args_.empty() && !args_.front().empty())
+            if (!args.empty())
             {
-                username_tgt = args_.front();
+                username_tgt = args.front();
+                args.pop_front();
             }
-            else if (!uread(username_tgt, "Enter a target user: "))
+            else if (!uread(username_tgt, "Enter a target user name: "))
             {
                 return;
             }
@@ -72,7 +79,7 @@ public:
             username_tgt = fs::path(username_tgt).filename();
             if (username_tgt.empty())
             {
-                std::cerr << "target user name provided cannot be empty\n";
+                std::cerr << "target user name cannot be empty\n";
                 return;
             }
 

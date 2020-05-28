@@ -30,6 +30,22 @@ public:
     void operator()()
     try
     {
+        print_own();
+        print_imported();
+    }
+    catch (std::exception const &ex)
+    {
+        std::cerr << "error occurred: " << ex.what() << '\n';
+    }
+    catch (...)
+    {
+        std::cerr << "unknown exception\n";
+    }
+
+private:
+    void print_own() const
+    {
+        std::cout << "Own keys:" << std::endl;
         size_t count = 0;
         for_each_dir_entry(profile_path_ / Application::kKeysDirName,
             [this, &count](auto const &dir_entry){
@@ -51,13 +67,19 @@ public:
         if (0 == count)
             std::cout << "There are no keys available" << std::endl;
     }
-    catch (std::exception const &ex)
+
+    void print_imported() const
     {
-        std::cerr << "error occurred: " << ex.what() << '\n';
-    }
-    catch (...)
-    {
-        std::cerr << "unknown exception\n";
+        std::cout << "Imported keys:" << std::endl;
+        size_t count = 0;
+        for_each_dir_entry(profile_path_ / Application::kCypherDirName,
+            [&count](auto const &dir_entry){
+                std::cout << "* " << dir_entry.path().filename().string() << std::endl;
+                ++count;
+            }
+        );
+        if (0 == count)
+            std::cout << "There are no keys available" << std::endl;
     }
 
 private:

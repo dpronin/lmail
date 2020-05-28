@@ -5,6 +5,8 @@
 #include <stdexcept>
 #include <utility>
 
+#include <boost/range/algorithm_ext/erase.hpp>
+
 #include "storage.hpp"
 #include "types.hpp"
 #include "user.hpp"
@@ -23,6 +25,7 @@ public:
             throw std::invalid_argument("user provided cannot be empty");
         if (!storage_)
             throw std::invalid_argument("storage provided cannot be empty");
+        boost::remove_erase_if(args_, [](auto const &arg){ return arg.empty(); });
     }
 
     void operator()()
@@ -31,7 +34,7 @@ public:
         using namespace sqlite_orm;
 
         username_t username_tgt;
-        if (!args_.empty() && !args_.front().empty())
+        if (!args_.empty())
         {
             username_tgt = args_.front();
         }

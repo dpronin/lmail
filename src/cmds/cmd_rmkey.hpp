@@ -8,6 +8,8 @@
 #include <utility>
 #include <algorithm>
 
+#include <boost/range/algorithm_ext/erase.hpp>
+
 #include "types.hpp"
 #include "utility.hpp"
 
@@ -23,13 +25,14 @@ public:
     {
         if (profile_path_.empty())
             throw std::invalid_argument("profile path provided cannot be empty");
+        boost::remove_erase_if(args_, [](auto const &arg){ return arg.empty(); });
     }
 
     void operator()()
     try
     {
         key_name_t keyname;
-        if (!args_.empty() && !args_.front().empty())
+        if (!args_.empty())
         {
             keyname = args_.front();
         }

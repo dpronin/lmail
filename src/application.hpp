@@ -81,7 +81,6 @@ public:
     static constexpr char   kSalt[]              = "2cipo6snetwdvhf384qbnxgyar51z7";
     static constexpr char   kPrivKeyName[]       = "key";
     static constexpr char   kPubKeySuffix[]      = ".pub";
-    static constexpr char   kPubKeyName[]        = "key.pub";
     static constexpr char   kKeysDirName[]       = ".keys";
     static constexpr char   kAssocsDirName[]     = ".assocs";
     static constexpr char   kCypherDirName[]     = "cypher";
