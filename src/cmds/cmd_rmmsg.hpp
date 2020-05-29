@@ -7,26 +7,24 @@
 
 #include <boost/lexical_cast.hpp>
 
-#include "inbox.hpp"
+#include "cmd_args.hpp"
+#include "logged_user.hpp"
 #include "storage.hpp"
 #include "types.hpp"
-#include "cmd_base_args.hpp"
 
 namespace lmail
 {
 
-class CmdRmMsg final : CmdBaseArgs
+class CmdRmMsg final
 {
 public:
-    explicit CmdRmMsg(args_t args, std::shared_ptr<User> user, std::shared_ptr<Storage> storage, std::shared_ptr<Inbox> inbox)
-        : CmdBaseArgs(std::move(args)), user_(std::move(user)), storage_(std::move(storage)), inbox_(std::move(inbox))
+    explicit CmdRmMsg(CmdArgs args, std::shared_ptr<LoggedUser> logged_user, std::shared_ptr<Storage> storage)
+        : args_(std::move(args)), logged_user_(std::move(logged_user)), storage_(std::move(storage))
     {
-        if (!user_)
-            throw std::invalid_argument("user provided cannot be empty");
+        if (!logged_user_)
+            throw std::invalid_argument("logged user provided cannot be empty");
         if (!storage_)
             throw std::invalid_argument("storage provided cannot be empty");
-        if (!inbox_)
-            throw std::invalid_argument("inbox provided cannot be empty");
     }
 
     void operator()()
@@ -34,26 +32,26 @@ public:
     {
         using namespace sqlite_orm;
 
-        std::string msg_idx_str;
-        if (!args_.empty())
-        {
-            msg_idx_str = args_.front();
-        }
-        else if (!uread(msg_idx_str, "Enter message inbox index: "))
-        {
+        auto msg_idx_str = args_.front();
+        if (msg_idx_str.empty() && !uread(msg_idx_str, "Enter message inbox index: "))
             return;
-        }
-        else if (msg_idx_str.empty())
+
+        if (msg_idx_str.empty())
         {
             std::cerr << "message inbox index is not specified\n";
             return;
         }
 
         auto const msg_idx = boost::lexical_cast<msg_idx_t>(msg_idx_str);
-        if (auto const msg_id = inbox_->erase(msg_idx))
-            (*storage_)->remove_all<Message>(where(c(&Message::id) == *msg_id && c(&Message::dest_user_id) == user_->id));
-
-        std::cout << "message #" << msg_idx << " successfully removed\n";
+        if (auto const msg_id = logged_user_->inbox().erase(msg_idx))
+        {
+            (*storage_)->remove_all<Message>(where(c(&Message::id) == *msg_id && c(&Message::dest_user_id) == logged_user_->user().id));
+            std::cout << "message #" << msg_idx << " successfully removed\n";
+        }
+        else
+        {
+            std::cout << "There is no message #" << msg_idx << " in inbox" << std::endl;
+        }
     }
     catch (boost::bad_lexical_cast const &)
     {
@@ -69,9 +67,9 @@ public:
     }
 
 private:
-    std::shared_ptr<User>    user_;
-    std::shared_ptr<Storage> storage_;
-    std::shared_ptr<Inbox>   inbox_;
+    CmdArgs                     args_;
+    std::shared_ptr<LoggedUser> logged_user_;
+    std::shared_ptr<Storage>    storage_;
 };
 
 } // namespace lmail

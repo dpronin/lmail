@@ -1,30 +1,30 @@
 #pragma once
 
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <utility>
-#include <fstream>
 
 #include <cryptopp/rsa.h>
 
+#include "cmd_args.hpp"
+#include "logged_user.hpp"
 #include "storage.hpp"
 #include "types.hpp"
-#include "user.hpp"
 #include "utility.hpp"
-#include "cmd_base_args.hpp"
 
 namespace lmail
 {
 
-class CmdSendMsg final : CmdBaseArgs
+class CmdSendMsg final
 {
 public:
-    explicit CmdSendMsg(args_t args, std::shared_ptr<User> user, std::shared_ptr<Storage> storage, std::filesystem::path profile_path)
-        : CmdBaseArgs(std::move(args)), user_(std::move(user)), storage_(std::move(storage)), profile_path_(std::move(profile_path))
+    explicit CmdSendMsg(CmdArgs args, std::shared_ptr<LoggedUser> logged_user, std::shared_ptr<Storage> storage)
+        : args_(std::move(args)), logged_user_(std::move(logged_user)), storage_(std::move(storage))
     {
-        if (!user_)
-            throw std::invalid_argument("user provided cannot be empty");
+        if (!logged_user_)
+            throw std::invalid_argument("logged user provided cannot be empty");
         if (!storage_)
             throw std::invalid_argument("storage provided cannot be empty");
     }
@@ -35,22 +35,17 @@ public:
         using namespace sqlite_orm;
         namespace fs = std::filesystem;
 
-        username_t username_tgt;
-        if (!args_.empty())
-        {
-            username_tgt = args_.front();
-        }
-        else if (!uread(username_tgt, "Enter a target user the message is sent to: "))
-        {
+        username_t username_tgt = args_.front();
+        if (username_tgt.empty() && !uread(username_tgt, "Enter a target user the message is sent to: "))
             return;
-        }
-        else if (username_tgt.empty())
+
+        if (username_tgt.empty())
         {
             std::cerr << "target user name cannot be empty\n";
             return;
         }
 
-        if (username_tgt == user_->username)
+        if (username_tgt == logged_user_->user().username)
         {
             std::cerr << "you cannot send messages to yourself\n";
             return;
@@ -88,10 +83,10 @@ public:
         }
 
         bool cyphered = false;
-        if (auto const key_path = find_key(profile_path_ / Application::kCypherDirName, username_to_keyname(username_tgt)); !key_path.empty())
+        if (auto const &key_path = logged_user_->profile().find_cypher_key(username_to_keyname(username_tgt)); !key_path.empty())
         {
             std::string ans;
-            while (uread(ans, "Would you like to cypher message? (y/n): ") && ans != "y" && ans != "n")
+            while (uread(ans, "Would you like to cypher the message? (y/n): ") && ans != "y" && ans != "n")
                 ;
             if ("y" == ans)
             {
@@ -99,10 +94,9 @@ public:
                 cyphered = true;
             }
         }
-        else
-        {
+
+        if (!cyphered)
             std::cout << "The message will be sent as plain text" << std::endl;
-        }
 
         std::string ans;
         while (uread(ans, "Send the message? (y/n): ") && ans != "y" && ans != "n")
@@ -110,11 +104,11 @@ public:
         if (ans == "n")
             return;
 
-        Message message{-1, user_->id, users_ids_to.front(), std::move(topic), std::move(body), cyphered};
+        Message message{-1, logged_user_->user().id, users_ids_to.front(), std::move(topic), std::move(body), cyphered};
         if (auto const msg_id = (*storage_)->insert(message); - 1 != msg_id)
             std::cout << "message successfully sent to " << username_tgt << '\n';
         else
-            std::cerr << "couldn't send a message to " << username_tgt << '\n';
+            std::cerr << "couldn't send the message to " << username_tgt << '\n';
     }
     catch (std::exception const &ex)
     {
@@ -139,9 +133,9 @@ private:
     }
 
 private:
-    std::shared_ptr<User>    user_;
-    std::shared_ptr<Storage> storage_;
-    std::filesystem::path    profile_path_;
+    CmdArgs                     args_;
+    std::shared_ptr<LoggedUser> logged_user_;
+    std::shared_ptr<Storage>    storage_;
 };
 
 } // namespace lmail

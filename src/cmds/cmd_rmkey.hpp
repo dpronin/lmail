@@ -1,29 +1,29 @@
 #pragma once
 
-#include <system_error>
+#include <algorithm>
 #include <filesystem>
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <system_error>
 #include <utility>
-#include <algorithm>
 
+#include "cmd_args.hpp"
+#include "logged_user.hpp"
 #include "types.hpp"
 #include "utility.hpp"
-#include "cmd_base_args.hpp"
 
 namespace lmail
 {
 
-class CmdRmKey final : CmdBaseArgs
+class CmdRmKey final
 {
 public:
-    explicit CmdRmKey(args_t args, std::filesystem::path profile_path)
-        : CmdBaseArgs(std::move(args))
-        , profile_path_(std::move(profile_path))
+    explicit CmdRmKey(CmdArgs args, std::shared_ptr<LoggedUser> logged_user)
+        : args_(std::move(args)), logged_user_(std::move(logged_user))
     {
-        if (profile_path_.empty())
-            throw std::invalid_argument("profile path provided cannot be empty");
+        if (!logged_user_)
+            throw std::invalid_argument("logged user provided cannot be empty");
     }
 
     void operator()()
@@ -31,22 +31,17 @@ public:
     {
         namespace fs = std::filesystem;
 
-        key_name_t keyname;
-        if (!args_.empty())
-        {
-            keyname = args_.front();
-        }
-        else if (!uread(keyname, "Enter key name: "))
-        {
+        keyname_t keyname = args_.front();
+        if (keyname.empty() && !uread(keyname, "Enter key name: "))
             return;
-        }
-        else if (keyname.empty())
+
+        if (keyname.empty())
         {
             std::cerr << "key name is not specified\n";
             return;
         }
 
-        if (auto const key_pair_path = find_key(profile_path_ / Application::kKeysDirName, keyname); !key_pair_path.empty())
+        if (auto const &key_pair_path = logged_user_->profile().find_key(keyname); !key_pair_path.empty())
         {
             std::cout << "The key '" << keyname << "' is about to be removed" << std::endl;
             std::string ans;
@@ -55,12 +50,13 @@ public:
             if ("y" == ans)
             {
                 // remove all the associations linked to this key
-                for_each_dir_entry_if(profile_path_ / Application::kAssocsDirName,
-                                      [&key_pair_path](auto const &dir_entry){
-                                          std::error_code ec;
-                                          return fs::read_symlink(dir_entry.path(), ec) == key_pair_path && !ec;
-                                      },
-                                      [](auto const &dir_entry){ std::error_code ec; fs::remove(dir_entry.path(), ec); });
+                for_each_dir_entry_if(
+                    logged_user_->profile().assocs_dir(),
+                    [&key_pair_path](auto const &dir_entry) {
+                        std::error_code ec;
+                        return fs::read_symlink(dir_entry.path(), ec) == key_pair_path && !ec;
+                    },
+                    [](auto const &dir_entry) { std::error_code ec; fs::remove(dir_entry.path(), ec); });
                 std::error_code ec;
                 fs::remove_all(key_pair_path, ec);
                 if (!ec)
@@ -84,7 +80,8 @@ public:
     }
 
 private:
-    std::filesystem::path profile_path_;
+    CmdArgs                     args_;
+    std::shared_ptr<LoggedUser> logged_user_;
 };
 
 } // namespace lmail

@@ -22,7 +22,7 @@ public:
 protected:
     explicit CmdState(help_cmds_t help_cmds = {});
 
-    void help();
+    void                help();
     virtual std::string default_colored(std::string_view input) const;
 
 private:

@@ -1,14 +1,14 @@
 #pragma once
 
+#include <filesystem>
 #include <iostream>
 #include <utility>
-#include <filesystem>
 
 #include <string_view>
 
+#include <boost/process/environment.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
-#include <boost/process/environment.hpp>
 
 #include "types.hpp"
 #include "user.hpp"
@@ -59,7 +59,7 @@ public:
     }
 
 
-    auto const& lmail_path() const noexcept { return lmail_path_; }
+    auto const &lmail_path() const noexcept { return lmail_path_; }
 
     static std::filesystem::path profile_path(User const &user) { return Application::instance().lmail_path() / user.username; }
     static std::filesystem::path home_path() noexcept { return boost::this_process::environment()["HOME"].to_string(); }
@@ -72,7 +72,7 @@ private:
         lmail_path_ /= kLmailDirName;
     }
 
-// application properties
+    // application properties
 public:
     static constexpr size_t kDefaultKeySize      = 3072u;
     static constexpr char   kLmailDirName[]      = ".lmail";

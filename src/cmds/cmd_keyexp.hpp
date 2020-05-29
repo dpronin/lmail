@@ -1,30 +1,30 @@
 #pragma once
 
-#include <system_error>
+#include <algorithm>
 #include <filesystem>
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <system_error>
 #include <utility>
-#include <algorithm>
 
+#include "application.hpp"
+#include "cmd_args.hpp"
+#include "logged_user.hpp"
 #include "types.hpp"
 #include "utility.hpp"
-#include "application.hpp"
-#include "cmd_base_args.hpp"
 
 namespace lmail
 {
 
-class CmdKeyExp final : CmdBaseArgs
+class CmdKeyExp final
 {
 public:
-    explicit CmdKeyExp(args_t args, std::filesystem::path profile_path)
-        : CmdBaseArgs(std::move(args))
-        , profile_path_(std::move(profile_path))
+    explicit CmdKeyExp(CmdArgs args, std::shared_ptr<LoggedUser> logged_user)
+        : args_(std::move(args)), logged_user_(std::move(logged_user))
     {
-        if (profile_path_.empty())
-            throw std::invalid_argument("profile path provided cannot be empty");
+        if (!logged_user_)
+            throw std::invalid_argument("logged user provided cannot be empty");
     }
 
     void operator()()
@@ -32,25 +32,20 @@ public:
     {
         namespace fs = std::filesystem;
 
-        key_name_t keyname;
-        if (!args_.empty())
-        {
-            keyname = args_.front();
-        }
-        else if (!uread(keyname, "Enter key name: "))
-        {
+        keyname_t keyname = args_.front();
+        if (keyname.empty() && !uread(keyname, "Enter key name: "))
             return;
-        }
-        else if (keyname.empty())
+
+        if (keyname.empty())
         {
             std::cerr << "key name is not specified\n";
             return;
         }
 
-        if (auto const keys_pair_dir = find_key(profile_path_ / Application::kKeysDirName, keyname); !keys_pair_dir.empty())
+        if (auto const &keys_pair_dir = logged_user_->profile().find_key(keyname); !keys_pair_dir.empty())
         {
             std::string copy_to_str;
-            fs::path key_path_dst = Application::instance().home_path() / keyname;
+            fs::path    key_path_dst = Application::instance().home_path() / keyname;
             key_path_dst += Application::kPubKeySuffix;
             if (!uread(copy_to_str, "Where is key '" + keyname + "' to be exported to? (default: " + key_path_dst.string() + "): "))
                 return;
@@ -62,7 +57,7 @@ public:
             key_path_src += Application::kPubKeySuffix;
             std::error_code ec;
             if (fs::copy_file(key_path_src, key_path_dst, fs::copy_options::overwrite_existing, ec))
-                std::cout << "successfully exported key '" << keyname << "'\n";
+                std::cout << "successfully exported key '" << keyname << " to " << key_path_dst << "'\n";
             else
                 std::cerr << "failed to export key '" << keyname << "', reason: " << ec.message() << '\n';
         }
@@ -81,7 +76,8 @@ public:
     }
 
 private:
-    std::filesystem::path profile_path_;
+    CmdArgs                     args_;
+    std::shared_ptr<LoggedUser> logged_user_;
 };
 
 } // namespace lmail

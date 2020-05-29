@@ -9,24 +9,23 @@
 
 #include <boost/scope_exit.hpp>
 
-#include "inbox.hpp"
+#include "application.hpp"
+#include "cmd_args.hpp"
+#include "logged_user.hpp"
 #include "storage.hpp"
 #include "types.hpp"
-#include "user.hpp"
 #include "utility.hpp"
-#include "application.hpp"
-#include "cmd_base_args.hpp"
 
 #include "states/logged_in_state.hpp"
 
 namespace lmail
 {
 
-class CmdLogin final : CmdBaseArgs
+class CmdLogin final
 {
 public:
-    explicit CmdLogin(args_t args, CliFsm &cli_fsm, std::shared_ptr<Storage> storage)
-        : CmdBaseArgs(std::move(args)), cli_fsm_(std::addressof(cli_fsm)), storage_(std::move(storage))
+    explicit CmdLogin(CmdArgs args, CliFsm &cli_fsm, std::shared_ptr<Storage> storage)
+        : args_(std::move(args)), cli_fsm_(std::addressof(cli_fsm)), storage_(std::move(storage))
     {
         if (!cli_fsm_)
             throw std::invalid_argument("fsm provided cannot be empty");
@@ -37,16 +36,11 @@ public:
     void operator()()
     try
     {
-        username_t username;
-        if (!args_.empty())
-        {
-            username = args_.front();
-        }
-        else if (!uread(username, "Enter user name: "))
-        {
+        username_t username = args_.front();
+        if (username.empty() && !uread(username, "Enter user name: "))
             return;
-        }
-        else if (username.empty())
+
+        if (username.empty())
         {
             std::cerr << "user name cannot be empty\n";
             return;
@@ -64,9 +58,9 @@ public:
 
         BOOST_SCOPE_EXIT_ALL(&password) { secure_memset(password.data(), 0, password.size()); };
 
-        bool b_success = false;
+        bool b_success;
         using namespace sqlite_orm;
-        if (auto const users = (*storage_)->get_all<User>(where(c(&User::username) == username)); b_success = !users.empty())
+        if (auto users = (*storage_)->get_all<User>(where(c(&User::username) == username)); b_success = !users.empty())
         {
             if (1 != users.size())
             {
@@ -82,10 +76,7 @@ public:
 
             b_success = user.username == username && user.password == sha3_256(password);
             if (b_success)
-            {
-                auto inbox = std::make_shared<Inbox>(Application::profile_path(user));
-                cli_fsm_->change_state(std::make_shared<LoggedInState>(*cli_fsm_, storage_, std::make_unique<User>(std::move(user)), std::move(inbox)));
-            }
+                cli_fsm_->change_state(std::make_shared<LoggedInState>(*cli_fsm_, storage_, std::make_shared<LoggedUser>(std::move(user))));
         }
 
         if (!b_success)
@@ -101,6 +92,7 @@ public:
     }
 
 private:
+    CmdArgs                  args_;
     CliFsm *                 cli_fsm_;
     std::shared_ptr<Storage> storage_;
 };

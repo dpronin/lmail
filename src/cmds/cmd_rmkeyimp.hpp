@@ -2,31 +2,31 @@
 
 #include <cstdlib>
 
-#include <system_error>
+#include <algorithm>
 #include <filesystem>
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <system_error>
 #include <utility>
-#include <algorithm>
 
+#include "application.hpp"
+#include "cmd_args.hpp"
+#include "logged_user.hpp"
 #include "types.hpp"
 #include "utility.hpp"
-#include "application.hpp"
-#include "cmd_base_args.hpp"
 
 namespace lmail
 {
 
-class CmdRmKeyImp final : CmdBaseArgs
+class CmdRmKeyImp final
 {
 public:
-    explicit CmdRmKeyImp(args_t args, std::filesystem::path profile_path)
-        : CmdBaseArgs(std::move(args))
-        , profile_path_(std::move(profile_path))
+    explicit CmdRmKeyImp(CmdArgs args, std::shared_ptr<LoggedUser> logged_user)
+        : args_(std::move(args)), logged_user_(std::move(logged_user))
     {
-        if (profile_path_.empty())
-            throw std::invalid_argument("profile path provided cannot be empty");
+        if (!logged_user_)
+            throw std::invalid_argument("logged user provided cannot be empty");
     }
 
     void operator()()
@@ -34,25 +34,20 @@ public:
     {
         namespace fs = std::filesystem;
 
-        username_t username_tgt;
-        if (!args_.empty())
-        {
-            username_tgt = args_.front();
-        }
-        else if (!uread(username_tgt, "Enter a target user name the key is linked to: "))
-        {
+        username_t username_tgt = args_.front();
+        if (username_tgt.empty() && !uread(username_tgt, "Enter a target user name the key is linked to: "))
             return;
-        }
-        else if (username_tgt.empty())
+
+        if (username_tgt.empty())
         {
             std::cerr << "target user name is not specified\n";
             return;
         }
 
-        if (auto const key_path = find_key(profile_path_ / Application::kCypherDirName, username_to_keyname(username_tgt)); !key_path.empty())
+        if (auto const &key_path = logged_user_->profile().find_cypher_key(username_to_keyname(username_tgt)); !key_path.empty())
         {
-            auto extract_keyname = [](auto const &key_path){ return key_path.filename().string(); };
-            auto const keyname = extract_keyname(key_path);
+            auto       extract_keyname = [](auto const &key_path) { return key_path.filename().string(); };
+            auto const keyname         = extract_keyname(key_path);
             if (keyname.empty())
             {
                 std::cerr << "couldn't extract key name\n";
@@ -88,8 +83,8 @@ public:
     }
 
 private:
-    std::shared_ptr<User> user_;
-    std::filesystem::path profile_path_;
+    CmdArgs                     args_;
+    std::shared_ptr<LoggedUser> logged_user_;
 };
 
 } // namespace lmail

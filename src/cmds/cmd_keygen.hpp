@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 #include <filesystem>
 #include <iostream>
 #include <stdexcept>
@@ -9,23 +11,22 @@
 #include <boost/lexical_cast.hpp>
 
 #include "application.hpp"
+#include "cmd_args.hpp"
+#include "logged_user.hpp"
 #include "types.hpp"
 #include "utility.hpp"
-#include "user.hpp"
-#include "cmd_base_args.hpp"
 
 namespace lmail
 {
 
-class CmdKeyGen final : CmdBaseArgs
+class CmdKeyGen final
 {
 public:
-    explicit CmdKeyGen(args_t args, std::filesystem::path const &profile_path)
-        : CmdBaseArgs(std::move(args))
-        , keys_dir_(profile_path / Application::kKeysDirName)
+    explicit CmdKeyGen(CmdArgs args, std::shared_ptr<LoggedUser> logged_user)
+        : args_(std::move(args)), logged_user_(logged_user)
     {
-        if (profile_path.empty())
-            throw std::invalid_argument("profile path provided cannot be empty");
+        if (!logged_user_)
+            throw std::invalid_argument("logged user provided cannot be empty");
     }
 
     void operator()()
@@ -33,16 +34,11 @@ public:
     {
         namespace fs = std::filesystem;
 
-        key_name_t keyname;
-        if (!args_.empty())
-        {
-            keyname = args_.front();
-        }
-        else if (!uread(keyname, "Enter key name: "))
-        {
+        keyname_t keyname = args_.front();
+        if (keyname.empty() && !uread(keyname, "Enter key name: "))
             return;
-        }
-        else if (keyname.empty())
+
+        if (keyname.empty())
         {
             std::cerr << "key name cannot be empty\n";
             return;
@@ -57,7 +53,7 @@ public:
 
         std::cout << "Trying to add key '" << keyname << "' key...\n";
 
-        auto keys_pair_dir = keys_dir_ / keyname;
+        auto keys_pair_dir = logged_user_->profile().keys_dir() / keyname;
         keys_pair_dir += Application::kUserKeyLinkSuffix;
         if (fs::exists(keys_pair_dir))
         {
@@ -66,7 +62,7 @@ public:
             return;
         }
 
-        size_t key_size = Application::kDefaultKeySize;
+        size_t      key_size = Application::kDefaultKeySize;
         std::string key_size_str;
         if (!uread(key_size_str, "Enter a new RSA key's size (default: " + std::to_string(key_size) + "): "))
             return;
@@ -100,7 +96,8 @@ public:
     }
 
 private:
-    std::filesystem::path keys_dir_;
+    CmdArgs                     args_;
+    std::shared_ptr<LoggedUser> logged_user_;
 };
 
 } // namespace lmail

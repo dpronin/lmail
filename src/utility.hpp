@@ -3,30 +3,30 @@
 #include <cstdlib>
 #include <cstring>
 
-#include <iostream>
-#include <string>
-#include <utility>
-#include <stdexcept>
-#include <filesystem>
-#include <system_error>
 #include <algorithm>
+#include <filesystem>
+#include <iostream>
+#include <stdexcept>
+#include <string>
 #include <string_view>
+#include <system_error>
 #include <type_traits>
+#include <utility>
 
 #include <boost/algorithm/hex.hpp>
 
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <termios.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 
 #include <cryptopp/cryptlib.h>
-#include <cryptopp/sha3.h>
-#include <cryptopp/rsa.h>
-#include <cryptopp/osrng.h>
 #include <cryptopp/files.h>
+#include <cryptopp/osrng.h>
 #include <cryptopp/queue.h>
+#include <cryptopp/rsa.h>
+#include <cryptopp/sha3.h>
 
 #include "application.hpp"
 #include "types.hpp"
@@ -37,10 +37,10 @@ namespace lmail
 inline auto sha3_256(std::string const &data)
 {
     using namespace CryptoPP;
-    SHA3_256 sha256_algo;
-    std::string        digest;
+    SHA3_256    sha256_algo;
+    std::string digest;
     digest.resize(sha256_algo.DigestSize());
-    sha256_algo.CalculateDigest(reinterpret_cast<byte*>(digest.data()), reinterpret_cast<CryptoPP::byte const *>(data.data()), data.size());
+    sha256_algo.CalculateDigest(reinterpret_cast<byte *>(digest.data()), reinterpret_cast<CryptoPP::byte const *>(data.data()), data.size());
     return boost::algorithm::hex_lower(digest);
 }
 
@@ -105,9 +105,9 @@ template <typename KeyT>
 return_if_rsa<KeyT> load_key(std::filesystem::path const &key_path)
 {
     using namespace CryptoPP;
-    KeyT key;
+    KeyT       key;
     FileSource file(key_path.c_str(), true);
-    ByteQueue bq;
+    ByteQueue  bq;
     file.TransferTo(bq);
     bq.MessageEnd();
     if constexpr (std::is_same_v<KeyT, RSA::PrivateKey>)
@@ -141,23 +141,21 @@ auto find_dir_entry_if(std::filesystem::path const &dir, Comp comp)
 {
     namespace fs = std::filesystem;
     fs::directory_entry dir_entry;
-    std::error_code ec;
-    auto const rng    = fs::directory_iterator(dir, ec);
-    auto dir_entry_it = std::find_if(fs::begin(rng), fs::end(rng), comp);
+    std::error_code     ec;
+    auto const          rng          = fs::directory_iterator(dir, ec);
+    auto                dir_entry_it = std::find_if(fs::begin(rng), fs::end(rng), comp);
     if (fs::end(rng) != dir_entry_it)
         dir_entry = *dir_entry_it;
     return dir_entry;
 }
 
 template <typename T>
-T const& username_to_keyname(T const &username) { return username; }
+T const &username_to_keyname(T const &username) { return username; }
 
 inline auto find_key(std::filesystem::path const &dir, std::string_view keyname)
 {
-    return find_dir_entry_if(dir, [keyname](auto const &dir_entry){return dir_entry.path().filename().stem() == keyname; }).path();
+    return find_dir_entry_if(dir, [keyname](auto const &dir_entry) { return dir_entry.path().filename().stem() == keyname; }).path();
 }
-
-inline auto find_assoc(std::filesystem::path const &dir, std::string_view keyname) { return find_key(dir, keyname); }
 
 inline void generate_rsa_key_pair(std::filesystem::path const &keys_pair_dir, size_t key_size)
 {
@@ -172,14 +170,13 @@ inline void generate_rsa_key_pair(std::filesystem::path const &keys_pair_dir, si
         save_key(key, keypath, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     };
 
-    if (fs::exists(keys_pair_dir) && !fs::is_directory(keys_pair_dir)
-        || !fs::exists(keys_pair_dir) && !fs::create_directories(keys_pair_dir))
+    if (fs::exists(keys_pair_dir) && !fs::is_directory(keys_pair_dir) || !fs::exists(keys_pair_dir) && !fs::create_directories(keys_pair_dir))
     {
         throw std::runtime_error("couldn't create key pair");
     }
 
     AutoSeededRandomPool rnd;
-    RSA::PrivateKey priv_key;
+    RSA::PrivateKey      priv_key;
     priv_key.GenerateRandomWithKeySize(rnd, key_size);
     auto key_path = keys_pair_dir / Application::kPrivKeyName;
     save_priv_key(priv_key, key_path);
@@ -190,7 +187,7 @@ inline void generate_rsa_key_pair(std::filesystem::path const &keys_pair_dir, si
 inline void encrypt(std::string &msg, CryptoPP::RSA::PublicKey const &key)
 {
     using namespace CryptoPP;
-    Integer m(reinterpret_cast<byte const*>(msg.data()), msg.size());
+    Integer            m(reinterpret_cast<byte const *>(msg.data()), msg.size());
     std::ostringstream oss;
     oss << std::hex << key.ApplyFunction(m);
     msg = oss.str();
@@ -200,10 +197,10 @@ inline void decrypt(std::string &msg, CryptoPP::RSA::PrivateKey const &key)
 {
     using namespace CryptoPP;
     AutoSeededRandomPool rng;
-    Integer c(msg.data());
-    auto r = key.CalculateInverse(rng, c);
+    Integer              c(msg.data());
+    auto                 r = key.CalculateInverse(rng, c);
     msg.resize(r.MinEncodedSize());
-    r.Encode(reinterpret_cast<byte*>(msg.data()), msg.size());
+    r.Encode(reinterpret_cast<byte *>(msg.data()), msg.size());
 }
 
 } // namespace lmail

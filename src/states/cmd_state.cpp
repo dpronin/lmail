@@ -1,11 +1,11 @@
 #include "cmd_state.hpp"
 
 #include <iostream>
-#include <memory>
 #include <iterator>
+#include <memory>
 
-#include <boost/range/algorithm/transform.hpp>
 #include <boost/range/algorithm/copy.hpp>
+#include <boost/range/algorithm/transform.hpp>
 
 #include "color.hpp"
 
@@ -19,7 +19,7 @@ CmdState::CmdState(help_cmds_t help_cmds) : help_(std::move(help_cmds))
 
 prompt_t CmdState::prompt() const { return default_colored("!> "); }
 
-std::string CmdState::default_colored(std::string_view input) const { return colored(input, color_e::red); }
+std::string CmdState::default_colored(std::string_view input) const { return cred(input); }
 
 void CmdState::process(args_t args)
 {

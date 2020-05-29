@@ -2,9 +2,9 @@
 
 #include <memory>
 
+#include "fsm.hpp"
 #include "storage.hpp"
 #include "types.hpp"
-#include "fsm.hpp"
 
 #include "cmd_state.hpp"
 
@@ -27,7 +27,7 @@ protected:
     std::string default_colored(std::string_view input) const override;
 
 protected:
-    CliFsm *fsm_;
+    CliFsm *                 fsm_;
     std::shared_ptr<Storage> storage_;
 };
 

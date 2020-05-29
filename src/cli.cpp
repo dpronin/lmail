@@ -2,6 +2,7 @@
 #include <cstring>
 
 #include <algorithm>
+#include <filesystem>
 #include <iostream>
 #include <iterator>
 #include <memory>
@@ -9,7 +10,6 @@
 #include <string>
 #include <string_view>
 #include <utility>
-#include <filesystem>
 
 #include <boost/range/algorithm/remove_copy_if.hpp>
 
@@ -91,7 +91,7 @@ void Cli::on_state_changed()
 
 void Cli::run()
 {
-    std::cout << "Welcome to " << colored("lmail", color_e::brown) << '!' << std::endl;
+    std::cout << "Welcome to " << cbrown("lmail") << '!' << std::endl;
     change_state(std::make_shared<MainState>(*this, std::make_shared<Storage>(conf_.db_path)));
     for (user_input_t user_input; !is_in_state<InitState>() && g_reader(user_input, cstate_->prompt());)
     {
@@ -101,5 +101,5 @@ void Cli::run()
         if (!args.empty())
             cstate_->process(std::move(args));
     }
-    std::cout << "Quitting " << colored("lmail", color_e::brown) << ". Bye!" << std::endl;
+    std::cout << "Quitting " << cbrown("lmail") << ". Bye!" << std::endl;
 }

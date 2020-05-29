@@ -1,16 +1,18 @@
 #pragma once
 
-#include <system_error>
+#include <algorithm>
 #include <filesystem>
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <system_error>
 #include <utility>
-#include <algorithm>
 
+#include "application.hpp"
+#include "cmd_args.hpp"
+#include "logged_user.hpp"
 #include "types.hpp"
 #include "utility.hpp"
-#include "application.hpp"
 
 namespace lmail
 {
@@ -18,14 +20,11 @@ namespace lmail
 class CmdKeyImp final
 {
 public:
-    explicit CmdKeyImp(std::shared_ptr<User> user, std::filesystem::path profile_path)
-        : user_(std::move(user))
-        , profile_path_(std::move(profile_path))
+    explicit CmdKeyImp(CmdArgs args, std::shared_ptr<LoggedUser> logged_user)
+        : args_(std::move(args)), logged_user_(std::move(logged_user))
     {
-        if (!user_)
-            throw std::invalid_argument("user provided cannot be empty");
-        if (profile_path_.empty())
-            throw std::invalid_argument("profile path provided cannot be empty");
+        if (!logged_user_)
+            throw std::invalid_argument("logged user provided cannot be empty");
     }
 
     void operator()()
@@ -33,12 +32,13 @@ public:
     {
         namespace fs = std::filesystem;
 
-        std::string key_path_str;
-        if (!uread(key_path_str, "Enter public key path: "))
-        {
+        auto args = args_;
+
+        auto key_path_str = args.pop();
+        if (key_path_str.empty() && !uread(key_path_str, "Enter public key path: "))
             return;
-        }
-        else if (key_path_str.empty())
+
+        if (key_path_str.empty())
         {
             std::cerr << "key path is not specified\n";
             return;
@@ -51,15 +51,15 @@ public:
             return;
         }
 
-        auto const cypher_dir = profile_path_ / Application::kCypherDirName;
+        auto const &cypher_dir = logged_user_->profile().cypher_dir();
         if (fs::exists(cypher_dir) && !fs::is_directory(cypher_dir) || !fs::exists(cypher_dir) && !fs::create_directories(cypher_dir))
         {
             std::cerr << "couldn't create " << cypher_dir << '\n';
             return;
         }
 
-        username_t username_tgt;
-        if (!uread(username_tgt, "Enter a target user that the key is linked to: "))
+        username_t username_tgt = args.pop();
+        if (username_tgt.empty() && !uread(username_tgt, "Enter a target user that the key is linked to: "))
             return;
 
         username_tgt = fs::path(username_tgt).filename();
@@ -69,13 +69,13 @@ public:
             return;
         }
 
-        if (username_tgt == user_->username)
+        if (username_tgt == logged_user_->user().username)
         {
             std::cerr << "you cannot import the key from yourself\n";
             return;
         }
 
-        auto key_path_dst = cypher_dir / username_tgt;
+        auto key_path_dst = cypher_dir / username_to_keyname(username_tgt);
         key_path_dst += Application::kPubKeySuffix;
         if (fs::exists(key_path_dst))
         {
@@ -86,7 +86,7 @@ public:
         std::error_code ec;
         if (fs::copy_file(key_path_src, key_path_dst, ec))
             std::cout << "successfully imported key " << key_path_src
-                      <<  " as '" << key_path_dst.filename().string()
+                      << " as '" << key_path_dst.filename().string()
                       << "' and associated with user '" << username_tgt << "' for cyphering\n";
         else
             std::cerr << "failed to import key '" << key_path_src << "', reason: " << ec.message() << '\n';
@@ -101,8 +101,8 @@ public:
     }
 
 private:
-    std::shared_ptr<User> user_;
-    std::filesystem::path profile_path_;
+    CmdArgs                     args_;
+    std::shared_ptr<LoggedUser> logged_user_;
 };
 
 } // namespace lmail

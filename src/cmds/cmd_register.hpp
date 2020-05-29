@@ -5,20 +5,21 @@
 
 #include <boost/scope_exit.hpp>
 
+#include "application.hpp"
+#include "cmd_args.hpp"
 #include "storage.hpp"
 #include "types.hpp"
 #include "user.hpp"
 #include "utility.hpp"
-#include "application.hpp"
-#include "cmd_base_args.hpp"
 
 namespace lmail
 {
 
-class CmdRegister final : CmdBaseArgs
+class CmdRegister final
 {
 public:
-    explicit CmdRegister(args_t args, std::shared_ptr<Storage> storage) : CmdBaseArgs(std::move(args)), storage_(std::move(storage))
+    explicit CmdRegister(CmdArgs args, std::shared_ptr<Storage> storage)
+        : args_(std::move(args)), storage_(std::move(storage))
     {
         if (!storage_)
             throw std::invalid_argument("storage provided cannot be empty");
@@ -27,16 +28,11 @@ public:
     void operator()()
     try
     {
-        username_t username;
-        if (!args_.empty())
-        {
-            username = args_.front();
-        }
-        else if (!uread(username, "Enter user name: "))
-        {
+        username_t username = args_.front();
+        if (username.empty() && !uread(username, "Enter user name: "))
             return;
-        }
-        else if (username.empty())
+
+        if (username.empty())
         {
             std::cerr << "user name cannot be empty\n";
             return;
@@ -74,14 +70,10 @@ public:
 
         User user{-1, std::move(username), sha3_256(password)};
         if (auto const user_id = (*storage_)->insert(user); - 1 != user_id)
-        {
-            std::cout << "Successfully registered a user " << colored(user.username, color_e::green) << std::endl;
-        }
+            std::cout << "Successfully registered a user " << cgreen(user.username) << std::endl;
         else
-        {
             std::cerr << "couldn't register a new user '" << user.username << "'. "
                       << "User name is busy or password has incorrect format\n";
-        }
     }
     catch (std::exception const &ex)
     {
@@ -93,6 +85,7 @@ public:
     }
 
 private:
+    CmdArgs                  args_;
     std::shared_ptr<Storage> storage_;
 };
 

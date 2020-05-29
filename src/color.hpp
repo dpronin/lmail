@@ -8,10 +8,12 @@ namespace lmail
 
 enum class color_e
 {
-    red   = 1,
-    green = 2,
-    brown = 3,
-    blue  = 4,
+    red    = 1,
+    green  = 2,
+    brown  = 3,
+    blue   = 4,
+    purple = 5,
+    lblue  = 6,
 };
 
 inline std::string color_escape_reset()
@@ -29,5 +31,12 @@ inline std::string colored(std::string_view input, color_e color)
 {
     return color_escape(color) + input.data() + color_escape_reset();
 }
+
+inline auto cred(std::string_view input) { return colored(input, color_e::red); }
+inline auto cgreen(std::string_view input) { return colored(input, color_e::green); }
+inline auto cbrown(std::string_view input) { return colored(input, color_e::brown); }
+inline auto cblue(std::string_view input) { return colored(input, color_e::blue); }
+inline auto cpurple(std::string_view input) { return colored(input, color_e::purple); }
+inline auto clblue(std::string_view input) { return colored(input, color_e::lblue); }
 
 } // namespace lmail

@@ -5,8 +5,8 @@
 #include <stdexcept>
 #include <utility>
 
+#include "logged_user.hpp"
 #include "storage.hpp"
-#include "user.hpp"
 
 namespace lmail
 {
@@ -14,9 +14,11 @@ namespace lmail
 class CmdListUsers final
 {
 public:
-    explicit CmdListUsers(std::shared_ptr<User> user, std::shared_ptr<Storage> storage)
-        : user_(std::move(user)), storage_(std::move(storage))
+    explicit CmdListUsers(std::shared_ptr<LoggedUser> logged_user, std::shared_ptr<Storage> storage)
+        : logged_user_(std::move(logged_user)), storage_(std::move(storage))
     {
+        if (!logged_user_)
+            throw std::invalid_argument("logged user provided cannot be empty");
         if (!storage_)
             throw std::invalid_argument("storage provided cannot be empty");
     }
@@ -24,7 +26,7 @@ public:
     void operator()()
     try
     {
-        auto const usernames = (*storage_)->select(&User::username);
+        auto usernames = (*storage_)->select(&User::username);
         if (usernames.empty())
             std::cout << "There are no users\n";
         else if (usernames.size() == 1)
@@ -34,8 +36,8 @@ public:
         for (auto const &username : usernames)
         {
             std::cout << "* " << username;
-            if (username == user_->username)
-                std::cout << " (" << colored("me", color_e::green) << ")";
+            if (username == logged_user_->user().username)
+                std::cout << " (" << cgreen("me") << ")";
             std::cout << '\n';
         }
     }
@@ -49,8 +51,8 @@ public:
     }
 
 private:
-    std::shared_ptr<User>    user_;
-    std::shared_ptr<Storage> storage_;
+    std::shared_ptr<LoggedUser> logged_user_;
+    std::shared_ptr<Storage>    storage_;
 };
 
 } // namespace lmail

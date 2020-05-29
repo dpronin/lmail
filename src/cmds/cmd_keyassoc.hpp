@@ -2,35 +2,31 @@
 
 #include <cstdlib>
 
-#include <system_error>
+#include <algorithm>
 #include <filesystem>
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <system_error>
 #include <utility>
-#include <algorithm>
 
+#include "application.hpp"
+#include "cmd_args.hpp"
+#include "logged_user.hpp"
 #include "types.hpp"
 #include "utility.hpp"
-#include "application.hpp"
-#include "user.hpp"
-#include "cmd_base_args.hpp"
 
 namespace lmail
 {
 
-class CmdKeyAssoc final : CmdBaseArgs
+class CmdKeyAssoc final
 {
 public:
-    explicit CmdKeyAssoc(args_t args, std::shared_ptr<User> user, std::filesystem::path profile_path)
-        : CmdBaseArgs(std::move(args))
-        , user_(std::move(user))
-        , profile_path_(std::move(profile_path))
+    explicit CmdKeyAssoc(CmdArgs args, std::shared_ptr<LoggedUser> logged_user)
+        : args_(std::move(args)), logged_user_(std::move(logged_user))
     {
-        if (!user_)
-            throw std::invalid_argument("user provided cannot be empty");
-        if (profile_path_.empty())
-            throw std::invalid_argument("profile path provided cannot be empty");
+        if (!logged_user_)
+            throw std::invalid_argument("logged user provided cannot be empty");
     }
 
     void operator()()
@@ -38,14 +34,9 @@ public:
     {
         namespace fs = std::filesystem;
 
-        auto extract_arg = [args = args_] () mutable {
-            arg_t arg;
-            if (!args.empty())
-                arg = std::move(args.front()), args.pop_front();
-            return arg;
-        };
+        auto args = args_;
 
-        key_name_t keyname = extract_arg();
+        keyname_t keyname = args.pop();
         if (keyname.empty() && !uread(keyname, "Enter key name: "))
             return;
 
@@ -55,9 +46,9 @@ public:
             return;
         }
 
-        if (auto const keys_pair_dir = find_key(profile_path_ / Application::kKeysDirName, keyname); !keys_pair_dir.empty())
+        if (auto const &keys_pair_dir = logged_user_->profile().find_key(keyname); !keys_pair_dir.empty())
         {
-            username_t username_tgt = extract_arg();
+            username_t username_tgt = args.pop();
             if (username_tgt.empty() && !uread(username_tgt, "Enter a target user name the key is linked to: "))
                 return;
 
@@ -74,7 +65,7 @@ public:
                 return;
             }
 
-            if (user_->username == username_tgt)
+            if (logged_user_->user().username == username_tgt)
             {
                 std::cerr << "you cannot create a new association between your key and yourself\n";
                 return;
@@ -82,14 +73,14 @@ public:
 
             std::cout << "trying to link key '" << keyname << "' to user '" << username_tgt << "' ...\n";
 
-            auto const assocs_dir = profile_path_ / Application::kAssocsDirName;
+            auto const assocs_dir = logged_user_->profile().assocs_dir();
             if (fs::exists(assocs_dir) && !fs::is_directory(assocs_dir) || !fs::exists(assocs_dir) && !fs::create_directory(assocs_dir))
             {
                 std::cerr << "couldn't create " << assocs_dir << '\n';
                 return;
             }
 
-            auto assoc_path = assocs_dir / username_tgt;
+            auto assoc_path = assocs_dir / username_to_keyname(username_tgt);
             assoc_path += Application::kUserKeyLinkSuffix;
             if (fs::exists(assoc_path))
             {
@@ -120,8 +111,8 @@ public:
     }
 
 private:
-    std::shared_ptr<User> user_;
-    std::filesystem::path profile_path_;
+    CmdArgs                     args_;
+    std::shared_ptr<LoggedUser> logged_user_;
 };
 
 } // namespace lmail

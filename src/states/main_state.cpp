@@ -1,8 +1,8 @@
 #include "main_state.hpp"
 
 #include <iostream>
-#include <utility>
 #include <memory>
+#include <utility>
 
 #include "color.hpp"
 #include "types.hpp"
@@ -39,7 +39,7 @@ help_cmds_t const &MainState::help_cmds()
 
 prompt_t MainState::prompt() const { return default_colored("lmail > "); }
 
-std::string MainState::default_colored(std::string_view input) const { return colored(input, color_e::brown); }
+std::string MainState::default_colored(std::string_view input) const { return cbrown(input); }
 
 void MainState::process(args_t args)
 {
