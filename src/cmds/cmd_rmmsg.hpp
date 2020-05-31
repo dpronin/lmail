@@ -11,6 +11,7 @@
 #include "logged_user.hpp"
 #include "storage.hpp"
 #include "types.hpp"
+#include "uread.hpp"
 
 namespace lmail
 {
@@ -45,7 +46,7 @@ public:
         auto const msg_idx = boost::lexical_cast<msg_idx_t>(msg_idx_str);
         if (auto const msg_id = logged_user_->inbox().erase(msg_idx))
         {
-            (*storage_)->remove_all<Message>(where(c(&Message::id) == *msg_id && c(&Message::dest_user_id) == logged_user_->user().id));
+            (*storage_)->remove_all<Message>(where(c(&Message::id) == *msg_id && c(&Message::dest_user_id) == logged_user_->id()));
             std::cout << "message #" << msg_idx << " successfully removed\n";
         }
         else

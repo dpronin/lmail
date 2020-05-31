@@ -1,7 +1,6 @@
 #pragma once
 
 #include <deque>
-#include <filesystem>
 #include <iostream>
 #include <memory>
 #include <optional>
@@ -11,12 +10,14 @@
 
 #include <boost/range/algorithm/find_if.hpp>
 
+#include "db/message.hpp"
+
 #include "application.hpp"
+#include "color.hpp"
+#include "crypt.hpp"
 #include "inbox_message.hpp"
 #include "profile.hpp"
 #include "utility.hpp"
-#include "color.hpp"
-#include "message.hpp"
 
 namespace lmail
 {
@@ -56,7 +57,7 @@ public:
             show_topic(++msg_idx, msg, out);
     }
 
-    std::optional<msg_id_t> erase(msg_idx_t msg_idx)
+    auto erase(msg_idx_t msg_idx)
     {
         std::optional<msg_id_t> msg_id;
         if (0 == msg_idx || msg_idx > messages_.size())
@@ -73,7 +74,7 @@ public:
             show(msg_idx, messages_[msg_idx - 1], out);
     }
 
-    std::optional<msg_id_t> find(msg_idx_t msg_idx) const
+    auto find(msg_idx_t msg_idx) const
     {
         std::optional<msg_id_t> msg_id;
         if (1 <= msg_idx && msg_idx <= messages_.size())
@@ -123,11 +124,11 @@ private:
     {
         msg_it->id             = std::get<0>(message);
         auto const &topic_blob = std::get<1>(message);
-        msg_it->topic          = { topic_blob.cbegin(), topic_blob.cend() };
+        msg_it->topic          = {topic_blob.cbegin(), topic_blob.cend()};
         msg_it->cyphered       = std::get<2>(message);
         msg_it->user_from      = std::move(std::get<3>(message));
         auto const &body_blob  = std::get<4>(message);
-        msg_it->body           = { body_blob.cbegin(), body_blob.cend() };
+        msg_it->body           = {body_blob.cbegin(), body_blob.cend()};
     }
 
     std::pair<messages_t::iterator, bool> sync(std::tuple<msg_id_t, topic_blob_t, bool, username_t, body_blob_t> message)
@@ -148,13 +149,19 @@ private:
         std::optional<CryptoPP::RSA::PrivateKey> priv_key;
         if (msg.cyphered)
             priv_key = fetch_priv_key(msg.user_from);
-        return { priv_key, !msg.cyphered || priv_key };
+        return {priv_key, !msg.cyphered || priv_key};
     }
 
     std::optional<CryptoPP::RSA::PrivateKey> fetch_priv_key(username_t const &user_from) const
     {
         if (auto const keys_pair_dir = profile_->find_assoc_key(username_to_keyname(user_from)); !keys_pair_dir.empty())
-            try { return load_key<CryptoPP::RSA::PrivateKey>(keys_pair_dir / Application::kPrivKeyName); } catch (...) {}
+            try
+            {
+                return load_key<CryptoPP::RSA::PrivateKey>(keys_pair_dir / Application::kPrivKeyName);
+            }
+            catch (...)
+            {
+            }
         return {};
     }
 

@@ -5,11 +5,13 @@
 
 #include <boost/scope_exit.hpp>
 
+#include "db/user.hpp"
+
 #include "application.hpp"
 #include "cmd_args.hpp"
 #include "storage.hpp"
 #include "types.hpp"
-#include "user.hpp"
+#include "uread.hpp"
 #include "utility.hpp"
 
 namespace lmail

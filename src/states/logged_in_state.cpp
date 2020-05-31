@@ -59,7 +59,7 @@ help_cmds_t const &LoggedInState::help_cmds()
 
 prompt_t LoggedInState::prompt() const { return default_colored("lmail (") + login_name() + default_colored(") > "); }
 
-username_t LoggedInState::login_name() const { return cgreen(logged_user_->user().username); }
+username_t LoggedInState::login_name() const { return cgreen(logged_user_->name()); }
 
 void LoggedInState::OnEnter()
 {

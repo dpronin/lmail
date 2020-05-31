@@ -3,7 +3,6 @@
 #include <vector>
 
 #include "user.hpp"
-#include "utility.hpp"
 
 namespace lmail
 {

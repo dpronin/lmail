@@ -14,6 +14,7 @@
 #include "logged_user.hpp"
 #include "storage.hpp"
 #include "types.hpp"
+#include "uread.hpp"
 #include "utility.hpp"
 
 #include "states/logged_in_state.hpp"

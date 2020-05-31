@@ -36,7 +36,7 @@ public:
         for (auto const &username : usernames)
         {
             std::cout << "* " << username;
-            if (username == logged_user_->user().username)
+            if (username == logged_user_->name())
                 std::cout << " (" << cgreen("me") << ")";
             std::cout << '\n';
         }

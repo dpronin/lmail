@@ -14,6 +14,7 @@
 #include "cmd_args.hpp"
 #include "logged_user.hpp"
 #include "types.hpp"
+#include "uread.hpp"
 #include "utility.hpp"
 
 namespace lmail
@@ -35,7 +36,7 @@ public:
         namespace fs = std::filesystem;
 
         keyname_t keyname = args_.front();
-        if (keyname.empty() && !uread(keyname, "Enter key name: "))
+        if (keyname.empty() && !uread(keyname, "Enter a new key name: "))
             return;
 
         if (keyname.empty())
@@ -62,10 +63,11 @@ public:
             return;
         }
 
-        size_t      key_size = Application::kDefaultRSAKeySize;
-        std::string key_size_str;
-        std::string const prompt = "Enter a new RSA key's size (minimum: " + std::to_string(Application::kMinRSAKeyLen)
-            + " default: " + std::to_string(key_size) + "): ";
+        size_t            key_size = Application::kDefaultRSAKeySize;
+        std::string       key_size_str;
+        std::string const prompt = "Enter a new RSA key's size (minimum: "
+            + std::to_string(Application::kMinRSAKeyLen)
+            + ", default: " + std::to_string(key_size) + "): ";
         if (!uread(key_size_str, prompt))
             return;
         if (!key_size_str.empty())

@@ -16,10 +16,7 @@ enum class color_e
     lblue  = 6,
 };
 
-inline std::string color_escape_reset()
-{
-    return "\e[0m";
-}
+inline std::string_view color_escape_reset() noexcept { return "\e[0m"; }
 
 inline std::string color_escape(color_e color)
 {
@@ -29,7 +26,7 @@ inline std::string color_escape(color_e color)
 
 inline std::string colored(std::string_view input, color_e color)
 {
-    return color_escape(color) + input.data() + color_escape_reset();
+    return color_escape(color) + input.data() + color_escape_reset().data();
 }
 
 inline auto cred(std::string_view input) { return colored(input, color_e::red); }

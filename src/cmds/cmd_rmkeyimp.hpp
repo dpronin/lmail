@@ -14,6 +14,7 @@
 #include "cmd_args.hpp"
 #include "logged_user.hpp"
 #include "types.hpp"
+#include "uread.hpp"
 #include "utility.hpp"
 
 namespace lmail
@@ -44,33 +45,33 @@ public:
             return;
         }
 
-        if (auto const &key_path = logged_user_->profile().find_cypher_key(username_to_keyname(username_tgt)); !key_path.empty())
-        {
-            auto       extract_keyname = [](auto const &key_path) { return key_path.filename().string(); };
-            auto const keyname         = extract_keyname(key_path);
-            if (keyname.empty())
-            {
-                std::cerr << "couldn't extract key name\n";
-                return;
-            }
-
-            std::cout << "The imported key '" << keyname << "' for user '" << username_tgt << "' is about to be removed" << std::endl;
-            std::string ans;
-            while (uread(ans, "Remove it? (y/n): ") && ans != "y" && ans != "n")
-                ;
-            if ("y" == ans)
-            {
-                std::error_code ec;
-                fs::remove(key_path, ec);
-                if (!ec)
-                    std::cout << "imported key '" << keyname << "' for user '" << username_tgt << "' successfully removed\n";
-                else
-                    std::cerr << "failed to remove the imported key '" << keyname << "' for user '" << username_tgt << "'\n";
-            }
-        }
-        else
+        auto const &key_path = logged_user_->profile().find_cypher_key(username_to_keyname(username_tgt));
+        if (key_path.empty())
         {
             std::cerr << "There is none public key associated with user '" << username_tgt << "'\n";
+            return;
+        }
+
+        auto       extract_keyname = [](auto const &key_path) { return key_path.filename().string(); };
+        auto const keyname         = extract_keyname(key_path);
+        if (keyname.empty())
+        {
+            std::cerr << "couldn't extract key name\n";
+            return;
+        }
+
+        std::cout << "The imported key '" << keyname << "' for user '" << username_tgt << "' is about to be removed" << std::endl;
+        std::string ans;
+        while (uread(ans, "Remove it? (y/n): ") && ans != "y" && ans != "n")
+            ;
+        if ("y" == ans)
+        {
+            std::error_code ec;
+            fs::remove(key_path, ec);
+            if (!ec)
+                std::cout << "imported key '" << keyname << "' for user '" << username_tgt << "' successfully removed\n";
+            else
+                std::cerr << "failed to remove the imported key '" << keyname << "' for user '" << username_tgt << "'\n";
         }
     }
     catch (std::exception const &ex)

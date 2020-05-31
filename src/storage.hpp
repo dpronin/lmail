@@ -5,8 +5,8 @@
 
 #include <sqlite_orm/sqlite_orm.h>
 
-#include "message.hpp"
-#include "user.hpp"
+#include "db/message.hpp"
+#include "db/user.hpp"
 
 namespace lmail
 {

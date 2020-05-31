@@ -1,8 +1,9 @@
+#include "cli.hpp"
+
 #include <cstdlib>
 #include <cstring>
 
 #include <algorithm>
-#include <filesystem>
 #include <iostream>
 #include <iterator>
 #include <memory>
@@ -15,8 +16,6 @@
 
 #include <readline/history.h>
 #include <readline/readline.h>
-
-#include "cli.hpp"
 
 #include "states/init_state.hpp"
 #include "states/main_state.hpp"
@@ -97,7 +96,12 @@ void Cli::run()
     {
         args_t             args;
         std::istringstream iss{std::move(user_input)};
-        std::remove_copy_if(std::istream_iterator<arg_t>(iss), std::istream_iterator<arg_t>(), std::back_inserter(args), [](auto const &arg) { return arg.empty(); });
+        // clang-format off
+        std::remove_copy_if(std::istream_iterator<arg_t>(iss),
+                            std::istream_iterator<arg_t>(),
+                            std::back_inserter(args),
+                            [](auto const &arg) { return arg.empty(); });
+        // clang-format on
         if (!args.empty())
             cstate_->process(std::move(args));
     }

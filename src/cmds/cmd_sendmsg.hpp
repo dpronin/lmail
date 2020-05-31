@@ -14,6 +14,7 @@
 #include "logged_user.hpp"
 #include "storage.hpp"
 #include "types.hpp"
+#include "uread.hpp"
 #include "utility.hpp"
 
 namespace lmail
@@ -47,7 +48,7 @@ public:
             return;
         }
 
-        if (username_tgt == logged_user_->user().username)
+        if (username_tgt == logged_user_->name())
         {
             std::cerr << "you cannot send messages to yourself\n";
             return;
@@ -66,9 +67,9 @@ public:
             exit(EXIT_FAILURE);
         }
 
-        bool cyphered = false;
+        bool    cyphered = false;
         topic_t topic;
-        body_t body;
+        body_t  body;
 
         BOOST_SCOPE_EXIT_ALL(&)
         {
@@ -116,7 +117,7 @@ public:
         if (ans == "n")
             return;
 
-        Message message{-1, logged_user_->user().id, users_ids_to.front(), {topic.cbegin(), topic.cend()}, {body.cbegin(), body.cend()}, cyphered};
+        Message message{-1, logged_user_->id(), users_ids_to.front(), {topic.cbegin(), topic.cend()}, {body.cbegin(), body.cend()}, cyphered};
         if (auto const msg_id = (*storage_)->insert(message); - 1 != msg_id)
             std::cout << "message successfully sent to " << username_tgt << '\n';
         else

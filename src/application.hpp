@@ -2,10 +2,10 @@
 
 #include <climits>
 
+#include <algorithm>
 #include <filesystem>
 #include <iostream>
 #include <utility>
-#include <algorithm>
 
 #include <string_view>
 
@@ -15,8 +15,9 @@
 
 #include <cryptopp/aes.h>
 
+#include "db/user.hpp"
+
 #include "types.hpp"
-#include "user.hpp"
 
 namespace lmail
 {
@@ -36,7 +37,7 @@ public:
     };
 
 public:
-    Conf parse_conf(std::string_view conf_path = {})
+    static Conf parse_conf(std::string_view conf_path = {})
     {
         Conf conf;
 
@@ -63,39 +64,38 @@ public:
         return conf;
     }
 
-
-    auto const &lmail_path() const noexcept { return lmail_path_; }
-
-    static std::filesystem::path profile_path(User const &user) { return Application::instance().lmail_path() / user.username; }
-    static std::filesystem::path home_path() noexcept { return boost::this_process::environment()["HOME"].to_string(); }
+    auto const& home_path() const noexcept { return home_path_; }
+    auto lmail_path() const noexcept { return home_path_ / kLmailDirName; }
+    auto profile_path(User const &user) const { return lmail_path() / user.username; }
 
 private:
-    Application() : lmail_path_(home_path())
+    Application() : home_path_(boost::this_process::environment()["HOME"].to_string())
     {
-        if (lmail_path_.empty())
+        if (home_path_.empty())
             throw std::logic_error("to continue working with the application HOME env variable is supposed to be exported");
-        lmail_path_ /= kLmailDirName;
     }
 
     // application properties
 public:
-    static constexpr char   kLmailDirName[]      = ".lmail";
-    static constexpr char   kDefaultConfPath[]   = CONF_PREFIX "/etc/lmail.conf";
-    static constexpr char   kDefaultDbPath[]     = SCHEMA_DB_PREFIX "/lmail/schema.db";
-    static constexpr char   kSalt[]              = "2cipo6snetwdvhf384qbnxgyar51z7";
-    static constexpr char   kPrivKeyName[]       = "key";
-    static constexpr char   kPubKeySuffix[]      = ".pub";
-    static constexpr char   kKeysDirName[]       = ".keys";
-    static constexpr char   kAssocsDirName[]     = ".assocs";
-    static constexpr char   kCypherDirName[]     = "cypher";
-    static constexpr char   kUserKeyLinkSuffix[] = ".key";
-    static constexpr size_t kMinRSAKeyLen
-        = std::max(static_cast<size_t>(::CryptoPP::AES::DEFAULT_KEYLENGTH), static_cast<size_t>(::CryptoPP::AES::BLOCKSIZE)) * CHAR_BIT;
-    static constexpr size_t kDefaultRSAKeySize
-        = std::max(kMinRSAKeyLen, static_cast<size_t>(3072u));
+    static constexpr char kLmailDirName[]      = ".lmail";
+    static constexpr char kDefaultConfPath[]   = CONF_PREFIX "/etc/lmail.conf";
+    static constexpr char kDefaultDbPath[]     = SCHEMA_DB_PREFIX "/lmail/schema.db";
+    static constexpr char kSalt[]              = "2cipo6snetwdvhf384qbnxgyar51z7";
+    static constexpr char kPrivKeyName[]       = "key";
+    static constexpr char kPubKeySuffix[]      = ".pub";
+    static constexpr char kKeysDirName[]       = ".keys";
+    static constexpr char kAssocsDirName[]     = ".assocs";
+    static constexpr char kCypherDirName[]     = "cypher";
+    static constexpr char kUserKeyLinkSuffix[] = ".key";
+    // clang-format off
+    static constexpr size_t kMinRSAKeyLen        =
+        std::max(static_cast<size_t>(::CryptoPP::AES::DEFAULT_KEYLENGTH), static_cast<size_t>(::CryptoPP::AES::BLOCKSIZE)) * CHAR_BIT;
+    static constexpr size_t kDefaultRSAKeySize   =
+        std::max(kMinRSAKeyLen, static_cast<size_t>(3072u));
+    // clang-format on
 
 private:
-    std::filesystem::path lmail_path_;
+    std::filesystem::path home_path_;
 };
 
 } // namespace lmail

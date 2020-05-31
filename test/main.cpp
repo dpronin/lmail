@@ -2,8 +2,8 @@
 
 #include <gtest/gtest.h>
 
-#include "utility.hpp"
 #include "application.hpp"
+#include "crypt.hpp"
 
 using namespace lmail;
 using namespace testing;
@@ -13,7 +13,7 @@ namespace lmail::test
 
 TEST(Cyphering, EncryptDecrypt)
 {
-    auto key_pair = generate_rsa_key_pair(Application::kDefaultRSAKeySize);
+    auto        key_pair = generate_rsa_key_pair(Application::kDefaultRSAKeySize);
     std::string m =
         "Fusce tincidunt at mauris ut molestie. Integer a purus egestas, porta sem at, "
         "condimentum mauris. Fusce vitae quam gravida, imperdiet mauris quis, ullamcorper nisi. "

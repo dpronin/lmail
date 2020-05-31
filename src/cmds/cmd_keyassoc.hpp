@@ -14,6 +14,7 @@
 #include "cmd_args.hpp"
 #include "logged_user.hpp"
 #include "types.hpp"
+#include "uread.hpp"
 #include "utility.hpp"
 
 namespace lmail
@@ -46,60 +47,60 @@ public:
             return;
         }
 
-        if (auto const &keys_pair_dir = logged_user_->profile().find_key(keyname); !keys_pair_dir.empty())
-        {
-            username_t username_tgt = args.pop();
-            if (username_tgt.empty() && !uread(username_tgt, "Enter a target user name the key is linked to: "))
-                return;
-
-            if (username_tgt.empty())
-            {
-                std::cerr << "target user name cannot be empty\n";
-                return;
-            }
-
-            username_tgt = fs::path(username_tgt).filename();
-            if (username_tgt.empty())
-            {
-                std::cerr << "target user name cannot be empty\n";
-                return;
-            }
-
-            if (logged_user_->user().username == username_tgt)
-            {
-                std::cerr << "you cannot create a new association between your key and yourself\n";
-                return;
-            }
-
-            std::cout << "trying to link key '" << keyname << "' to user '" << username_tgt << "' ...\n";
-
-            auto const assocs_dir = logged_user_->profile().assocs_dir();
-            if (fs::exists(assocs_dir) && !fs::is_directory(assocs_dir) || !fs::exists(assocs_dir) && !fs::create_directory(assocs_dir))
-            {
-                std::cerr << "couldn't create " << assocs_dir << '\n';
-                return;
-            }
-
-            auto assoc_path = assocs_dir / username_to_keyname(username_tgt);
-            assoc_path += Application::kUserKeyLinkSuffix;
-            if (fs::exists(assoc_path))
-            {
-                std::cerr << "some key is already associated with user '" << username_tgt << "'\n";
-                return;
-            }
-
-            std::error_code ec;
-            fs::create_directory_symlink(keys_pair_dir, assoc_path, ec);
-            if (!ec)
-                std::cout << "successfully created key-user association" << std::endl;
-            else
-                std::cerr << "failed to create association between key '" << keyname << "' and the user '"
-                          << username_tgt << "', reason: " << ec.message() << '\n';
-        }
-        else
+        auto const &keys_pair_dir = logged_user_->profile().find_key(keyname);
+        if (keys_pair_dir.empty())
         {
             std::cerr << "There is no key '" << keyname << "'\n";
+            return;
         }
+
+        username_t username_tgt = args.pop();
+        if (username_tgt.empty() && !uread(username_tgt, "Enter a target user name the key is linked to: "))
+            return;
+
+        if (username_tgt.empty())
+        {
+            std::cerr << "target user name cannot be empty\n";
+            return;
+        }
+
+        username_tgt = fs::path(username_tgt).filename();
+        if (username_tgt.empty())
+        {
+            std::cerr << "target user name cannot be empty\n";
+            return;
+        }
+
+        if (logged_user_->name() == username_tgt)
+        {
+            std::cerr << "you cannot create a new association between your key and yourself\n";
+            return;
+        }
+
+        std::cout << "trying to link key '" << keyname << "' to user '" << username_tgt << "' ...\n";
+
+        auto const assocs_dir = logged_user_->profile().assocs_dir();
+        if (fs::exists(assocs_dir) && !fs::is_directory(assocs_dir) || !fs::exists(assocs_dir) && !fs::create_directory(assocs_dir))
+        {
+            std::cerr << "couldn't create " << assocs_dir << '\n';
+            return;
+        }
+
+        auto assoc_path = assocs_dir / username_to_keyname(username_tgt);
+        assoc_path += Application::kUserKeyLinkSuffix;
+        if (fs::exists(assoc_path))
+        {
+            std::cerr << "some key is already associated with user '" << username_tgt << "'\n";
+            return;
+        }
+
+        std::error_code ec;
+        fs::create_directory_symlink(keys_pair_dir, assoc_path, ec);
+        if (!ec)
+            std::cout << "successfully created key-user association" << std::endl;
+        else
+            std::cerr << "failed to create association between key '" << keyname << "' and the user '"
+                      << username_tgt << "', reason: " << ec.message() << '\n';
     }
     catch (std::exception const &ex)
     {

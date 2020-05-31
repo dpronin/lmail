@@ -10,14 +10,14 @@ set(SOURCES
 set(HEADERS
     application.hpp
     cli.hpp
+    cmds/cmd_args.hpp
     cmds/cmd_help.hpp
     cmds/cmd_inbox.hpp
     cmds/cmd_keyassoc.hpp
-    cmds/cmd_keyexp.hpp
-    cmds/cmd_keyimp.hpp
-    cmds/cmd_keygen.hpp
     cmds/cmd_keyassoc.hpp
-    cmds/cmd_rmkeyassoc.hpp
+    cmds/cmd_keyexp.hpp
+    cmds/cmd_keygen.hpp
+    cmds/cmd_keyimp.hpp
     cmds/cmd_list_keys.hpp
     cmds/cmd_list_users.hpp
     cmds/cmd_login.hpp
@@ -25,15 +25,18 @@ set(HEADERS
     cmds/cmd_quit.hpp
     cmds/cmd_readmsg.hpp
     cmds/cmd_register.hpp
+    cmds/cmd_rmkeyassoc.hpp
     cmds/cmd_rmmsg.hpp
     cmds/cmd_sendmsg.hpp
-    cmds/cmd_args.hpp
-    profile.hpp
-    logged_user.hpp
     color.hpp
+    crypt.hpp
+    db/message.hpp
+    db/user.hpp
     fsm.hpp
     inbox.hpp
     inbox_message.hpp
+    logged_user.hpp
+    profile.hpp
     state.hpp
     states/cli_state.hpp
     states/cmd_state.hpp
@@ -41,7 +44,7 @@ set(HEADERS
     states/logged_in_state.hpp
     states/main_state.hpp
     types.hpp
-    user.hpp
+    uread.hpp
     utility.hpp
 )
 

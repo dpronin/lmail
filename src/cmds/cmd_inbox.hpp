@@ -5,8 +5,9 @@
 #include <stdexcept>
 #include <utility>
 
+#include "db/message.hpp"
+
 #include "logged_user.hpp"
-#include "message.hpp"
 #include "storage.hpp"
 
 namespace lmail
@@ -29,9 +30,9 @@ public:
     {
         using namespace sqlite_orm;
         // clang-format off
-        auto items                              = (*storage_)->select(columns(&Message::id, &Message::topic, &Message::cyphered, &User::username),
-                                                                      join<User>(on(c(&Message::orig_user_id) == &User::id)),
-                                                                      where(c(&Message::dest_user_id) == logged_user_->user().id));
+        auto items = (*storage_)->select(columns(&Message::id, &Message::topic, &Message::cyphered, &User::username),
+                                         join<User>(on(c(&Message::orig_user_id) == &User::id)),
+                                         where(c(&Message::dest_user_id) == logged_user_->id()));
         // clang-format on
         auto const [old_messages, new_messages] = logged_user_->inbox().sync(std::move(items));
         auto const all_messages                 = old_messages + new_messages;

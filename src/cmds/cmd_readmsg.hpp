@@ -11,6 +11,7 @@
 #include "logged_user.hpp"
 #include "storage.hpp"
 #include "types.hpp"
+#include "uread.hpp"
 #include "utility.hpp"
 
 namespace lmail
@@ -53,7 +54,7 @@ public:
             // clang-format on
             if (messages.empty())
             {
-                std::cerr << "message #" << msg_idx << " does not exist for the user " << logged_user_->user().username << '\n';
+                std::cerr << "message #" << msg_idx << " does not exist for the user " << logged_user_->name() << '\n';
                 logged_user_->inbox().erase(msg_idx);
                 return;
             }

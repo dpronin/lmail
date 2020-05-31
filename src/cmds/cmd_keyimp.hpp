@@ -12,6 +12,7 @@
 #include "cmd_args.hpp"
 #include "logged_user.hpp"
 #include "types.hpp"
+#include "uread.hpp"
 #include "utility.hpp"
 
 namespace lmail
@@ -69,7 +70,7 @@ public:
             return;
         }
 
-        if (username_tgt == logged_user_->user().username)
+        if (username_tgt == logged_user_->name())
         {
             std::cerr << "you cannot import the key from yourself\n";
             return;

@@ -4,7 +4,7 @@
 
 #include <string>
 
-#include "message.hpp"
+#include "db/message.hpp"
 
 namespace lmail
 {
