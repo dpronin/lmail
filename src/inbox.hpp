@@ -16,6 +16,7 @@
 #include "profile.hpp"
 #include "utility.hpp"
 #include "color.hpp"
+#include "message.hpp"
 
 namespace lmail
 {
@@ -33,16 +34,16 @@ public:
     }
 
 public:
-    std::pair<size_t, size_t> sync(std::vector<std::tuple<msg_id_t, topic_t, bool, username_t>> records)
+    std::pair<size_t, size_t> sync(std::vector<std::tuple<msg_id_t, topic_blob_t, bool, username_t>> records)
     {
         size_t old_messages = messages_.size();
         size_t new_messages = 0;
         for (auto &record : records)
-            new_messages += sync(std::tuple_cat(std::move(record), std::tuple<body_t>{})).second;
+            new_messages += sync(std::tuple_cat(std::move(record), std::tuple<body_blob_t>{})).second;
         return {old_messages, new_messages};
     }
 
-    void sync(msg_idx_t msg_idx, std::tuple<msg_id_t, topic_t, bool, username_t, body_t> message)
+    void sync(msg_idx_t msg_idx, std::tuple<msg_id_t, topic_blob_t, bool, username_t, body_blob_t> message)
     {
         if (0 < msg_idx && msg_idx <= messages_.size())
             sync(messages_.begin() + msg_idx - 1, std::move(message));
@@ -84,35 +85,52 @@ private:
     void show_topic(msg_idx_t idx, InboxMessage const &msg, std::ostream &out) const
     {
         auto const params = cypher_params(msg);
-        if (!params.second)
-            return;
-        out << '\t' << idx << ". (from " << clblue(msg.user_from) << ") Topic: "
-            << (params.first ? decrypt(msg.topic, *params.first) : msg.topic)
-            << '\n';
+        out << '\t' << idx << ". (from " << clblue(msg.user_from) << ") ";
+        if (params.second)
+        {
+            out << "Topic: "
+                << (params.first ? decrypt(msg.topic, *params.first) : msg.topic)
+                << '\n';
+        }
+        else
+        {
+            std::cerr << cpurple("Message cyphered but association is not found. Check your keys") << '\n';
+        }
     }
 
     void show(msg_idx_t idx, InboxMessage const &msg, std::ostream &out) const
     {
         auto const params = cypher_params(msg);
-        if (!params.second)
-            return;
         out << "\tIndex: " << idx
             << '\n';
         out << "\tFrom: " << clblue(msg.user_from)
             << '\n';
-        out << "\tTopic: " << (params.first ? decrypt(msg.topic, *params.first) : msg.topic)
-            << "\n\n";
-        out << "\tMessage: " << '\n';
-        out << '\t' << (params.first ? decrypt(msg.body, *params.first) : msg.body)
-            << '\n';
+        if (params.second)
+        {
+            out << "\tTopic: " << (params.first ? decrypt(msg.topic, *params.first) : msg.topic)
+                << "\n\n";
+            out << "\tMessage: " << '\n';
+            out << '\t' << (params.first ? decrypt(msg.body, *params.first) : msg.body)
+                << '\n';
+        }
+        else
+        {
+            std::cerr << '\t' << cpurple("Message cyphered but association is not found. Check your keys") << '\n';
+        }
     }
 
-    void sync(messages_t::iterator msg_it, std::tuple<msg_id_t, topic_t, bool, username_t, body_t> message)
+    void sync(messages_t::iterator msg_it, std::tuple<msg_id_t, topic_blob_t, bool, username_t, body_blob_t> message)
     {
-        std::tie(msg_it->id, msg_it->topic, msg_it->cyphered, msg_it->user_from, msg_it->body) = std::move(message);
+        msg_it->id             = std::get<0>(message);
+        auto const &topic_blob = std::get<1>(message);
+        msg_it->topic          = { topic_blob.cbegin(), topic_blob.cend() };
+        msg_it->cyphered       = std::get<2>(message);
+        msg_it->user_from      = std::move(std::get<3>(message));
+        auto const &body_blob  = std::get<4>(message);
+        msg_it->body           = { body_blob.cbegin(), body_blob.cend() };
     }
 
-    std::pair<messages_t::iterator, bool> sync(std::tuple<msg_id_t, topic_t, bool, username_t, body_t> message)
+    std::pair<messages_t::iterator, bool> sync(std::tuple<msg_id_t, topic_blob_t, bool, username_t, body_blob_t> message)
     {
         auto msg_it  = boost::find_if(messages_, [msg_id = std::get<0>(message)](auto const &msg) { return msg.id == msg_id; });
         bool new_msg = messages_.end() == msg_it;
@@ -130,15 +148,7 @@ private:
         std::optional<CryptoPP::RSA::PrivateKey> priv_key;
         if (msg.cyphered)
             priv_key = fetch_priv_key(msg.user_from);
-
-        if (msg.cyphered && !priv_key)
-        {
-            std::cerr << "The message is cyphered but the key associated with '"
-                      << msg.user_from << "' does not exist. Check your keys and associations";
-            return { priv_key, false };
-        }
-
-        return { priv_key, true };
+        return { priv_key, !msg.cyphered || priv_key };
     }
 
     std::optional<CryptoPP::RSA::PrivateKey> fetch_priv_key(username_t const &user_from) const

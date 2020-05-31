@@ -14,6 +14,7 @@
 #include <utility>
 
 #include <boost/algorithm/hex.hpp>
+#include <boost/range/algorithm/copy.hpp>
 
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -26,6 +27,8 @@
 #include <cryptopp/osrng.h>
 #include <cryptopp/queue.h>
 #include <cryptopp/rsa.h>
+#include <cryptopp/aes.h>
+#include <cryptopp/modes.h>
 #include <cryptopp/sha3.h>
 
 #include "application.hpp"
@@ -157,50 +160,132 @@ inline auto find_key(std::filesystem::path const &dir, std::string_view keyname)
     return find_dir_entry_if(dir, [keyname](auto const &dir_entry) { return dir_entry.path().filename().stem() == keyname; }).path();
 }
 
-inline void generate_rsa_key_pair(std::filesystem::path const &keys_pair_dir, size_t key_size)
+inline rsa_key_pair_t generate_rsa_key_pair(size_t key_size)
 {
     using namespace CryptoPP;
-    namespace fs = std::filesystem;
-
-    auto save_priv_key = [](auto const &key, fs::path const &keypath) {
-        save_key(key, keypath, S_IRUSR | S_IWUSR);
-    };
-
-    auto save_pub_key = [](auto const &key, fs::path const &keypath) {
-        save_key(key, keypath, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-    };
-
-    if (fs::exists(keys_pair_dir) && !fs::is_directory(keys_pair_dir) || !fs::exists(keys_pair_dir) && !fs::create_directories(keys_pair_dir))
-    {
-        throw std::runtime_error("couldn't create key pair");
-    }
-
     AutoSeededRandomPool rnd;
     RSA::PrivateKey      priv_key;
     priv_key.GenerateRandomWithKeySize(rnd, key_size);
+    return { priv_key, RSA::PublicKey(priv_key) };
+}
+
+inline void store(rsa_key_pair_t const &rsa_key_pair, std::filesystem::path const &keys_pair_dir)
+{
+    namespace fs = std::filesystem;
+
+    if (fs::exists(keys_pair_dir) && !fs::is_directory(keys_pair_dir) || !fs::exists(keys_pair_dir) && !fs::create_directories(keys_pair_dir))
+        throw std::runtime_error("couldn't create key pair");
+
     auto key_path = keys_pair_dir / Application::kPrivKeyName;
-    save_priv_key(priv_key, key_path);
+    save_key(rsa_key_pair.first, key_path, S_IRUSR | S_IWUSR);
     key_path += Application::kPubKeySuffix;
-    save_pub_key(RSA::PublicKey(priv_key), key_path);
+    save_key(rsa_key_pair.second, key_path, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 }
 
-inline void encrypt(std::string &msg, CryptoPP::RSA::PublicKey const &key)
+inline void encrypt(std::string &msg, CryptoPP::RSA::PublicKey const &rsa_key)
 {
     using namespace CryptoPP;
-    Integer            m(reinterpret_cast<byte const *>(msg.data()), msg.size());
-    std::ostringstream oss;
-    oss << std::hex << key.ApplyFunction(m);
-    msg = oss.str();
+
+    AutoSeededRandomPool rnd;
+
+    SecByteBlock aes_key(0, AES::DEFAULT_KEYLENGTH);
+    rnd.GenerateBlock(aes_key, aes_key.size());
+    Integer aesk(reinterpret_cast<byte const *>(aes_key.data()), aes_key.size());
+
+    SecByteBlock init_vector(0, AES::BLOCKSIZE);
+    rnd.GenerateBlock(init_vector, init_vector.size());
+    Integer iv(reinterpret_cast<byte const *>(init_vector.data()), init_vector.size());
+
+    std::string cmsg;
+    cmsg.resize(msg.size());
+    CFB_Mode<AES>::Encryption cfbEncryption(aes_key, aes_key.size(), init_vector);
+    cfbEncryption.ProcessData(reinterpret_cast<byte*>(cmsg.data()),
+                              reinterpret_cast<byte const*>(msg.data()),
+                              msg.size());
+
+    auto const caesk = rsa_key.ApplyFunction(aesk);
+    auto const civ   = rsa_key.ApplyFunction(iv);
+
+    auto const caesk_size = static_cast<uint16_t>(caesk.MinEncodedSize());
+    auto const civ_size   = static_cast<uint16_t>(civ.MinEncodedSize());
+    std::string out;
+    out.resize(2 * sizeof(uint16_t) + caesk_size + civ_size + cmsg.size());
+    auto *pout = out.data();
+
+    // encoding cyphered AES key and its size coming first
+    std::memcpy(pout, reinterpret_cast<byte const*>(&caesk_size), sizeof(uint16_t));
+    pout += sizeof(uint16_t);
+    caesk.Encode(reinterpret_cast<byte*>(pout), caesk_size);
+    pout += caesk_size;
+
+    // encoding cyphered initial vector and its size coming first
+    std::memcpy(pout, reinterpret_cast<byte const*>(&civ_size), sizeof(uint16_t));
+    pout += sizeof(uint16_t);
+    civ.Encode(reinterpret_cast<byte*>(pout), civ_size);
+    pout += civ_size;
+
+    // copying the message cyphered with AES key and initial vector
+    boost::copy(cmsg, pout);
+    msg = std::move(out);
 }
 
-inline void decrypt(std::string &msg, CryptoPP::RSA::PrivateKey const &key)
+inline void decrypt(std::string &cmsg, CryptoPP::RSA::PrivateKey const &rsa_key)
 {
     using namespace CryptoPP;
-    AutoSeededRandomPool rng;
-    Integer              c(msg.data());
-    auto                 r = key.CalculateInverse(rng, c);
-    msg.resize(r.MinEncodedSize());
-    r.Encode(reinterpret_cast<byte *>(msg.data()), msg.size());
+
+    if (cmsg.size() < 2 * sizeof(uint16_t))
+        throw std::invalid_argument("malformed message, cannot decrypt");
+
+    auto const *pin  = cmsg.data();
+    auto const *pend = cmsg.data() + cmsg.size();
+
+    uint16_t caesk_size;
+    std::memcpy(reinterpret_cast<byte*>(&caesk_size), pin, sizeof(uint16_t));
+    pin += sizeof(uint16_t);
+
+    if (pend - pin < caesk_size)
+        throw std::invalid_argument("malformed message, cannot decrypt");
+
+    Integer const caesk(reinterpret_cast<byte const*>(pin), caesk_size);
+    pin += caesk_size;
+
+    if (pend - pin < sizeof(uint16_t))
+        throw std::invalid_argument("malformed message, cannot decrypt");
+
+    uint16_t civ_size;
+    std::memcpy(reinterpret_cast<byte*>(&civ_size), pin, sizeof(uint16_t));
+    pin += sizeof(uint16_t);
+
+    if (pend - pin < civ_size)
+        throw std::invalid_argument("malformed message, cannot decrypt");
+
+    Integer const civ(reinterpret_cast<byte const*>(pin), civ_size);
+    pin += civ_size;
+
+    // empty message received
+    if (0 == pend - pin)
+    {
+        cmsg.clear();
+        return;
+    }
+
+    AutoSeededRandomPool rnd;
+
+    auto const aesk = rsa_key.CalculateInverse(rnd, caesk);
+    SecByteBlock aes_key(aesk.MinEncodedSize());
+    aesk.Encode(reinterpret_cast<byte *>(aes_key.data()), aes_key.size());
+
+    auto const iv = rsa_key.CalculateInverse(rnd, civ);
+    SecByteBlock init_vector(iv.MinEncodedSize());
+    iv.Encode(reinterpret_cast<byte *>(init_vector.data()), init_vector.size());
+
+    std::string msg;
+    msg.resize(pend - pin);
+    CFB_Mode<AES>::Decryption cfbDecryption(aes_key, aes_key.size(), init_vector);
+    cfbDecryption.ProcessData(reinterpret_cast<byte *>(msg.data()),
+                              reinterpret_cast<byte const *>(pin),
+                              pend - pin);
+    cmsg = std::move(msg);
 }
 
 } // namespace lmail

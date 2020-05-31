@@ -6,6 +6,8 @@
 #include <stdexcept>
 #include <utility>
 
+#include <boost/scope_exit.hpp>
+
 #include <cryptopp/rsa.h>
 
 #include "cmd_args.hpp"
@@ -64,7 +66,19 @@ public:
             exit(EXIT_FAILURE);
         }
 
+        bool cyphered = false;
         topic_t topic;
+        body_t body;
+
+        BOOST_SCOPE_EXIT_ALL(&)
+        {
+            if (cyphered)
+            {
+                secure_memset(topic.data(), 0, topic.size());
+                secure_memset(body.data(), 0, body.size());
+            }
+        };
+
         if (!uread(topic, "Enter the topic: "))
             return;
         if (topic.empty())
@@ -73,7 +87,6 @@ public:
             return;
         }
 
-        body_t body;
         if (!uread(body, "Enter the message: "))
             return;
         if (body.empty())
@@ -82,7 +95,6 @@ public:
             return;
         }
 
-        bool cyphered = false;
         if (auto const &key_path = logged_user_->profile().find_cypher_key(username_to_keyname(username_tgt)); !key_path.empty())
         {
             std::string ans;
@@ -104,7 +116,7 @@ public:
         if (ans == "n")
             return;
 
-        Message message{-1, logged_user_->user().id, users_ids_to.front(), std::move(topic), std::move(body), cyphered};
+        Message message{-1, logged_user_->user().id, users_ids_to.front(), {topic.cbegin(), topic.cend()}, {body.cbegin(), body.cend()}, cyphered};
         if (auto const msg_id = (*storage_)->insert(message); - 1 != msg_id)
             std::cout << "message successfully sent to " << username_tgt << '\n';
         else

@@ -46,7 +46,11 @@ public:
         auto const msg_idx = boost::lexical_cast<msg_idx_t>(msg_idx_str);
         if (auto const msg_id = logged_user_->inbox().find(msg_idx))
         {
-            auto messages = (*storage_)->select(columns(&Message::id, &Message::topic, &Message::cyphered, &User::username, &Message::body), join<User>(on(c(&Message::orig_user_id) == &User::id)), where(c(&Message::id) == *msg_id));
+            // clang-format off
+            auto messages = (*storage_)->select(columns(&Message::id, &Message::topic, &Message::cyphered, &User::username, &Message::body),
+                                                join<User>(on(c(&Message::orig_user_id) == &User::id)),
+                                                where(c(&Message::id) == *msg_id));
+            // clang-format on
             if (messages.empty())
             {
                 std::cerr << "message #" << msg_idx << " does not exist for the user " << logged_user_->user().username << '\n';

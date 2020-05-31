@@ -28,7 +28,11 @@ public:
     try
     {
         using namespace sqlite_orm;
-        auto items                              = (*storage_)->select(columns(&Message::id, &Message::topic, &Message::cyphered, &User::username), join<User>(on(c(&Message::orig_user_id) == &User::id)), where(c(&Message::dest_user_id) == logged_user_->user().id));
+        // clang-format off
+        auto items                              = (*storage_)->select(columns(&Message::id, &Message::topic, &Message::cyphered, &User::username),
+                                                                      join<User>(on(c(&Message::orig_user_id) == &User::id)),
+                                                                      where(c(&Message::dest_user_id) == logged_user_->user().id));
+        // clang-format on
         auto const [old_messages, new_messages] = logged_user_->inbox().sync(std::move(items));
         auto const all_messages                 = old_messages + new_messages;
         if (0 != all_messages)

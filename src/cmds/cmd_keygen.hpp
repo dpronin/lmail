@@ -62,24 +62,31 @@ public:
             return;
         }
 
-        size_t      key_size = Application::kDefaultKeySize;
+        size_t      key_size = Application::kDefaultRSAKeySize;
         std::string key_size_str;
-        if (!uread(key_size_str, "Enter a new RSA key's size (default: " + std::to_string(key_size) + "): "))
+        std::string const prompt = "Enter a new RSA key's size (minimum: " + std::to_string(Application::kMinRSAKeyLen)
+            + " default: " + std::to_string(key_size) + "): ";
+        if (!uread(key_size_str, prompt))
             return;
         if (!key_size_str.empty())
         {
-            if (auto const key_size_tmp = boost::lexical_cast<size_t>(key_size_str); 0 != key_size_tmp)
+            if (auto const key_size_tmp = boost::lexical_cast<size_t>(key_size_str); key_size_tmp >= Application::kMinRSAKeyLen)
+            {
                 key_size = key_size_tmp;
+            }
             else
-                std::cerr << "key size cannot be 0. Used default size " << key_size << '\n';
+            {
+                std::cerr << "key size cannot be less than " << Application::kMinRSAKeyLen << '\n';
+                return;
+            }
         }
         else
         {
-            std::cerr << "key size is unspecified. Used default size " << key_size << '\n';
+            std::cout << "key size is unspecified. Used default size " << key_size << '\n';
         }
         std::cout << "generation key '" << keyname << "', key size " << key_size << ". Wait a while ...";
         std::cout.flush();
-        generate_rsa_key_pair(keys_pair_dir, key_size);
+        store(generate_rsa_key_pair(key_size), keys_pair_dir);
         std::cout << "\nsuccessfully generated key '" << keyname << "', key size " << key_size << std::endl;
     }
     catch (boost::bad_lexical_cast const &)

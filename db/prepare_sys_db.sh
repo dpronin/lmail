@@ -20,6 +20,7 @@ if [ "x${DB_NEW_PATH}" = "x" ]; then
 fi
 
 echo "Overwriting '${DB_NEW_PATH}' by '${DB_OLD_PATH}' ..."
+mkdir -p $(dirname ${DB_NEW_PATH})
 cp -ib ${DB_OLD_PATH} ${DB_NEW_PATH}
 
 if [ "x$(cat /etc/group | cut -d: -f1 | sort | uniq | grep ^${OWNER_GROUP}$)" != "x${OWNER_GROUP}" ]; then

@@ -1,14 +1,19 @@
 #pragma once
 
+#include <climits>
+
 #include <filesystem>
 #include <iostream>
 #include <utility>
+#include <algorithm>
 
 #include <string_view>
 
 #include <boost/process/environment.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
+
+#include <cryptopp/aes.h>
 
 #include "types.hpp"
 #include "user.hpp"
@@ -74,7 +79,6 @@ private:
 
     // application properties
 public:
-    static constexpr size_t kDefaultKeySize      = 3072u;
     static constexpr char   kLmailDirName[]      = ".lmail";
     static constexpr char   kDefaultConfPath[]   = CONF_PREFIX "/etc/lmail.conf";
     static constexpr char   kDefaultDbPath[]     = SCHEMA_DB_PREFIX "/lmail/schema.db";
@@ -85,6 +89,10 @@ public:
     static constexpr char   kAssocsDirName[]     = ".assocs";
     static constexpr char   kCypherDirName[]     = "cypher";
     static constexpr char   kUserKeyLinkSuffix[] = ".key";
+    static constexpr size_t kMinRSAKeyLen
+        = std::max(static_cast<size_t>(::CryptoPP::AES::DEFAULT_KEYLENGTH), static_cast<size_t>(::CryptoPP::AES::BLOCKSIZE)) * CHAR_BIT;
+    static constexpr size_t kDefaultRSAKeySize
+        = std::max(kMinRSAKeyLen, static_cast<size_t>(3072u));
 
 private:
     std::filesystem::path lmail_path_;

@@ -1,24 +1,25 @@
 #pragma once
 
-#include <string>
+#include <vector>
 
 #include "user.hpp"
+#include "utility.hpp"
 
 namespace lmail
 {
 
-using msg_id_t = int;
-using topic_t  = std::string;
-using body_t   = std::string;
+using msg_id_t     = int;
+using topic_blob_t = std::vector<char>;
+using body_blob_t  = std::vector<char>;
 
 struct Message
 {
-    msg_id_t  id;
-    user_id_t orig_user_id;
-    user_id_t dest_user_id;
-    topic_t   topic;
-    body_t    body;
-    bool      cyphered;
+    msg_id_t     id;
+    user_id_t    orig_user_id;
+    user_id_t    dest_user_id;
+    topic_blob_t topic;
+    body_blob_t  body;
+    bool         cyphered;
 };
 
 } // namespace lmail

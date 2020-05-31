@@ -11,3 +11,6 @@ target_include_directories(lmail_test PRIVATE ${CMAKE_CURRENT_LIST_DIR} ${LMAIL_
 add_test(NAME GTestLMail COMMAND lmail_test)
 
 target_link_libraries(lmail_test PRIVATE CONAN_PKG::gtest)
+target_link_libraries(lmail_test PRIVATE CONAN_PKG::boost)
+target_link_libraries(lmail_test PRIVATE CONAN_PKG::cryptopp)
+
