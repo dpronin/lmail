@@ -80,11 +80,8 @@ public:
         std::cout << "trying to link key '" << keyname << "' to user '" << username_tgt << "' ...\n";
 
         auto const assocs_dir = logged_user_->profile().assocs_dir();
-        if (fs::exists(assocs_dir) && !fs::is_directory(assocs_dir) || !fs::exists(assocs_dir) && !fs::create_directory(assocs_dir))
-        {
-            std::cerr << "couldn't create " << assocs_dir << '\n';
-            return;
-        }
+        if (!create_dir_if_doesnt_exist(assocs_dir))
+            throw std::runtime_error("failed to create key association");
 
         auto assoc_path = assocs_dir / username_to_keyname(username_tgt);
         assoc_path += Application::kUserKeyLinkSuffix;

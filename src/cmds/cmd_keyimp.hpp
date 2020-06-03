@@ -53,11 +53,8 @@ public:
         }
 
         auto const &cypher_dir = logged_user_->profile().cypher_dir();
-        if (fs::exists(cypher_dir) && !fs::is_directory(cypher_dir) || !fs::exists(cypher_dir) && !fs::create_directories(cypher_dir))
-        {
-            std::cerr << "couldn't create " << cypher_dir << '\n';
-            return;
-        }
+        if (!create_dir_if_doesnt_exist(cypher_dir))
+            throw std::runtime_error("failed to import a public key");
 
         username_t username_tgt = args.pop();
         if (username_tgt.empty() && !uread(username_tgt, "Enter a target user that the key is linked to: "))

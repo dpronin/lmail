@@ -61,7 +61,7 @@ public:
 
         bool b_success;
         using namespace sqlite_orm;
-        if (auto users = (*storage_)->get_all<User>(where(c(&User::username) == username)); b_success = !users.empty())
+        if (auto users = (*storage_)->get_all<User>(where(c(&User::username) == username)); (b_success = !users.empty()))
         {
             if (1 != users.size())
             {
