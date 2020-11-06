@@ -1,3 +1,5 @@
+#include <cstdlib>
+
 #include <iostream>
 #include <stdexcept>
 
@@ -10,13 +12,15 @@ int main(int argc, char const *argv[])
 try
 {
     Cli(Application::parse_conf()).run();
-    return 0;
+    return EXIT_SUCCESS;
 }
 catch (std::exception const &ex)
 {
     std::cerr << "error occurred: " << ex.what() << '\n';
+    return EXIT_FAILURE;
 }
 catch (...)
 {
     std::cerr << "unknown exception\n";
+    return EXIT_FAILURE;
 }
