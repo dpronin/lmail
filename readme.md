@@ -3,7 +3,7 @@
 bash> git clone git@github.com:dannftk/lmail.git
 ```
 # Build requirements
-- [cmake](https://cmake.org/) to configure the project. Minimum required version is __3.9.6__
+- [cmake](https://cmake.org/) to configure the project. Minimum required version is __3.16__
 - [conan](https://conan.io/) to download all the dependencies of the application and configure with a certain set of parameters. You can install __conan__ by giving a command to __pip__:
     ```bash
         bash> pip install --user conan
@@ -78,7 +78,7 @@ If the compilation's finished successfully, in the directory `${project_root}/de
 
 # Installation and environment configuration
 
-To install the application in the syste, run:
+To install the application in the system, run:
 ```bash
 bash> make install
 ```
