@@ -10,7 +10,7 @@ bash> git clone git@github.com:dannftk/lmail.git
     ```
     To use __pip__ you need to install __python__ interpreter. I highly recommend to install __python3__-based versions in order to avoid unexpected results with __conan__
 
-- A C++ compiler with __C++17__, __boost-1.73__ and __gtest-1.10__ support. The package has been successfully tested on compilation with __gcc-9.3__ (g++ with libstdc++11)
+- A C++ compiler with __C++17__, __boost-1.76__ and __gtest-1.11__ support. The package has been successfully tested on compilation with __gcc-10.3__ (g++ with libstdc++11)
 
 # Preparing with conan
 First you need to set __conan's remote list__ to be able to download packages prescribed in the `conanfile.py` as requirements (dependencies). You need at least two remotes known by conan. We need __conan-center__ and __bincrafters__ repositories available. To check them if they already exist run the following command:
@@ -32,7 +32,7 @@ Since now you're ready to perform conan installation.
 
     WARNING: if you have variables CC or/and CXX set in your environment you need to unset them before executing next commands, otherwise, if conan decides to build a dependency on host the compiler selected from parameters and compiler from CC/CXX may contradict, as the result some cmake configuring processes while bulding dependencies may fail
 
-If you have resolved all the possible issues described above, you can start installation with conan. Below there is installed a conan's environment with making use of __gcc-9.3__, __libstdc++11__, architecture __x86\_64__. If something does not correspond to your environment (for example, __gcc__ is a lower version), change it. Installation with __gcc-9.3__, __libstdc++11__, __x86\_64__, __Debug mode__:
+If you have resolved all the possible issues described above, you can start installation with conan. Below there is installed a conan's environment with making use of __gcc-10.3__, __libstdc++11__, architecture __x86\_64__. If something does not correspond to your environment (for example, __gcc__ is a lower version), change it. Installation with __gcc-10.3__, __libstdc++11__, __x86\_64__, __Debug mode__:
 ```
 bash> cd lmail
 bash> conan install . -if debug/ -s arch=x86_64 -s arch_build=x86_64 -s compiler=gcc -s compiler.version=9.3 -s compiler.libcxx=libstdc++11 -s build_type=Debug --build missing
