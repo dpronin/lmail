@@ -11,13 +11,13 @@ class LMail(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake"
 
-    requires = "boost/[~1.73]", \
+    requires = "boost/[~1.76]", \
         "sqlite_orm/[~1.4]@bincrafters/stable", \
         "cryptopp/[~8.2]@bincrafters/stable", \
         "readline/[~7.0]@bincrafters/stable"
 
     build_requires = \
-        "gtest/[~1.10]"
+        "gtest/[~1.11]"
 
     scm = {
         "type": "git",
