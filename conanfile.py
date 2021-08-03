@@ -12,9 +12,9 @@ class LMail(ConanFile):
     generators = "cmake"
 
     requires = "boost/[~1.76]", \
-        "sqlite_orm/[~1.4]@bincrafters/stable", \
-        "cryptopp/[~8.2]@bincrafters/stable", \
-        "readline/[~7.0]@bincrafters/stable"
+        "sqlite_orm/[~1.6]", \
+        "cryptopp/[~8.5.0]", \
+        "readline/[~8.0]"
 
     build_requires = \
         "gtest/[~1.11]"
@@ -27,17 +27,16 @@ class LMail(ConanFile):
         "username": "git"
     }
 
-    def _configure(self, enable_test = False, verbose = True):
+    def _configure(self, verbose = True):
         cmake = CMake(self)
         cmake.verbose = verbose
         cmake.definitions['CMAKE_BUILD_TYPE'] = "Debug" if self.settings.build_type == "Debug" else "Release"
-        cmake.definitions['ENABLE_TEST'] = enable_test
         cmake.definitions['ENABLE_GDB_SYMBOLS'] = self.settings.build_type == "Debug"
         cmake.configure(source_folder = self.name)
         return cmake
 
     def build(self):
-        cmake = self._configure(enable_test = True)
+        cmake = self._configure()
         cmake.build()
         cmake.test(output_on_failure = True)
 

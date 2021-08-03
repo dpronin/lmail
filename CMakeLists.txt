@@ -1,15 +1,10 @@
 cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 project(lmail VERSION 1.0.0 LANGUAGES CXX)
 
+include(CTest)
+
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
-endif()
-
-if (NOT EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake AND GEN_CONAN_BUILD_INFO)
-    execute_process(COMMAND conan install ${CMAKE_CURRENT_LIST_DIR}/ -if ${CMAKE_BINARY_DIR}/ -pr default -s build_type=${CMAKE_BUILD_TYPE} --build missing RESULT_VARIABLE CONAN_INSTALL_RESULT)
-    if(NOT CONAN_INSTALL_RESULT EQUAL 0)
-        message(FATAL_ERROR "Failed to conan install")
-    endif()
 endif()
 
 if (NOT EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
@@ -46,8 +41,7 @@ add_definitions(-DCONF_PREFIX="${CONF_PREFIX}" -DSCHEMA_DB_PREFIX="${SCHEMA_DB_P
 
 add_subdirectory(src)
 
-if (ENABLE_TEST)
-    enable_testing()
+if (BUILD_TESTING)
     add_subdirectory(test)
 endif()
 
