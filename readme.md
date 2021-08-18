@@ -12,21 +12,19 @@ bash> git clone git@github.com:dannftk/lmail.git
 
 - A C++ compiler with __C++17__, __boost-1.76__ and __gtest-1.11__ support. The package has been successfully tested on compilation with __gcc-10.3__ (g++ with libstdc++11)
 
-# Preparing with conan
-First you need to set __conan's remote list__ to be able to download packages prescribed in the `conanfile.py` as requirements (dependencies). You need at least two remotes known by conan. We need __conan-center__ and __bincrafters__ repositories available. To check them if they already exist run the following command:
+# Preparing conan
+First you need to set __conan's remote list__ to be able to download packages prescribed in the `conanfile.py` as requirements (dependencies). You need at least one remote known by conan. We need __conancenter__ repository available. To check if it already exists run the following command:
 ```bash
 bash> conan remote list
 ```
-If required remotes are already there you will see output alike:
+If required remote is already there you will see output alike:
 ```bash
 bash> conan remote list
-bincrafters: https://api.bintray.com/conan/bincrafters/public-conan [Verify SSL: True]
-conan-center: https://conan.bintray.com [Verify SSL: True]
+conancenter: https://center.conan.io [Verify SSL: True]
 ```
-If one or both of them don't appear you should set them by running the commands:
+If it does not appear you should set it by running the command:
 ```bash
-bash> conan remote add conan-center https://conan.bintray.com
-bash> conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+bash> conan remote add conancenter https://center.conan.io
 ```
 Since now you're ready to perform conan installation.
 
@@ -50,7 +48,7 @@ You can vary conan's parameters according to your needs. For instance, if you li
 
 To learn more about conan available actions and parameters consult `conan --help`
 
-# Configuring and building with cmake
+# Configuring and building with conan and cmake
 
 Suppose, you have prepared __Debug mode__ with conan and got `debug` directory.
 
