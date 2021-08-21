@@ -3,7 +3,7 @@
 #include <memory>
 #include <string_view>
 
-#include <sqlite_orm/sqlite_orm.h>
+#include "sqlite_orm/sqlite_orm.h"
 
 #include "db/message.hpp"
 #include "db/user.hpp"

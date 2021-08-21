@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <utility>
 
-#include <boost/scope_exit.hpp>
+#include "boost/scope_exit.hpp"
 
 #include "application.hpp"
 #include "cmd_args.hpp"

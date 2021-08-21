@@ -12,10 +12,10 @@
 #include <string_view>
 #include <utility>
 
-#include <boost/range/algorithm/remove_copy_if.hpp>
+#include "boost/range/algorithm/remove_copy_if.hpp"
 
-#include <readline/history.h>
-#include <readline/readline.h>
+#include "readline/history.h"
+#include "readline/readline.h"
 
 #include "states/init_state.hpp"
 #include "states/main_state.hpp"

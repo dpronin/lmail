@@ -9,11 +9,11 @@
 
 #include <string_view>
 
-#include <boost/process/environment.hpp>
-#include <boost/property_tree/ini_parser.hpp>
-#include <boost/property_tree/ptree.hpp>
+#include "boost/process/environment.hpp"
+#include "boost/property_tree/ini_parser.hpp"
+#include "boost/property_tree/ptree.hpp"
 
-#include <cryptopp/aes.h>
+#include "cryptopp/aes.h"
 
 #include "db/user.hpp"
 
@@ -64,9 +64,9 @@ public:
         return conf;
     }
 
-    auto const& home_path() const noexcept { return home_path_; }
-    auto lmail_path() const noexcept { return home_path_ / kLmailDirName; }
-    auto profile_path(User const &user) const { return lmail_path() / user.username; }
+    auto const &home_path() const noexcept { return home_path_; }
+    auto        lmail_path() const noexcept { return home_path_ / kLmailDirName; }
+    auto        profile_path(User const &user) const { return lmail_path() / user.username; }
 
 private:
     Application() : home_path_(boost::this_process::environment()["HOME"].to_string())

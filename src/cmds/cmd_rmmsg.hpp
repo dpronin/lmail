@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <utility>
 
-#include <boost/lexical_cast.hpp>
+#include "boost/lexical_cast.hpp"
 
 #include "cmd_args.hpp"
 #include "logged_user.hpp"

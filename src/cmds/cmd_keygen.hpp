@@ -8,7 +8,7 @@
 #include <string>
 #include <utility>
 
-#include <boost/lexical_cast.hpp>
+#include "boost/lexical_cast.hpp"
 
 #include "application.hpp"
 #include "cmd_args.hpp"
