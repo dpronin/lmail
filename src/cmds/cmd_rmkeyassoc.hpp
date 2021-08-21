@@ -52,7 +52,8 @@ public:
             return;
         }
 
-        auto extract_keyname = [](auto const &assoc_path) {
+        auto extract_keyname = [](auto const &assoc_path)
+        {
             std::error_code ec;
             return fs::read_symlink(assoc_path, ec).filename().string();
         };

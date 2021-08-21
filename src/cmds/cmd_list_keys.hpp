@@ -48,13 +48,15 @@ private:
     {
         std::cout << "Own keys:" << std::endl;
         size_t count = 0;
-        for_each_dir_entry(logged_user_->profile().keys_dir(), [this, &count](auto const &dir_entry) {
+        // clang-format off
+        for_each_dir_entry(logged_user_->profile().keys_dir(), [this, &count](auto const &dir_entry)
+        {
             auto const key_pair_path = dir_entry.path();
             std::cout << "* " << key_pair_path.stem().string();
             std::vector<std::string> usernames;
-            for_each_dir_entry_if(
-                logged_user_->profile().assocs_dir(),
-                [&key_pair_path](auto const &dir_entry) {
+            for_each_dir_entry_if(logged_user_->profile().assocs_dir(),
+                [&key_pair_path](auto const &dir_entry)
+                {
                     std::error_code ec;
                     return std::filesystem::read_symlink(dir_entry.path(), ec) == key_pair_path && !ec;
                 },
@@ -64,6 +66,7 @@ private:
             std::cout << std::endl;
             ++count;
         });
+        // clang-format on
         if (0 == count)
             std::cout << "There are no keys available" << std::endl;
     }
@@ -72,10 +75,13 @@ private:
     {
         std::cout << "Imported keys:" << std::endl;
         size_t count = 0;
-        for_each_dir_entry(logged_user_->profile().cypher_dir(), [&count](auto const &dir_entry) {
+        // clang-format off
+        for_each_dir_entry(logged_user_->profile().cypher_dir(), [&count](auto const &dir_entry)
+        {
             std::cout << "* " << dir_entry.path().filename().string() << std::endl;
             ++count;
         });
+        // clang-format on
         if (0 == count)
             std::cout << "There are no keys available" << std::endl;
     }

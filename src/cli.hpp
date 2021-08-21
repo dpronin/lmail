@@ -14,8 +14,8 @@ public:
 
 private:
     Application::Conf conf_;
-    sm::CliSmCtx ctx_;
-    sm::Cli fsm_;
+    sm::CliSmCtx      ctx_;
+    sm::Cli           fsm_;
 };
 
 } // namespace lmail

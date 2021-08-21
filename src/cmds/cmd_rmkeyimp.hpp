@@ -52,8 +52,10 @@ public:
             return;
         }
 
-        auto       extract_keyname = [](auto const &key_path) { return key_path.filename().string(); };
-        auto const keyname         = extract_keyname(key_path);
+        // clang-format off
+        auto extract_keyname = [](auto const &key_path) { return key_path.filename().string(); };
+        // clang-format on
+        auto const keyname = extract_keyname(key_path);
         if (keyname.empty())
         {
             std::cerr << "couldn't extract key name\n";

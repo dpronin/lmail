@@ -14,7 +14,11 @@ using namespace lmail;
 CmdState::CmdState(help_cmds_t help_cmds) : help_(std::move(help_cmds))
 {
     cmds_.reserve(help_.help_cmds().size());
-    boost::transform(help_.help_cmds(), std::back_inserter(cmds_), [](auto const &help_cmd) { return std::get<0>(help_cmd); });
+    // clang-format off
+    boost::transform(help_.help_cmds(), std::back_inserter(cmds_), [](auto const &help_cmd){
+        return std::get<0>(help_cmd);
+    });
+    // clang-format on
 }
 
 prompt_t CmdState::prompt() const { return default_colored("!> "); }

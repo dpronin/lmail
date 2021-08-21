@@ -41,7 +41,7 @@ inline auto sha3_256(std::string_view data)
 }
 
 template <typename... Args>
-void secure_memset(Args &&... args) noexcept
+void secure_memset(Args &&...args) noexcept
 {
     auto volatile f = std::memset;
     f(std::forward<Args>(args)...);
@@ -113,7 +113,8 @@ inline void encrypt(std::string &msg, CryptoPP::RSA::PublicKey const &rsa_key)
 
     AutoSeededRandomPool rnd;
 
-    auto gen_byte_block = [rnd = AutoSeededRandomPool()](uint16_t size) mutable {
+    auto gen_byte_block = [rnd = AutoSeededRandomPool()](uint16_t size) mutable
+    {
         SecByteBlock sec_byte_block(0, size);
         rnd.GenerateBlock(sec_byte_block, sec_byte_block.size());
         return sec_byte_block;
@@ -131,7 +132,8 @@ inline void encrypt(std::string &msg, CryptoPP::RSA::PublicKey const &rsa_key)
                               msg.size());
     // clang-format on
 
-    auto cypher_byte_block = [&rsa_key](SecByteBlock const &sec_byte_block){
+    auto cypher_byte_block = [&rsa_key](SecByteBlock const &sec_byte_block)
+    {
         return rsa_key.ApplyFunction(
             Integer(reinterpret_cast<byte const *>(sec_byte_block.data()), sec_byte_block.size()));
     };
@@ -145,14 +147,16 @@ inline void encrypt(std::string &msg, CryptoPP::RSA::PublicKey const &rsa_key)
     auto *pout = out.data();
     auto *pend = pout + out.size();
 
-    auto push_size = [&](uint16_t size){
+    auto push_size = [&](uint16_t size)
+    {
         if (pend - pout < sizeof(size))
             throw std::invalid_argument("insufficient place, cannot encrypt");
         std::memcpy(pout, reinterpret_cast<byte const *>(&size), sizeof(size));
         pout += sizeof(size);
     };
 
-    auto push_integer = [&](Integer const &integer){
+    auto push_integer = [&](Integer const &integer)
+    {
         push_size(integer.MinEncodedSize());
         if (pend - pout < integer.MinEncodedSize())
             throw std::invalid_argument("insufficient place, cannot encrypt");
@@ -176,7 +180,8 @@ inline void decrypt(std::string &cmsg, CryptoPP::RSA::PrivateKey const &rsa_key)
     auto const *pin  = cmsg.data();
     auto const *pend = pin + cmsg.size();
 
-    auto pop_size = [&]{
+    auto pop_size = [&]
+    {
         uint16_t size;
         if (pend - pin < sizeof(size))
             throw std::invalid_argument("malformed message, cannot decrypt");
@@ -185,7 +190,8 @@ inline void decrypt(std::string &cmsg, CryptoPP::RSA::PrivateKey const &rsa_key)
         return size;
     };
 
-    auto pop_integer = [&]{
+    auto pop_integer = [&]
+    {
         auto const size = pop_size();
         if (pend - pin < size)
             throw std::invalid_argument("malformed message, cannot decrypt");
@@ -194,7 +200,8 @@ inline void decrypt(std::string &cmsg, CryptoPP::RSA::PrivateKey const &rsa_key)
         return integer;
     };
 
-    auto inv_byte_block = [&rsa_key, rnd = AutoSeededRandomPool()](Integer const &integer) mutable {
+    auto inv_byte_block = [&rsa_key, rnd = AutoSeededRandomPool()](Integer const &integer) mutable
+    {
         auto const   inv_integer = rsa_key.CalculateInverse(rnd, integer);
         SecByteBlock sec_byte_block(inv_integer.MinEncodedSize());
         inv_integer.Encode(reinterpret_cast<byte *>(sec_byte_block.data()), sec_byte_block.size());
@@ -204,7 +211,7 @@ inline void decrypt(std::string &cmsg, CryptoPP::RSA::PrivateKey const &rsa_key)
     // decoding integer representing cyphered AES key
     auto const caesk = pop_integer();
     // decoding integer representing cyphered initial vector
-    auto const civ   = pop_integer();
+    auto const civ = pop_integer();
     // empty message received
     auto const msg_size = pend - pin;
     if (0 == msg_size)
@@ -214,7 +221,7 @@ inline void decrypt(std::string &cmsg, CryptoPP::RSA::PrivateKey const &rsa_key)
     }
 
     // decoding AES key using RSA private key
-    auto const aes_key     = inv_byte_block(caesk);
+    auto const aes_key = inv_byte_block(caesk);
     // decoding initial vector using RSA private key
     auto const init_vector = inv_byte_block(civ);
 

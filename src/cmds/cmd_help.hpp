@@ -23,10 +23,15 @@ public:
         if (help_cmds_.empty())
             return;
 
+        // clang-format off
         boost::sort(help_cmds_, [](auto const &item1, auto const &item2) { return std::get<0>(item1) < std::get<0>(item2); });
-        auto getsize = [](auto const &item) {
-            return std::size(std::get<0>(item)) + boost::accumulate(std::get<1>(item), 0, [](auto sum, auto const &item) { return sum + item.size(); }) + std::size(std::get<1>(item)) - 1;
+        auto getsize = [](auto const &item)
+        {
+            return std::size(std::get<0>(item))
+                + boost::accumulate(std::get<1>(item), 0, [](auto sum, auto const &item) { return sum + item.size(); })
+                + std::size(std::get<1>(item)) - 1;
         };
+        // clang-format on
 
         size_t align_size = 0;
         for (auto const &item : help_cmds_)
@@ -40,9 +45,11 @@ public:
 
     void operator()()
     {
+        // clang-format off
         boost::copy(help_cmds_, boost::make_function_output_iterator([this](auto const &item) {
-                        std::cout << (fmt_ % (std::get<0>(item) + ' ' + boost::algorithm::join(std::get<1>(item), " ")) % std::get<2>(item)) << std::endl;
-                    }));
+            std::cout << (fmt_ % (std::get<0>(item) + ' ' + boost::algorithm::join(std::get<1>(item), " ")) % std::get<2>(item)) << std::endl;
+        }));
+        // clang-format on
     }
 
     auto const &help_cmds() const noexcept { return help_cmds_; }

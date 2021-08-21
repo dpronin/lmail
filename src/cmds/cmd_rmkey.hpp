@@ -58,11 +58,16 @@ public:
             // remove all the associations linked to this key
             for_each_dir_entry_if(
                 logged_user_->profile().assocs_dir(),
-                [&key_pair_path](auto const &dir_entry) {
+                [&key_pair_path](auto const &dir_entry)
+                {
                     std::error_code ec;
                     return fs::read_symlink(dir_entry.path(), ec) == key_pair_path && !ec;
                 },
-                [](auto const &dir_entry) { std::error_code ec; fs::remove(dir_entry.path(), ec); });
+                [](auto const &dir_entry)
+                {
+                    std::error_code ec;
+                    fs::remove(dir_entry.path(), ec);
+                });
             std::error_code ec;
             fs::remove_all(key_pair_path, ec);
             if (!ec)

@@ -18,9 +18,9 @@
 #include "states/main_state.hpp"
 
 #include "color.hpp"
+#include "readline.hpp"
 #include "storage.hpp"
 #include "types.hpp"
-#include "readline.hpp"
 
 using namespace lmail;
 
@@ -46,9 +46,11 @@ char *completion_generator(const char *text, int state)
         matches.clear();
         match_idx                = 0;
         std::string_view textstr = text;
+        // clang-format off
         boost::remove_copy_if(g_reader.cmds(), std::back_inserter(matches), [&textstr](auto const &pattern) {
             return pattern.size() < textstr.size() || pattern.compare(0, textstr.size(), textstr) != 0;
         });
+        // clang-format on
     }
     return match_idx < matches.size() ? strdup(matches[match_idx++].c_str()) : nullptr;
 }

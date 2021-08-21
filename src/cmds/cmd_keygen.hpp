@@ -63,11 +63,13 @@ public:
             return;
         }
 
-        size_t            key_size = Application::kDefaultRSAKeySize;
-        std::string       key_size_str;
+        size_t      key_size = Application::kDefaultRSAKeySize;
+        std::string key_size_str;
+        // clang-format off
         std::string const prompt = "Enter a new RSA key's size (minimum: "
             + std::to_string(Application::kMinRSAKeyLen)
             + ", default: " + std::to_string(key_size) + "): ";
+        // clang-format on
         if (!uread(key_size_str, prompt))
             return;
         if (!key_size_str.empty())

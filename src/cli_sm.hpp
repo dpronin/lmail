@@ -21,7 +21,8 @@ public:
     explicit CliSmCtx(Readline &rl) : rl_(rl), state_(std::make_shared<InitState>()) {}
 
     auto prompt() const { return state_->prompt(); }
-    void set_state(std::shared_ptr<CliState> state) {
+    void set_state(std::shared_ptr<CliState> state)
+    {
         if (!state)
             throw std::invalid_argument("state provided cannot be empty");
         state_->OnExit();
@@ -33,40 +34,51 @@ public:
 
 private:
     std::shared_ptr<CliState> state_;
-    Readline& rl_;
+    Readline &                rl_;
 };
 
 namespace ev
 {
 
-struct event {
+struct event
+{
     std::shared_ptr<CliState> state;
 };
 
-struct start : event {
+struct start : event
+{
 };
 
-struct login : event {
+struct login : event
+{
 };
 
-struct logout : event {
+struct logout : event
+{
 };
 
-struct quit {
+struct quit
+{
 };
 
-struct abort {
+struct abort
+{
 };
 
 } // namespace ev
 
 namespace act
 {
-constexpr auto set_state   = [](CliSmCtx& ctx, auto ev) { ctx.set_state(std::move(ev.state)); };
-constexpr auto reset_state = [](CliSmCtx& ctx, auto ev) { ctx.set_state(std::make_shared<InitState>()); };
+
+// clang-format off
+constexpr auto set_state = [](CliSmCtx &ctx, auto ev) { ctx.set_state(std::move(ev.state)); };
+constexpr auto reset_state = [](CliSmCtx &ctx, auto ev) { ctx.set_state(std::make_shared<InitState>()); };
+// clang-format on
+
 } // namespace act
 
-struct CliSm {
+struct CliSm
+{
     auto operator()() const
     {
         using namespace boost::sml;

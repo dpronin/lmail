@@ -2,12 +2,12 @@
 
 #include <memory>
 
+#include "cli_sm.hpp"
 #include "logged_user.hpp"
+#include "main_state.hpp"
+#include "state.hpp"
 #include "storage.hpp"
 #include "types.hpp"
-#include "cli_sm.hpp"
-#include "state.hpp"
-#include "main_state.hpp"
 
 namespace lmail
 {

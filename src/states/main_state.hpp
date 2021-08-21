@@ -2,10 +2,10 @@
 
 #include <memory>
 
-#include "storage.hpp"
-#include "types.hpp"
 #include "cli_sm.hpp"
 #include "cmd_state.hpp"
+#include "storage.hpp"
+#include "types.hpp"
 
 namespace lmail
 {

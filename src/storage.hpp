@@ -42,8 +42,8 @@ public:
     explicit Storage(std::string_view db_path) : storage_(detail::make_sqlite3_storage(db_path))
     {
     }
-    auto *      operator-> () noexcept { return std::addressof(storage_); }
-    auto const *operator-> () const noexcept { return std::addressof(storage_); }
+    auto *      operator->() noexcept { return std::addressof(storage_); }
+    auto const *operator->() const noexcept { return std::addressof(storage_); }
 
 private:
     decltype(detail::make_sqlite3_storage(std::string_view{})) storage_;

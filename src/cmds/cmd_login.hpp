@@ -10,13 +10,13 @@
 #include "boost/scope_exit.hpp"
 
 #include "application.hpp"
+#include "cli_sm.hpp"
 #include "cmd_args.hpp"
 #include "logged_user.hpp"
 #include "storage.hpp"
 #include "types.hpp"
 #include "uread.hpp"
 #include "utility.hpp"
-#include "cli_sm.hpp"
 
 #include "states/logged_in_state.hpp"
 

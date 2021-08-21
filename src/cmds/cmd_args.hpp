@@ -14,7 +14,9 @@ class CmdArgs
 public:
     CmdArgs(args_t args) : args_(std::move(args))
     {
+        // clang-format off
         boost::remove_erase_if(args_, [](auto const &arg) { return arg.empty(); });
+        // clang-format on
     }
 
     arg_t pop()

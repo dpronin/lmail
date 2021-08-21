@@ -52,7 +52,11 @@ T const &username_to_keyname(T const &username) { return username; }
 
 inline auto find_key(std::filesystem::path const &dir, std::string_view keyname)
 {
-    return find_dir_entry_if(dir, [keyname](auto const &dir_entry) { return dir_entry.path().filename().stem() == keyname; }).path();
+    // clang-format off
+    return find_dir_entry_if(dir, [keyname](auto const &dir_entry) {
+        return dir_entry.path().filename().stem() == keyname;
+    }).path();
+    // clang-format on
 }
 
 inline bool create_dir_if_doesnt_exist(std::filesystem::path const &dir)

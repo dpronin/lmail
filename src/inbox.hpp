@@ -133,7 +133,11 @@ private:
 
     std::pair<messages_t::iterator, bool> sync(std::tuple<msg_id_t, topic_blob_t, bool, username_t, body_blob_t> message)
     {
-        auto msg_it  = boost::find_if(messages_, [msg_id = std::get<0>(message)](auto const &msg) { return msg.id == msg_id; });
+        // clang-format off
+        auto msg_it  = boost::find_if(messages_, [msg_id = std::get<0>(message)](auto const &msg) {
+            return msg.id == msg_id;
+        });
+        // clang-format on
         bool new_msg = messages_.end() == msg_it;
         if (new_msg)
         {
