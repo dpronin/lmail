@@ -1,23 +1,21 @@
 #pragma once
 
 #include "application.hpp"
-#include "fsm.hpp"
+#include "cli_sm.hpp"
 
 namespace lmail
 {
 
-class CliState;
-class Cli final : public Fsm<CliState>
+class Cli final
 {
 public:
     explicit Cli(Application::Conf const &conf);
     void run();
 
 private:
-    void on_state_changed() override;
-
-private:
     Application::Conf conf_;
+    sm::CliSmCtx ctx_;
+    sm::Cli fsm_;
 };
 
 } // namespace lmail

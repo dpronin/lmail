@@ -2,12 +2,11 @@
 
 #include <memory>
 
-#include "fsm.hpp"
 #include "logged_user.hpp"
-#include "state.hpp"
 #include "storage.hpp"
 #include "types.hpp"
-
+#include "cli_sm.hpp"
+#include "state.hpp"
 #include "main_state.hpp"
 
 namespace lmail
@@ -16,7 +15,7 @@ namespace lmail
 class LoggedInState : public MainState
 {
 public:
-    explicit LoggedInState(CliFsm &fsm, std::shared_ptr<Storage> storage, std::shared_ptr<LoggedUser> logged_user);
+    explicit LoggedInState(sm::Cli &fsm, std::shared_ptr<Storage> storage, std::shared_ptr<LoggedUser> logged_user);
     ~LoggedInState() override = default;
 
 public:

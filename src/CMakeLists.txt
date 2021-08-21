@@ -32,7 +32,6 @@ set(HEADERS
     crypt.hpp
     db/message.hpp
     db/user.hpp
-    fsm.hpp
     inbox.hpp
     inbox_message.hpp
     logged_user.hpp
@@ -57,3 +56,4 @@ target_link_libraries(lmail PRIVATE CONAN_PKG::boost)
 target_link_libraries(lmail PRIVATE CONAN_PKG::sqlite_orm)
 target_link_libraries(lmail PRIVATE CONAN_PKG::cryptopp)
 target_link_libraries(lmail PRIVATE CONAN_PKG::readline)
+target_link_libraries(lmail PRIVATE CONAN_PKG::sml)

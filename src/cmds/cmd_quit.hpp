@@ -1,12 +1,9 @@
 #pragma once
 
-#include <memory>
 #include <stdexcept>
 #include <utility>
 
-#include "types.hpp"
-
-#include "states/init_state.hpp"
+#include "cli_sm.hpp"
 
 namespace lmail
 {
@@ -14,16 +11,16 @@ namespace lmail
 class CmdQuit final
 {
 public:
-    explicit CmdQuit(CliFsm &cli_fsm) : cli_fsm_(std::addressof(cli_fsm))
+    explicit CmdQuit(sm::Cli &fsm) : fsm_(std::addressof(fsm))
     {
-        if (!cli_fsm_)
+        if (!fsm_)
             throw std::invalid_argument("fsm provided cannot be empty");
     }
 
-    void operator()() { cli_fsm_->change_state(std::make_shared<InitState>()); }
+    void operator()() { fsm_->process_event(sm::ev::quit{}); }
 
 private:
-    CliFsm *cli_fsm_;
+    sm::Cli *fsm_;
 };
 
 } // namespace lmail

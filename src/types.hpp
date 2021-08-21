@@ -8,8 +8,6 @@
 
 #include "cryptopp/rsa.h"
 
-#include "fsm.hpp"
-
 namespace lmail
 {
 
@@ -26,8 +24,5 @@ using db_path_t      = std::string;
 using prompt_t       = std::string;
 using keyname_t      = std::string;
 using rsa_key_pair_t = std::pair<CryptoPP::RSA::PrivateKey, CryptoPP::RSA::PublicKey>;
-
-class CliState;
-using CliFsm = Fsm<CliState>;
 
 } // namespace lmail

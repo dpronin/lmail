@@ -14,20 +14,19 @@
 
 #include "boost/range/algorithm/remove_copy_if.hpp"
 
-#include "readline/history.h"
-#include "readline/readline.h"
-
 #include "states/init_state.hpp"
 #include "states/main_state.hpp"
 
 #include "color.hpp"
 #include "storage.hpp"
 #include "types.hpp"
+#include "readline.hpp"
 
 using namespace lmail;
 
 namespace
 {
+
 char *completion_generator(const char *text, int state);
 
 char **completer(const char *text, int start, int end)
@@ -36,30 +35,7 @@ char **completer(const char *text, int start, int end)
     return rl_completion_matches(text, completion_generator);
 }
 
-class Readline
-{
-public:
-    bool operator()(std::string &user_input, std::string_view prompt = {})
-    {
-        if (auto *input = readline(prompt.data()))
-        {
-            user_input = input;
-            free(input);
-            if (!user_input.empty())
-                add_history(user_input.c_str());
-            return true;
-        }
-        return false;
-    }
-
-    void init() { rl_attempted_completion_function = completer; }
-
-    void        set_cmds(cmds_t cmds) { cmds_ = std::move(cmds); }
-    auto const &cmds() const noexcept { return cmds_; }
-
-private:
-    cmds_t cmds_;
-} g_reader;
+Readline g_reader;
 
 char *completion_generator(const char *text, int state)
 {
@@ -76,23 +52,20 @@ char *completion_generator(const char *text, int state)
     }
     return match_idx < matches.size() ? strdup(matches[match_idx++].c_str()) : nullptr;
 }
+
 } // anonymous namespace
 
-Cli::Cli(Application::Conf const &conf) : Fsm(std::make_shared<InitState>()), conf_(conf)
+Cli::Cli(Application::Conf const &conf) : conf_(conf), ctx_(g_reader), fsm_(ctx_)
 {
-    g_reader.init();
-}
-
-void Cli::on_state_changed()
-{
-    g_reader.set_cmds(cstate_->commands());
+    g_reader.init(completer);
 }
 
 void Cli::run()
 {
+    using namespace boost::sml;
     std::cout << "Welcome to " << cbrown("lmail") << '!' << std::endl;
-    change_state(std::make_shared<MainState>(*this, std::make_shared<Storage>(conf_.db_path)));
-    for (user_input_t user_input; !is_in_state<InitState>() && g_reader(user_input, cstate_->prompt());)
+    fsm_.process_event(sm::ev::start{std::make_shared<MainState>(fsm_, std::make_shared<Storage>(conf_.db_path))});
+    for (user_input_t user_input; !fsm_.is("idle"_s) && g_reader(user_input, ctx_.prompt());)
     {
         args_t             args;
         std::istringstream iss{std::move(user_input)};
@@ -103,7 +76,7 @@ void Cli::run()
                             [](auto const &arg) { return arg.empty(); });
         // clang-format on
         if (!args.empty())
-            cstate_->process(std::move(args));
+            ctx_.process(std::move(args));
     }
     std::cout << "Quitting " << cbrown("lmail") << ". Bye!" << std::endl;
 }

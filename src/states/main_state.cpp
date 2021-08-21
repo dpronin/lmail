@@ -13,11 +13,11 @@
 
 using namespace lmail;
 
-MainState::MainState(CliFsm &fsm, std::shared_ptr<Storage> storage) : MainState(fsm, std::move(storage), help_cmds())
+MainState::MainState(sm::Cli &fsm, std::shared_ptr<Storage> storage) : MainState(fsm, std::move(storage), help_cmds())
 {
 }
 
-MainState::MainState(CliFsm &fsm, std::shared_ptr<Storage> storage, help_cmds_t help_cmds)
+MainState::MainState(sm::Cli &fsm, std::shared_ptr<Storage> storage, help_cmds_t help_cmds)
     : CmdState(std::move(help_cmds)), fsm_(std::addressof(fsm)), storage_(std::move(storage))
 {
     if (!storage_)

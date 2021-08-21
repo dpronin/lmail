@@ -2,10 +2,9 @@
 
 #include <memory>
 
-#include "fsm.hpp"
 #include "storage.hpp"
 #include "types.hpp"
-
+#include "cli_sm.hpp"
 #include "cmd_state.hpp"
 
 namespace lmail
@@ -14,7 +13,7 @@ namespace lmail
 class MainState : public CmdState
 {
 public:
-    explicit MainState(CliFsm &fsm, std::shared_ptr<Storage> storage);
+    explicit MainState(sm::Cli &fsm, std::shared_ptr<Storage> storage);
     ~MainState() override = default;
 
     prompt_t prompt() const override;
@@ -23,11 +22,11 @@ public:
 protected:
     static help_cmds_t const &help_cmds();
 
-    explicit MainState(CliFsm &fsm, std::shared_ptr<Storage> storage, help_cmds_t help_cmds);
+    explicit MainState(sm::Cli &fsm, std::shared_ptr<Storage> storage, help_cmds_t help_cmds);
     std::string default_colored(std::string_view input) const override;
 
 protected:
-    CliFsm *                 fsm_;
+    sm::Cli *                fsm_;
     std::shared_ptr<Storage> storage_;
 };
 

@@ -14,7 +14,8 @@ class LMail(ConanFile):
     requires = "boost/[~1.76]", \
         "sqlite_orm/[~1.6]", \
         "cryptopp/[~8.5.0]", \
-        "readline/[~8.0]"
+        "readline/[~8.0]", \
+        "sml/1.1.4"
 
     build_requires = \
         "gtest/[~1.11]"

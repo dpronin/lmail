@@ -16,6 +16,7 @@
 #include "types.hpp"
 #include "uread.hpp"
 #include "utility.hpp"
+#include "cli_sm.hpp"
 
 #include "states/logged_in_state.hpp"
 
@@ -25,10 +26,10 @@ namespace lmail
 class CmdLogin final
 {
 public:
-    explicit CmdLogin(CmdArgs args, CliFsm &cli_fsm, std::shared_ptr<Storage> storage)
-        : args_(std::move(args)), cli_fsm_(std::addressof(cli_fsm)), storage_(std::move(storage))
+    explicit CmdLogin(CmdArgs args, sm::Cli &fsm, std::shared_ptr<Storage> storage)
+        : args_(std::move(args)), fsm_(std::addressof(fsm)), storage_(std::move(storage))
     {
-        if (!cli_fsm_)
+        if (!fsm_)
             throw std::invalid_argument("fsm provided cannot be empty");
         if (!storage_)
             throw std::invalid_argument("storage provided cannot be empty");
@@ -77,7 +78,7 @@ public:
 
             b_success = user.username == username && user.password == sha3_256(password);
             if (b_success)
-                cli_fsm_->change_state(std::make_shared<LoggedInState>(*cli_fsm_, storage_, std::make_shared<LoggedUser>(std::move(user))));
+                fsm_->process_event(sm::ev::login{std::make_shared<LoggedInState>(*fsm_, storage_, std::make_shared<LoggedUser>(std::move(user)))});
         }
 
         if (!b_success)
@@ -94,7 +95,7 @@ public:
 
 private:
     CmdArgs                  args_;
-    CliFsm *                 cli_fsm_;
+    sm::Cli *                fsm_;
     std::shared_ptr<Storage> storage_;
 };
 

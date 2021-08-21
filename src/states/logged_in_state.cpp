@@ -25,7 +25,7 @@
 
 using namespace lmail;
 
-LoggedInState::LoggedInState(CliFsm &fsm, std::shared_ptr<Storage> storage, std::shared_ptr<LoggedUser> logged_user)
+LoggedInState::LoggedInState(sm::Cli &fsm, std::shared_ptr<Storage> storage, std::shared_ptr<LoggedUser> logged_user)
     : MainState(fsm, std::move(storage), help_cmds()), logged_user_(std::move(logged_user))
 {
     if (!logged_user_)
