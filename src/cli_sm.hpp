@@ -28,7 +28,7 @@ public:
         state_->OnExit();
         state_ = std::move(state);
         state_->OnEnter();
-        rl_.set_cmds(state_->commands());
+        rl_.set_cmd_lister(state_);
     }
     void process(args_t args) { state_->process(std::move(args)); }
 

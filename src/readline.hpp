@@ -1,11 +1,13 @@
 #pragma once
 
+#include <stdexcept>
 #include <string>
 #include <string_view>
 
 #include "readline/history.h"
 #include "readline/readline.h"
 
+#include "command_lister_interface.hpp"
 #include "types.hpp"
 
 namespace lmail
@@ -29,11 +31,17 @@ public:
 
     void init(rl_completion_func_t completer) { rl_attempted_completion_function = completer; }
 
-    void        set_cmds(cmds_t cmds) { cmds_ = std::move(cmds); }
-    auto const &cmds() const noexcept { return cmds_; }
+    void set_cmd_lister(std::shared_ptr<ICommandLister> lister)
+    {
+        if (!lister)
+            throw std::invalid_argument("command lister cannot be empty");
+        lister_ = std::move(lister);
+    }
+
+    auto const &cmds() const noexcept { return lister_->commands(); }
 
 private:
-    cmds_t cmds_;
+    std::shared_ptr<ICommandLister> lister_;
 };
 
 } // namespace lmail

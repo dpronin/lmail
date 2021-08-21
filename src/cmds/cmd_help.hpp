@@ -6,7 +6,9 @@
 #include "boost/algorithm/string/join.hpp"
 #include "boost/format.hpp"
 #include "boost/function_output_iterator.hpp"
+#include "boost/range/adaptor/transformed.hpp"
 #include "boost/range/algorithm/copy.hpp"
+#include "boost/range/algorithm/max_element.hpp"
 #include "boost/range/algorithm/sort.hpp"
 #include "boost/range/numeric.hpp"
 
@@ -22,25 +24,18 @@ public:
     {
         if (help_cmds_.empty())
             return;
-
         // clang-format off
-        boost::sort(help_cmds_, [](auto const &item1, auto const &item2) { return std::get<0>(item1) < std::get<0>(item2); });
-        auto getsize = [](auto const &item)
+        boost::sort(help_cmds_);
+        auto getsize = [](auto const &cmd)
         {
-            return std::size(std::get<0>(item))
-                + boost::accumulate(std::get<1>(item), 0, [](auto sum, auto const &item) { return sum + item.size(); })
-                + std::size(std::get<1>(item)) - 1;
+            return std::size(std::get<0>(cmd))
+                + boost::accumulate(std::get<1>(cmd), 0, [](auto sum, auto const &cmd) { return sum + cmd.size(); })
+                + std::size(std::get<1>(cmd)) - 1;
         };
         // clang-format on
-
-        size_t align_size = 0;
-        for (auto const &item : help_cmds_)
-        {
-            if (auto const len = getsize(item); len > align_size)
-                align_size = len;
-        }
-
-        fmt_ = boost::format("%-" + std::to_string(align_size + 1) + "s %s");
+        auto const   help_cmds_lens = help_cmds_ | boost::adaptors::transformed(getsize);
+        size_t const align_size     = *boost::range::max_element(help_cmds_lens);
+        fmt_                        = boost::format("%-" + std::to_string(align_size + 1) + "s %s");
     }
 
     void operator()()
