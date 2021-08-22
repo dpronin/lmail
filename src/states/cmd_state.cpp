@@ -38,10 +38,6 @@ cmds_names_t CmdState::cmds() const
     return {range.begin(), range.end()};
 }
 
-prompt_t CmdState::prompt() const { return default_colored("!> "); }
-
-std::string CmdState::default_colored(std::string_view input) const { return cred(input); }
-
 void CmdState::process(args_t args)
 {
     if (args.empty())
@@ -59,7 +55,7 @@ void CmdState::process(args_t args)
     else
     {
         std::cerr << "unknown command '" << cmd_name << "'\n";
-        std::cerr << default_colored("cannot process") << " '" << cmd_name << ' ';
+        std::cerr << cred("cannot process") << " '" << cmd_name << ' ';
         boost::copy(args, std::ostream_iterator<arg_t>(std::cerr, " "));
         std::cerr << "\b'\n";
     }
