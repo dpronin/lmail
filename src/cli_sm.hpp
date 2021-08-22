@@ -47,7 +47,7 @@ struct event
     std::shared_ptr<CliState> state;
 };
 
-struct start : event
+struct run : event
 {
 };
 
@@ -63,10 +63,6 @@ struct quit
 {
 };
 
-struct abort
-{
-};
-
 } // namespace ev
 
 namespace act
@@ -74,7 +70,6 @@ namespace act
 
 // clang-format off
 constexpr auto set_state = [](CliSmCtx &ctx, auto ev) { ctx.set_state(std::move(ev.state)); };
-constexpr auto reset_state = [](CliSmCtx &ctx, auto ev) { ctx.set_state(std::make_shared<InitState>()); };
 // clang-format on
 
 } // namespace act
@@ -87,14 +82,13 @@ struct CliSm
         // clang-format off
         return make_transition_table(
             // idle state
-            *"idle"_s     + event<ev::start>  / act::set_state   = "main"_s,
+            *"idle"_s     + event<ev::run>  / act::set_state     = "main"_s,
             // main state
             "main"_s      + event<ev::login>  / act::set_state   = "logged-in"_s,
-            "main"_s      + event<ev::quit>   / act::reset_state = "idle"_s,
+            "main"_s      + event<ev::quit>                      = X,
             // logged-in state
             "logged-in"_s + event<ev::logout> / act::set_state   = "main"_s,
-            "logged-in"_s + event<ev::quit>   / act::reset_state = "idle"_s,
-            "logged-in"_s + event<ev::abort>                     = X
+            "logged-in"_s + event<ev::quit>                      = X
         );
         // clang-format on
     }

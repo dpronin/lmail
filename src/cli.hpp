@@ -1,7 +1,6 @@
 #pragma once
 
 #include "application.hpp"
-#include "cli_sm.hpp"
 
 namespace lmail
 {
@@ -14,8 +13,6 @@ public:
 
 private:
     Application::Conf conf_;
-    sm::CliSmCtx      ctx_;
-    sm::Cli           fsm_;
 };
 
 } // namespace lmail

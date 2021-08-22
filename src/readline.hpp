@@ -29,7 +29,7 @@ public:
         return false;
     }
 
-    void init(rl_completion_func_t completer) { rl_attempted_completion_function = completer; }
+    void reset_completer(rl_completion_func_t completer = {}) { rl_attempted_completion_function = completer; }
 
     void set_cmd_lister(std::shared_ptr<ICommandLister> lister)
     {

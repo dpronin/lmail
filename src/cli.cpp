@@ -14,6 +14,8 @@
 
 #include "boost/range/algorithm/remove_copy_if.hpp"
 
+#include "cli_sm.hpp"
+
 #include "states/init_state.hpp"
 #include "states/main_state.hpp"
 
@@ -57,17 +59,19 @@ char *completion_generator(const char *text, int state)
 
 } // anonymous namespace
 
-Cli::Cli(Application::Conf const &conf) : conf_(conf), ctx_(g_reader), fsm_(ctx_)
+Cli::Cli(Application::Conf const &conf) : conf_(conf)
 {
-    g_reader.init(completer);
 }
 
 void Cli::run()
 {
     using namespace boost::sml;
     std::cout << "Welcome to " << cbrown("lmail") << '!' << std::endl;
-    fsm_.process_event(sm::ev::start{std::make_shared<MainState>(fsm_, std::make_shared<Storage>(conf_.db_path))});
-    for (user_input_t user_input; !fsm_.is("idle"_s) && g_reader(user_input, ctx_.prompt());)
+    g_reader.reset_completer(completer);
+    sm::CliSmCtx ctx{g_reader};
+    sm::Cli      fsm{ctx};
+    fsm.process_event(sm::ev::run{std::make_shared<MainState>(fsm, std::make_shared<Storage>(conf_.db_path))});
+    for (user_input_t user_input; !fsm.is(X) && g_reader(user_input, ctx.prompt());)
     {
         args_t             args;
         std::istringstream iss{std::move(user_input)};
@@ -78,7 +82,7 @@ void Cli::run()
                             [](auto const &arg) { return arg.empty(); });
         // clang-format on
         if (!args.empty())
-            ctx_.process(std::move(args));
+            ctx.process(std::move(args));
     }
     std::cout << "Quitting " << cbrown("lmail") << ". Bye!" << std::endl;
 }
