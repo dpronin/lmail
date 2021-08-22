@@ -38,7 +38,7 @@ public:
         lister_ = std::move(lister);
     }
 
-    auto const &cmds() const noexcept { return lister_->commands(); }
+    auto cmds() const { return lister_->cmds(); }
 
 private:
     std::shared_ptr<ICommandLister> lister_;

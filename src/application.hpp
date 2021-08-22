@@ -5,9 +5,9 @@
 #include <algorithm>
 #include <filesystem>
 #include <iostream>
-#include <utility>
-
+#include <stdexcept>
 #include <string_view>
+#include <utility>
 
 #include "boost/process/environment.hpp"
 #include "boost/property_tree/ini_parser.hpp"

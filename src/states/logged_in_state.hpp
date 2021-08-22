@@ -23,10 +23,6 @@ public:
     void OnExit() override;
 
     prompt_t prompt() const override;
-    void     process(args_t args) override;
-
-protected:
-    static help_cmds_t const &help_cmds();
 
 private:
     username_t login_name() const;

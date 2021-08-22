@@ -17,16 +17,13 @@ public:
     ~MainState() override = default;
 
     prompt_t prompt() const override;
-    void     process(args_t args) override;
 
 protected:
-    static help_cmds_t const &help_cmds();
-
-    explicit MainState(sm::Cli &fsm, std::shared_ptr<Storage> storage, help_cmds_t help_cmds);
+    explicit MainState(sm::Cli &fsm, std::shared_ptr<Storage> storage, cmds_t cmds);
     std::string default_colored(std::string_view input) const override;
 
 protected:
-    sm::Cli *                fsm_;
+    sm::Cli &                fsm_;
     std::shared_ptr<Storage> storage_;
 };
 

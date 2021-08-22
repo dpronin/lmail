@@ -10,7 +10,7 @@ class ICommandLister
 public:
     virtual ~ICommandLister() = default;
 
-    virtual cmds_t const &commands() const noexcept = 0;
+    virtual cmds_names_t cmds() const = 0;
 };
 
 } // namespace lmail

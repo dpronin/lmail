@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdexcept>
+
 #include "boost/sml.hpp"
 
 #include "readline.hpp"

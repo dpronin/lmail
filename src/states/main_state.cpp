@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <memory>
+#include <stdexcept>
 #include <utility>
 
 #include "color.hpp"
@@ -13,58 +14,33 @@
 
 using namespace lmail;
 
-MainState::MainState(sm::Cli &fsm, std::shared_ptr<Storage> storage) : MainState(fsm, std::move(storage), help_cmds())
+namespace
+{
+
+
+} // anonymous namespace
+
+// clang-format off
+MainState::MainState(sm::Cli &fsm, std::shared_ptr<Storage> storage)
+    : MainState(fsm, std::move(storage), {
+        { "login",    { "[username]" }, "Logs in as a user with username specified or entered",    [=](args_t args){ CmdLogin{std::move(args), fsm_, storage_}(); } },
+        { "register", { "[username]" }, "Registers a new user with username specified or entered", [=](args_t args){ CmdRegister{std::move(args), storage_}(); } }
+    })
+// clang-format on
 {
 }
 
-MainState::MainState(sm::Cli &fsm, std::shared_ptr<Storage> storage, help_cmds_t help_cmds)
-    : CmdState(std::move(help_cmds)), fsm_(std::addressof(fsm)), storage_(std::move(storage))
+// clang-format off
+MainState::MainState(sm::Cli &fsm, std::shared_ptr<Storage> storage, cmds_t cmds)
+    : CmdState((cmds.push_back({"quit", {}, "Quits the application", [=](args_t){ CmdQuit{fsm_}(); }}), std::move(cmds)))
+    , fsm_(fsm)
+    , storage_(std::move(storage))
+// clang-format on
 {
     if (!storage_)
         throw std::invalid_argument("storage provided cannot be empty");
 }
 
-help_cmds_t const &MainState::help_cmds()
-{
-    // clang-format off
-    static help_cmds_t cmds = {
-        { "login",    { "[username]" }, "Logs in as a user with username specified or entered" },
-        { "register", { "[username]" }, "Registers a new user with username specified or entered" },
-        { "quit",     {},               "Quits the application" },
-        { "help",     {},               "Shows this help page" }
-    };
-    // clang-format on
-    return cmds;
-}
-
 prompt_t MainState::prompt() const { return default_colored("lmail > "); }
 
 std::string MainState::default_colored(std::string_view input) const { return cbrown(input); }
-
-void MainState::process(args_t args)
-{
-    if (args.empty())
-        return;
-
-    auto const cmd = std::move(args.front());
-    args.pop_front();
-
-    if ("help" == cmd)
-    {
-        help();
-        return;
-    }
-
-    cmd_f_t cmd_f;
-    if ("login" == cmd)
-        cmd_f = CmdLogin(std::move(args), *fsm_, storage_);
-    else if ("register" == cmd)
-        cmd_f = CmdRegister(std::move(args), storage_);
-    else if ("quit" == cmd)
-        cmd_f = CmdQuit(*fsm_);
-
-    if (cmd_f)
-        cmd_f();
-    else
-        std::cerr << "unknown command '" << cmd << "'\n";
-}

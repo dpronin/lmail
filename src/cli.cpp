@@ -39,8 +39,8 @@ Readline g_reader;
 
 char *completion_generator(const char *text, int state)
 {
-    static cmds_t matches;
-    static size_t match_idx = 0;
+    static cmds_names_t matches;
+    static size_t       match_idx = 0;
     if (0 == state)
     {
         matches.clear();

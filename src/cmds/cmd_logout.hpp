@@ -18,16 +18,16 @@ class CmdLogout final
 {
 public:
     explicit CmdLogout(sm::Cli &fsm, std::shared_ptr<Storage> storage)
-        : fsm_(std::addressof(fsm)), storage_(std::move(storage))
+        : fsm_(fsm), storage_(std::move(storage))
     {
         if (!storage_)
             throw std::invalid_argument("storage provided cannot be empty");
     }
 
-    void operator()() { fsm_->process_event(sm::ev::logout{std::make_shared<MainState>(*fsm_, storage_)}); }
+    void operator()() { fsm_.process_event(sm::ev::logout{std::make_shared<MainState>(fsm_, storage_)}); }
 
 private:
-    sm::Cli *                fsm_;
+    sm::Cli &                fsm_;
     std::shared_ptr<Storage> storage_;
 };
 

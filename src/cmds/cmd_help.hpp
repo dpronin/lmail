@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iostream>
+#include <ostream>
 #include <utility>
 
 #include "boost/algorithm/string/join.hpp"
@@ -9,7 +9,6 @@
 #include "boost/range/adaptor/transformed.hpp"
 #include "boost/range/algorithm/copy.hpp"
 #include "boost/range/algorithm/max_element.hpp"
-#include "boost/range/algorithm/sort.hpp"
 #include "boost/range/numeric.hpp"
 
 #include "types.hpp"
@@ -20,12 +19,9 @@ namespace lmail
 class CmdHelp final
 {
 public:
-    explicit CmdHelp(help_cmds_t help_cmds = {}) : help_cmds_(std::move(help_cmds))
+    explicit CmdHelp(cmds_t const &cmds) : cmds_(cmds)
     {
-        if (help_cmds_.empty())
-            return;
         // clang-format off
-        boost::sort(help_cmds_);
         auto getsize = [](auto const &cmd)
         {
             return std::size(std::get<0>(cmd))
@@ -33,25 +29,23 @@ public:
                 + std::size(std::get<1>(cmd)) - 1;
         };
         // clang-format on
-        auto const   help_cmds_lens = help_cmds_ | boost::adaptors::transformed(getsize);
-        size_t const align_size     = *boost::range::max_element(help_cmds_lens);
-        fmt_                        = boost::format("%-" + std::to_string(align_size + 1) + "s %s");
+        auto const   cmds_lens  = cmds_ | boost::adaptors::transformed(getsize);
+        size_t const align_size = *boost::range::max_element(cmds_lens);
+        fmt_                    = boost::format("%-" + std::to_string(align_size + 1) + "s %s");
     }
 
-    void operator()()
+    void operator()(std::ostream &out) const
     {
         // clang-format off
-        boost::copy(help_cmds_, boost::make_function_output_iterator([this](auto const &item) {
-            std::cout << (fmt_ % (std::get<0>(item) + ' ' + boost::algorithm::join(std::get<1>(item), " ")) % std::get<2>(item)) << std::endl;
+        boost::copy(cmds_, boost::make_function_output_iterator([&](auto const &cmd) {
+            out << (fmt_ % (std::get<0>(cmd) + ' ' + boost::algorithm::join(std::get<1>(cmd), " ")) % std::get<2>(cmd)) << std::endl;
         }));
         // clang-format on
     }
 
-    auto const &help_cmds() const noexcept { return help_cmds_; }
-
 private:
-    help_cmds_t   help_cmds_;
-    boost::format fmt_;
+    cmds_t const &        cmds_;
+    mutable boost::format fmt_;
 };
 
 } // namespace lmail
