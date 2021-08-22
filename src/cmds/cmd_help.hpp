@@ -11,6 +11,7 @@
 #include "boost/range/algorithm/max_element.hpp"
 #include "boost/range/numeric.hpp"
 
+#include "color.hpp"
 #include "types.hpp"
 
 namespace lmail
@@ -30,7 +31,7 @@ public:
         };
         // clang-format on
         auto const   cmds_lens  = cmds_ | boost::adaptors::transformed(getsize);
-        size_t const align_size = *boost::range::max_element(cmds_lens);
+        size_t const align_size = *boost::range::max_element(cmds_lens) + cgreen("").size() + cblue("").size();
         fmt_                    = boost::format("%-" + std::to_string(align_size + 1) + "s %s");
     }
 
@@ -38,7 +39,7 @@ public:
     {
         // clang-format off
         boost::copy(cmds_, boost::make_function_output_iterator([&](auto const &cmd) {
-            out << (fmt_ % (std::get<0>(cmd) + ' ' + boost::algorithm::join(std::get<1>(cmd), " ")) % std::get<2>(cmd)) << std::endl;
+            out << (fmt_ % (cgreen(std::get<0>(cmd)) + ' ' + cblue(boost::algorithm::join(std::get<1>(cmd), " "))) % std::get<2>(cmd)) << std::endl;
         }));
         // clang-format on
     }
