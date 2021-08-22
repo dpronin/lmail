@@ -19,12 +19,11 @@ public:
     prompt_t prompt() const override;
 
 protected:
-    explicit MainState(sm::Cli &fsm, std::shared_ptr<Storage> storage, cmds_t cmds);
-    std::string default_colored(std::string_view input) const override;
+    explicit MainState(sm::Cli &fsm, cmds_t cmds);
+    std::string default_colored(std::string_view input) const;
 
 protected:
-    sm::Cli &                fsm_;
-    std::shared_ptr<Storage> storage_;
+    sm::Cli &fsm_;
 };
 
 } // namespace lmail

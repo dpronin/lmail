@@ -13,6 +13,7 @@
 #include "cli_sm.hpp"
 #include "cmd_args.hpp"
 #include "logged_user.hpp"
+#include "logged_user_utility.hpp"
 #include "storage.hpp"
 #include "types.hpp"
 #include "uread.hpp"
@@ -76,7 +77,12 @@ public:
 
             b_success = user.username == username && user.password == sha3_256(password);
             if (b_success)
-                fsm_.process_event(sm::ev::login{std::make_shared<LoggedInState>(fsm_, storage_, std::make_shared<LoggedUser>(std::move(user)))});
+            {
+                auto logged_user  = std::make_shared<LoggedUser>(std::move(user));
+                auto user_greeter = make_logged_user_greeter(logged_user, storage_);
+                auto new_state    = std::make_shared<LoggedInState>(fsm_, storage_, logged_user);
+                fsm_.process_event(sm::ev::login{std::move(new_state), std::move(user_greeter)});
+            }
         }
 
         if (!b_success)

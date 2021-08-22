@@ -1,13 +1,12 @@
 #pragma once
 
 #include "command_lister_interface.hpp"
-#include "state.hpp"
 #include "types.hpp"
 
 namespace lmail
 {
 
-class CliState : public State, public ICommandLister
+class CliState : public ICommandLister
 {
 public:
     ~CliState() override = default;

@@ -4,7 +4,7 @@ set(SOURCES
     states/cmd_state.cpp
     states/logged_in_state.cpp
     states/main_state.cpp
-    storage.hpp
+    readline.cpp
 )
 
 set(HEADERS
@@ -29,19 +29,22 @@ set(HEADERS
     cmds/cmd_rmmsg.hpp
     cmds/cmd_sendmsg.hpp
     color.hpp
+    command_lister_interface.hpp
     crypt.hpp
     db/message.hpp
     db/user.hpp
     inbox.hpp
     inbox_message.hpp
     logged_user.hpp
+    logged_user_utility.hpp
     profile.hpp
-    state.hpp
+    readline.hpp
     states/cli_state.hpp
     states/cmd_state.hpp
     states/init_state.hpp
     states/logged_in_state.hpp
     states/main_state.hpp
+    storage.hpp
     types.hpp
     uread.hpp
     utility.hpp

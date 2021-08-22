@@ -1,10 +1,11 @@
 #pragma once
 
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <utility>
 
-#include "readline/history.h"
 #include "readline/readline.h"
 
 #include "command_lister_interface.hpp"
@@ -15,21 +16,16 @@ namespace lmail
 
 class Readline
 {
-public:
-    bool operator()(std::string &user_input, std::string_view prompt = {})
+private:
+    explicit Readline(rl_completion_func_t completer)
     {
-        if (auto *input = readline(prompt.data()))
-        {
-            user_input = input;
-            free(input);
-            if (!user_input.empty())
-                add_history(user_input.c_str());
-            return true;
-        }
-        return false;
+        rl_attempted_completion_function = completer;
     }
 
-    void reset_completer(rl_completion_func_t completer = {}) { rl_attempted_completion_function = completer; }
+public:
+    static Readline &instance();
+
+    bool operator()(std::string &user_input, std::string_view prompt = {});
 
     void set_cmd_lister(std::shared_ptr<ICommandLister> lister)
     {

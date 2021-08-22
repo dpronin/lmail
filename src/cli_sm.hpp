@@ -1,9 +1,11 @@
 #pragma once
 
+#include <iostream>
 #include <stdexcept>
 
 #include "boost/sml.hpp"
 
+#include "color.hpp"
 #include "readline.hpp"
 #include "types.hpp"
 
@@ -17,26 +19,29 @@ class Cli;
 namespace sm
 {
 
-class CliSmCtx
+class CliTransitions;
+class CliCtx
 {
-public:
-    explicit CliSmCtx(Readline &rl) : rl_(rl), state_(std::make_shared<InitState>()) {}
+    friend class CliTransitions;
 
-    auto prompt() const { return state_->prompt(); }
+private:
     void set_state(std::shared_ptr<CliState> state)
     {
         if (!state)
             throw std::invalid_argument("state provided cannot be empty");
-        state_->OnExit();
         state_ = std::move(state);
-        state_->OnEnter();
         rl_.set_cmd_lister(state_);
     }
-    void process(args_t args) { state_->process(std::move(args)); }
 
 private:
     std::shared_ptr<CliState> state_;
     Readline &                rl_;
+
+public:
+    explicit CliCtx(Readline &rl) : rl_(rl), state_(std::make_shared<InitState>()) {}
+
+    auto prompt() const { return state_->prompt(); }
+    void process(args_t args) { state_->process(std::move(args)); }
 };
 
 namespace ev
@@ -47,15 +52,25 @@ struct event
     std::shared_ptr<CliState> state;
 };
 
+struct on_entry
+{
+    std::function<void()> on_entry;
+};
+
+struct on_exit
+{
+    std::function<void()> on_exit;
+};
+
 struct run : event
 {
 };
 
-struct login : event
+struct login : event, on_entry
 {
 };
 
-struct logout : event
+struct logout : event, on_exit
 {
 };
 
@@ -65,36 +80,38 @@ struct quit
 
 } // namespace ev
 
-namespace act
+class CliTransitions
 {
-
-// clang-format off
-constexpr auto set_state = [](CliSmCtx &ctx, auto ev) { ctx.set_state(std::move(ev.state)); };
-// clang-format on
-
-} // namespace act
-
-struct CliSm
-{
+public:
     auto operator()() const
     {
         using namespace boost::sml;
         // clang-format off
+        auto set_state        = [] (CliCtx &ctx, auto const &ev) { ctx.set_state(ev.state); };
+        auto on_entry_initial = [] { std::cout << "Welcome to " << cbrown("lmail") << '!' << std::endl; };
+        auto on_entry         = [] (CliCtx &ctx, auto const &ev) { ev.on_entry(); };
+        auto on_exit          = [] (CliCtx &ctx, auto const &ev) { ev.on_exit(); };
+        auto on_quit          = [] { std::cout << "Quitting " << cbrown("lmail") << ". Bye!" << std::endl; };
         return make_transition_table(
             // idle state
-            *"idle"_s     + event<ev::run>  / act::set_state     = "main"_s,
+            *"idle"_s     + boost::sml::on_entry<initial>    / on_entry_initial,
+            "idle"_s      + event<ev::run>                                           = "main"_s,
             // main state
-            "main"_s      + event<ev::login>  / act::set_state   = "logged-in"_s,
-            "main"_s      + event<ev::quit>                      = X,
+            "main"_s      + boost::sml::on_entry<ev::run>    / set_state,
+            "main"_s      + boost::sml::on_entry<ev::logout> / set_state,
+            "main"_s      + event<ev::login>                                         = "logged-in"_s,
+            "main"_s      + event<ev::quit>                  / on_quit               = X,
             // logged-in state
-            "logged-in"_s + event<ev::logout> / act::set_state   = "main"_s,
-            "logged-in"_s + event<ev::quit>                      = X
+            "logged-in"_s + boost::sml::on_entry<ev::login>  / (set_state, on_entry),
+            "logged-in"_s + boost::sml::on_exit<ev::logout>  / on_exit,
+            "logged-in"_s + event<ev::logout>                                        = "main"_s,
+            "logged-in"_s + event<ev::quit>                  / on_quit               = X
         );
         // clang-format on
     }
 };
 
-using Cli = boost::sml::sm<CliSm>;
+using Cli = boost::sml::sm<CliTransitions>;
 
 } // namespace sm
 

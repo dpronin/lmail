@@ -3,8 +3,6 @@
 #include "cli_state.hpp"
 #include "types.hpp"
 
-#include "boost/format.hpp"
-
 namespace lmail
 {
 
@@ -15,11 +13,10 @@ public:
 
     cmds_names_t cmds() const override final;
     void         process(args_t args) override;
+    prompt_t     prompt() const override { return ""; }
 
 protected:
     explicit CmdState(cmds_t cmds = {});
-
-    virtual std::string default_colored(std::string_view input) const = 0;
 
 private:
     cmds_t cmds_;
