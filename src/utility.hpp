@@ -62,7 +62,7 @@ inline auto find_key(std::filesystem::path const &dir, std::string_view keyname)
 inline bool create_dir_if_doesnt_exist(std::filesystem::path const &dir)
 {
     namespace fs = std::filesystem;
-    if ((fs::exists(dir) && !fs::is_directory(dir)) || (!fs::exists(dir) && !fs::create_directory(dir)))
+    if ((fs::exists(dir) && !fs::is_directory(dir)) || (!fs::exists(dir) && !fs::create_directories(dir)))
     {
         std::cerr << "couldn't create directory " << dir << '\n';
         return false;
