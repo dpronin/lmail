@@ -1,3 +1,9 @@
+find_package(Boost REQUIRED)
+find_package(SqliteOrm REQUIRED)
+find_package(cryptopp REQUIRED)
+find_package(readline REQUIRED)
+find_package(sml REQUIRED)
+
 set(SOURCES
     cli.cpp
     main.cpp
@@ -55,8 +61,8 @@ target_include_directories(lmail PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
 install(TARGETS lmail RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-target_link_libraries(lmail PRIVATE CONAN_PKG::boost)
-target_link_libraries(lmail PRIVATE CONAN_PKG::sqlite_orm)
-target_link_libraries(lmail PRIVATE CONAN_PKG::cryptopp)
-target_link_libraries(lmail PRIVATE CONAN_PKG::readline)
-target_link_libraries(lmail PRIVATE CONAN_PKG::sml)
+target_link_libraries(lmail PRIVATE Boost::boost)
+target_link_libraries(lmail PRIVATE sqlite_orm::sqlite_orm)
+target_link_libraries(lmail PRIVATE cryptopp::cryptopp)
+target_link_libraries(lmail PRIVATE readline::readline)
+target_link_libraries(lmail PRIVATE sml::sml)

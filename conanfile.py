@@ -4,21 +4,12 @@ from conans import ConanFile, CMake, tools
 
 class LMail(ConanFile):
     name = "lmail"
-    version = "1.1.0"
+    version = "1.4.0"
     author = "Denis Pronin"
     url = "https://github.com/dannftk/lmail"
     description = "A tool for mailing in a local host"
     settings = "os", "compiler", "build_type", "arch"
-    generators = "cmake"
-
-    requires = "boost/[~1.78]", \
-        "sqlite_orm/[~1.6]", \
-        "cryptopp/[~8.5.0]", \
-        "readline/[~8.0]", \
-        "sml/1.1.4"
-
-    build_requires = \
-        "gtest/[~1.11]"
+    generators = "cmake_find_package"
 
     scm = {
         "type": "git",
@@ -27,6 +18,16 @@ class LMail(ConanFile):
         "revision": "auto",
         "username": "git"
     }
+
+    def requirements(self):
+        self.requires("boost/[~1.78]")
+        self.requires("sqlite_orm/[~1.6]")
+        self.requires("cryptopp/[~8.5.0]")
+        self.requires("readline/[~8.0]")
+        self.requires("sml/1.1.4")
+
+    def build_requirements(self):
+        self.build_requires("gtest/[~1.11]")
 
     def _configure(self, verbose = True):
         cmake = CMake(self)
