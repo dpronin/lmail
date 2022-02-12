@@ -21,21 +21,20 @@ class CmdRegister final
 {
 public:
     explicit CmdRegister(CmdArgs args, std::shared_ptr<Storage> storage)
-        : args_(std::move(args)), storage_(std::move(storage))
+        : args_(std::move(args))
+        , storage_(std::move(storage))
     {
         if (!storage_)
             throw std::invalid_argument("storage provided cannot be empty");
     }
 
     void operator()()
-    try
-    {
+    try {
         username_t username = args_.front();
         if (username.empty() && !uread(username, "Enter user name: "))
             return;
 
-        if (username.empty())
-        {
+        if (username.empty()) {
             std::cerr << "user name cannot be empty\n";
             return;
         }
@@ -44,8 +43,7 @@ public:
         if (!uread_hidden(password, "Enter a new user's password: "))
             return;
 
-        if (password.empty())
-        {
+        if (password.empty()) {
             std::cerr << "password cannot be empty\n";
             return;
         }
@@ -60,8 +58,7 @@ public:
             secure_memset(password.data(), 0, password.size());
         };
 
-        if (password != password_repeated)
-        {
+        if (password != password_repeated) {
             std::cerr << "incorrect password repeated\n";
             return;
         }
@@ -76,18 +73,14 @@ public:
         else
             std::cerr << "couldn't register a new user '" << user.username << "'. "
                       << "User name is busy or password has incorrect format\n";
-    }
-    catch (std::exception const &ex)
-    {
+    } catch (std::exception const& ex) {
         std::cerr << "error occurred: " << ex.what() << '\n';
-    }
-    catch (...)
-    {
+    } catch (...) {
         std::cerr << "unknown exception\n";
     }
 
 private:
-    CmdArgs                  args_;
+    CmdArgs args_;
     std::shared_ptr<Storage> storage_;
 };
 

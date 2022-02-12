@@ -34,16 +34,20 @@ private:
 
 private:
     std::shared_ptr<CliState> state_;
-    Readline &                rl_;
+    Readline& rl_;
 
 public:
-    explicit CliCtx(Readline &rl) : rl_(rl), state_(std::make_shared<InitState>()) {}
+    explicit CliCtx(Readline& rl)
+        : rl_(rl)
+        , state_(std::make_shared<InitState>())
+    {
+    }
 
-    CliCtx(CliCtx const &) = delete;
-    CliCtx &operator=(CliCtx const &) = delete;
+    CliCtx(CliCtx const&) = delete;
+    CliCtx& operator=(CliCtx const&) = delete;
 
-    CliCtx(CliCtx &&) = delete;
-    CliCtx &operator=(CliCtx &&) = delete;
+    CliCtx(CliCtx&&) = delete;
+    CliCtx& operator=(CliCtx&&) = delete;
 
     auto prompt() const { return state_->prompt(); }
     void process(args_t args) { state_->process(std::move(args)); }
@@ -52,35 +56,28 @@ public:
 namespace ev
 {
 
-struct event
-{
+struct event {
     std::shared_ptr<CliState> state;
 };
 
-struct on_entry
-{
+struct on_entry {
     std::function<void()> on_entry;
 };
 
-struct on_exit
-{
+struct on_exit {
     std::function<void()> on_exit;
 };
 
-struct run : event
-{
+struct run : event {
 };
 
-struct login : event, on_entry
-{
+struct login : event, on_entry {
 };
 
-struct logout : event, on_exit
-{
+struct logout : event, on_exit {
 };
 
-struct quit
-{
+struct quit {
 };
 
 } // namespace ev

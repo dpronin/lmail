@@ -24,15 +24,15 @@ class CmdKeyAssoc final
 {
 public:
     explicit CmdKeyAssoc(CmdArgs args, std::shared_ptr<LoggedUser> logged_user)
-        : args_(std::move(args)), logged_user_(std::move(logged_user))
+        : args_(std::move(args))
+        , logged_user_(std::move(logged_user))
     {
         if (!logged_user_)
             throw std::invalid_argument("logged user provided cannot be empty");
     }
 
     void operator()()
-    try
-    {
+    try {
         namespace fs = std::filesystem;
 
         auto args = args_;
@@ -41,15 +41,13 @@ public:
         if (keyname.empty() && !uread(keyname, "Enter key name: "))
             return;
 
-        if (keyname.empty())
-        {
+        if (keyname.empty()) {
             std::cerr << "key name is not specified\n";
             return;
         }
 
-        auto const &keys_pair_dir = logged_user_->profile().find_key(keyname);
-        if (keys_pair_dir.empty())
-        {
+        auto const& keys_pair_dir = logged_user_->profile().find_key(keyname);
+        if (keys_pair_dir.empty()) {
             std::cerr << "There is no key '" << keyname << "'\n";
             return;
         }
@@ -58,21 +56,18 @@ public:
         if (username_tgt.empty() && !uread(username_tgt, "Enter a target user name the key is linked to: "))
             return;
 
-        if (username_tgt.empty())
-        {
+        if (username_tgt.empty()) {
             std::cerr << "target user name cannot be empty\n";
             return;
         }
 
         username_tgt = fs::path(username_tgt).filename();
-        if (username_tgt.empty())
-        {
+        if (username_tgt.empty()) {
             std::cerr << "target user name cannot be empty\n";
             return;
         }
 
-        if (logged_user_->name() == username_tgt)
-        {
+        if (logged_user_->name() == username_tgt) {
             std::cerr << "you cannot create a new association between your key and yourself\n";
             return;
         }
@@ -85,8 +80,7 @@ public:
 
         auto assoc_path = assocs_dir / username_to_keyname(username_tgt);
         assoc_path += Application::kUserKeyLinkSuffix;
-        if (fs::exists(assoc_path))
-        {
+        if (fs::exists(assoc_path)) {
             std::cerr << "some key is already associated with user '" << username_tgt << "'\n";
             return;
         }
@@ -96,20 +90,15 @@ public:
         if (!ec)
             std::cout << "successfully created key-user association" << std::endl;
         else
-            std::cerr << "failed to create association between key '" << keyname << "' and the user '"
-                      << username_tgt << "', reason: " << ec.message() << '\n';
-    }
-    catch (std::exception const &ex)
-    {
+            std::cerr << "failed to create association between key '" << keyname << "' and the user '" << username_tgt << "', reason: " << ec.message() << '\n';
+    } catch (std::exception const& ex) {
         std::cerr << "error occurred: " << ex.what() << '\n';
-    }
-    catch (...)
-    {
+    } catch (...) {
         std::cerr << "unknown exception\n";
     }
 
 private:
-    CmdArgs                     args_;
+    CmdArgs args_;
     std::shared_ptr<LoggedUser> logged_user_;
 };
 

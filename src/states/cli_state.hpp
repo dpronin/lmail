@@ -11,8 +11,8 @@ class CliState : public ICommandLister
 public:
     ~CliState() override = default;
 
-    virtual prompt_t prompt() const       = 0;
-    virtual void     process(args_t args) = 0;
+    virtual prompt_t prompt() const   = 0;
+    virtual void process(args_t args) = 0;
 };
 
 } // namespace lmail

@@ -1,9 +1,3 @@
-find_package(Boost REQUIRED)
-find_package(SqliteOrm REQUIRED)
-find_package(cryptopp REQUIRED)
-find_package(readline REQUIRED)
-find_package(sml REQUIRED)
-
 set(SOURCES
     cli.cpp
     main.cpp
@@ -57,12 +51,13 @@ set(HEADERS
 )
 
 add_executable(lmail ${SOURCES} ${HEADERS})
-target_include_directories(lmail PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
-install(TARGETS lmail RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+target_include_directories(lmail PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(lmail PRIVATE ${CMAKE_CURRENT_LIST_DIR}/third_party/include)
 
 target_link_libraries(lmail PRIVATE Boost::boost)
-target_link_libraries(lmail PRIVATE sqlite_orm::sqlite_orm)
 target_link_libraries(lmail PRIVATE cryptopp::cryptopp)
 target_link_libraries(lmail PRIVATE readline::readline)
-target_link_libraries(lmail PRIVATE sml::sml)
+target_link_libraries(lmail PRIVATE SQLite::SQLite3)
+
+install(TARGETS lmail RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

@@ -20,7 +20,8 @@ namespace lmail
 class CmdHelp final
 {
 public:
-    explicit CmdHelp(cmds_t const &cmds) : cmds_(cmds)
+    explicit CmdHelp(cmds_t const& cmds)
+        : cmds_(cmds)
     {
         // clang-format off
         auto getsize = [](auto const &cmd)
@@ -30,12 +31,12 @@ public:
                 + std::size(std::get<1>(cmd)) - 1;
         };
         // clang-format on
-        auto const   cmds_lens  = cmds_ | boost::adaptors::transformed(getsize);
+        auto const cmds_lens    = cmds_ | boost::adaptors::transformed(getsize);
         size_t const align_size = *boost::range::max_element(cmds_lens) + cgreen("").size() + cblue("").size();
         fmt_                    = boost::format("%-" + std::to_string(align_size + 1) + "s %s");
     }
 
-    void operator()(std::ostream &out) const
+    void operator()(std::ostream& out) const
     {
         // clang-format off
         boost::copy(cmds_, boost::make_function_output_iterator([&](auto const &cmd) {
@@ -45,7 +46,7 @@ public:
     }
 
 private:
-    cmds_t const         &cmds_;
+    cmds_t const& cmds_;
     mutable boost::format fmt_;
 };
 

@@ -27,22 +27,22 @@ namespace lmail
 class CmdLogin final
 {
 public:
-    explicit CmdLogin(CmdArgs args, sm::Cli &fsm, std::shared_ptr<Storage> storage)
-        : args_(std::move(args)), fsm_(fsm), storage_(std::move(storage))
+    explicit CmdLogin(CmdArgs args, sm::Cli& fsm, std::shared_ptr<Storage> storage)
+        : args_(std::move(args))
+        , fsm_(fsm)
+        , storage_(std::move(storage))
     {
         if (!storage_)
             throw std::invalid_argument("storage provided cannot be empty");
     }
 
     void operator()()
-    try
-    {
+    try {
         username_t username = args_.front();
         if (username.empty() && !uread(username, "Enter user name: "))
             return;
 
-        if (username.empty())
-        {
+        if (username.empty()) {
             std::cerr << "user name cannot be empty\n";
             return;
         }
@@ -51,8 +51,7 @@ public:
         if (!uread_hidden(password, "Enter password: "))
             return;
 
-        if (password.empty())
-        {
+        if (password.empty()) {
             std::cerr << "password cannot be empty\n";
             return;
         }
@@ -61,23 +60,20 @@ public:
 
         bool b_success;
         using namespace sqlite_orm;
-        if (auto users = (*storage_)->get_all<User>(where(c(&User::username) == username)); (b_success = !users.empty()))
-        {
-            if (1 != users.size())
-            {
+        if (auto users = (*storage_)->get_all<User>(where(c(&User::username) == username)); (b_success = !users.empty())) {
+            if (1 != users.size()) {
                 std::cerr << "FATAL: inconsistent data base\n";
                 exit(EXIT_FAILURE);
             }
 
-            auto &user = users.front();
+            auto& user = users.front();
 
             // salting the password
             password.push_back(':');
             password += Application::kSalt;
 
             b_success = user.username == username && user.password == sha3_256(password);
-            if (b_success)
-            {
+            if (b_success) {
                 auto logged_user  = std::make_shared<LoggedUser>(std::move(user));
                 auto user_greeter = make_logged_user_greeter(logged_user, storage_);
                 auto new_state    = std::make_shared<LoggedInState>(fsm_, storage_, logged_user);
@@ -87,19 +83,15 @@ public:
 
         if (!b_success)
             std::cerr << "incorrect user name or password provided, or user doesn't exist\n";
-    }
-    catch (std::exception const &ex)
-    {
+    } catch (std::exception const& ex) {
         std::cerr << "error occurred: " << ex.what() << '\n';
-    }
-    catch (...)
-    {
+    } catch (...) {
         std::cerr << "unknown exception\n";
     }
 
 private:
-    CmdArgs                  args_;
-    sm::Cli &                fsm_;
+    CmdArgs args_;
+    sm::Cli& fsm_;
     std::shared_ptr<Storage> storage_;
 };
 

@@ -14,7 +14,7 @@ namespace lmail
 class LoggedInState : public MainState
 {
 public:
-    explicit LoggedInState(sm::Cli &fsm, std::shared_ptr<Storage> storage, std::shared_ptr<LoggedUser> user);
+    explicit LoggedInState(sm::Cli& fsm, std::shared_ptr<Storage> storage, std::shared_ptr<LoggedUser> user);
     ~LoggedInState() override = default;
 
     prompt_t prompt() const override;

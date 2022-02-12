@@ -17,7 +17,8 @@ class CmdInbox final
 {
 public:
     explicit CmdInbox(std::shared_ptr<LoggedUser> logged_user, std::shared_ptr<Storage> storage)
-        : logged_user_(std::move(logged_user)), storage_(std::move(storage))
+        : logged_user_(std::move(logged_user))
+        , storage_(std::move(storage))
     {
         if (!logged_user_)
             throw std::invalid_argument("logged user provided cannot be empty");
@@ -26,8 +27,7 @@ public:
     }
 
     void operator()()
-    try
-    {
+    try {
         using namespace sqlite_orm;
         // clang-format off
         auto items = (*storage_)->select(columns(&Message::id, &Message::topic, &Message::cyphered, &User::username),
@@ -36,32 +36,25 @@ public:
         // clang-format on
         auto const [old_messages, new_messages] = logged_user_->inbox().sync(std::move(items));
         auto const all_messages                 = old_messages + new_messages;
-        if (0 != all_messages)
-        {
+        if (0 != all_messages) {
             if (1 == all_messages)
                 std::cout << "There is 1 " << (1 == new_messages ? "new" : "") << " message:\n";
             else
                 std::cout << "There are " << all_messages << " messages (" << new_messages << " new):\n";
             logged_user_->inbox().show_topics(std::cout);
-        }
-        else
-        {
+        } else {
             std::cout << "There are no messages\n";
         }
         std::cout.flush();
-    }
-    catch (std::exception const &ex)
-    {
+    } catch (std::exception const& ex) {
         std::cerr << "error occurred: " << ex.what() << '\n';
-    }
-    catch (...)
-    {
+    } catch (...) {
         std::cerr << "unknown exception\n";
     }
 
 private:
     std::shared_ptr<LoggedUser> logged_user_;
-    std::shared_ptr<Storage>    storage_;
+    std::shared_ptr<Storage> storage_;
 };
 
 } // namespace lmail

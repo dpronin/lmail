@@ -17,15 +17,12 @@ namespace lmail
 class Readline
 {
 private:
-    explicit Readline(rl_completion_func_t completer)
-    {
-        rl_attempted_completion_function = completer;
-    }
+    explicit Readline(rl_completion_func_t completer) { rl_attempted_completion_function = completer; }
 
 public:
-    static Readline &instance();
+    static Readline& instance();
 
-    bool operator()(std::string &user_input, std::string_view prompt = {});
+    bool operator()(std::string& user_input, std::string_view prompt = {});
 
     void set_cmd_lister(std::shared_ptr<ICommandLister> lister)
     {

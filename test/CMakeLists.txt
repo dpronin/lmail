@@ -1,5 +1,3 @@
-find_package(Boost REQUIRED)
-find_package(cryptopp REQUIRED)
 find_package(GTest REQUIRED)
 
 set(SOURCES

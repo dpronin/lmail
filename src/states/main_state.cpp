@@ -22,7 +22,7 @@ namespace
 // clang-format off
 MainState::MainState(sm::Cli &fsm, std::shared_ptr<Storage> storage)
     : MainState(fsm, {
-        { "login",    { "[username]" }, "Logs in as a user with username specified or entered",    [=](args_t args){ CmdLogin{std::move(args), fsm_, storage}(); } },
+        { "login",    { "[username]" }, "Logs in as a user with username specified or entered",    [=, this](args_t args){ CmdLogin{std::move(args), fsm_, storage}(); } },
         { "register", { "[username]" }, "Registers a new user with username specified or entered", [=](args_t args){ CmdRegister{std::move(args), storage}(); } }
     })
 // clang-format on

@@ -11,14 +11,14 @@
 namespace lmail
 {
 
-inline auto uread(std::string &input, std::string_view prompt = {})
+inline auto uread(std::string& input, std::string_view prompt = {})
 {
     std::cout << prompt;
     std::cin.clear();
     return static_cast<bool>(std::getline(std::cin, input));
 }
 
-inline auto uread_hidden(std::string &input, std::string_view prompt = {})
+inline auto uread_hidden(std::string& input, std::string_view prompt = {})
 {
     termios ts;
 

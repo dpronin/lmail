@@ -18,12 +18,11 @@ using namespace lmail;
 namespace
 {
 
-char *completion_generator(const char *text, int state)
+char* completion_generator(const char* text, int state)
 {
     static cmds_names_t matches;
-    static size_t       match_idx = 0;
-    if (0 == state)
-    {
+    static size_t match_idx = 0;
+    if (0 == state) {
         matches.clear();
         match_idx                = 0;
         std::string_view textstr = text;
@@ -36,7 +35,7 @@ char *completion_generator(const char *text, int state)
     return match_idx < matches.size() ? strdup(matches[match_idx++].c_str()) : nullptr;
 }
 
-char **completer(const char *text, int start, int end)
+char** completer(const char* text, int start, int end)
 {
     rl_attempted_completion_over = 1;
     return rl_completion_matches(text, completion_generator);
@@ -44,16 +43,15 @@ char **completer(const char *text, int start, int end)
 
 } // namespace
 
-Readline &Readline::instance()
+Readline& Readline::instance()
 {
     static Readline rl{completer};
     return rl;
 }
 
-bool Readline::operator()(std::string &user_input, std::string_view prompt /* = {}*/)
+bool Readline::operator()(std::string& user_input, std::string_view prompt /* = {}*/)
 {
-    if (auto *input = readline(prompt.data()))
-    {
+    if (auto* input = readline(prompt.data())) {
         user_input = input;
         std::free(input);
         if (!user_input.empty())

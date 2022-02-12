@@ -24,7 +24,7 @@
 
 using namespace lmail;
 
-LoggedInState::LoggedInState(sm::Cli &fsm, std::shared_ptr<Storage> storage, std::shared_ptr<LoggedUser> user)
+LoggedInState::LoggedInState(sm::Cli& fsm, std::shared_ptr<Storage> storage, std::shared_ptr<LoggedUser> user)
     // clang-format off
     : MainState(fsm, {
             { "logout",      {},                            "Logs out current user",                                                                              [=, this](args_t)     { CmdLogout{fsm_, user_, storage}(); }},

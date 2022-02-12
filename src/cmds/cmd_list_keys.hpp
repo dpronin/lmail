@@ -22,24 +22,20 @@ namespace lmail
 class CmdListKeys final
 {
 public:
-    explicit CmdListKeys(std::shared_ptr<LoggedUser> logged_user) : logged_user_(std::move(logged_user))
+    explicit CmdListKeys(std::shared_ptr<LoggedUser> logged_user)
+        : logged_user_(std::move(logged_user))
     {
         if (!logged_user_)
             throw std::invalid_argument("logged user provided cannot be empty");
     }
 
     void operator()()
-    try
-    {
+    try {
         print_own();
         print_imported();
-    }
-    catch (std::exception const &ex)
-    {
+    } catch (std::exception const& ex) {
         std::cerr << "error occurred: " << ex.what() << '\n';
-    }
-    catch (...)
-    {
+    } catch (...) {
         std::cerr << "unknown exception\n";
     }
 

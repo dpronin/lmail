@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
-project(lmail VERSION 1.4.0 LANGUAGES CXX)
+project(lmail VERSION 1.5.0 LANGUAGES CXX)
 
 include(CTest)
 
@@ -35,6 +35,30 @@ if (ENABLE_GDB_SYMBOLS)
 endif()
 
 add_definitions(-DCONF_PREFIX="${CONF_PREFIX}" -DSCHEMA_DB_PREFIX="${SCHEMA_DB_PREFIX}")
+
+find_package(Boost REQUIRED)
+find_package(cryptopp QUIET)
+find_package(readline QUIET)
+
+if (NOT ${cryptopp_FOUND} OR NOT ${readline_FOUND})
+    find_package(PkgConfig REQUIRED)
+endif()
+
+if (NOT ${cryptopp_FOUND})
+    pkg_check_modules(cryptopp REQUIRED libcryptopp)
+    add_library(cryptopp::cryptopp INTERFACE IMPORTED)
+    target_include_directories(cryptopp::cryptopp INTERFACE "${cryptopp_INCLUDE_DIRS}")
+    target_link_libraries(cryptopp::cryptopp INTERFACE "${cryptopp_LIBRARIES}")
+endif()
+
+if (NOT ${readline_FOUND})
+    pkg_check_modules(readline REQUIRED readline)
+    add_library(readline::readline INTERFACE IMPORTED)
+    target_include_directories(readline::readline INTERFACE "${readline_INCLUDE_DIRS}")
+    target_link_libraries(readline::readline INTERFACE "${readline_LIBRARIES}")
+endif()
+
+find_package(SQLite3 REQUIRED)
 
 add_subdirectory(src)
 

@@ -22,15 +22,15 @@ class CmdKeyImp final
 {
 public:
     explicit CmdKeyImp(CmdArgs args, std::shared_ptr<LoggedUser> logged_user)
-        : args_(std::move(args)), logged_user_(std::move(logged_user))
+        : args_(std::move(args))
+        , logged_user_(std::move(logged_user))
     {
         if (!logged_user_)
             throw std::invalid_argument("logged user provided cannot be empty");
     }
 
     void operator()()
-    try
-    {
+    try {
         namespace fs = std::filesystem;
 
         auto args = args_;
@@ -39,20 +39,18 @@ public:
         if (key_path_str.empty() && !uread(key_path_str, "Enter public key path: "))
             return;
 
-        if (key_path_str.empty())
-        {
+        if (key_path_str.empty()) {
             std::cerr << "key path is not specified\n";
             return;
         }
 
         fs::path key_path_src{std::move(key_path_str)};
-        if (!fs::is_regular_file(key_path_src))
-        {
+        if (!fs::is_regular_file(key_path_src)) {
             std::cerr << "key " << key_path_src << " is not a file with public key\n";
             return;
         }
 
-        auto const &cypher_dir = logged_user_->profile().cypher_dir();
+        auto const& cypher_dir = logged_user_->profile().cypher_dir();
         if (!create_dir_if_doesnt_exist(cypher_dir))
             throw std::runtime_error("failed to import a public key");
 
@@ -61,45 +59,37 @@ public:
             return;
 
         username_tgt = fs::path(username_tgt).filename();
-        if (username_tgt.empty())
-        {
+        if (username_tgt.empty()) {
             std::cerr << "target user name cannot be empty\n";
             return;
         }
 
-        if (username_tgt == logged_user_->name())
-        {
+        if (username_tgt == logged_user_->name()) {
             std::cerr << "you cannot import the key from yourself\n";
             return;
         }
 
         auto key_path_dst = cypher_dir / username_to_keyname(username_tgt);
         key_path_dst += Application::kPubKeySuffix;
-        if (fs::exists(key_path_dst))
-        {
+        if (fs::exists(key_path_dst)) {
             std::cerr << "key from the user '" << username_tgt << "' has already been imported\n";
             return;
         }
 
         std::error_code ec;
         if (fs::copy_file(key_path_src, key_path_dst, ec))
-            std::cout << "successfully imported key " << key_path_src
-                      << " as '" << key_path_dst.filename().string()
-                      << "' and associated with user '" << username_tgt << "' for cyphering\n";
+            std::cout << "successfully imported key " << key_path_src << " as '" << key_path_dst.filename().string() << "' and associated with user '"
+                      << username_tgt << "' for cyphering\n";
         else
             std::cerr << "failed to import key '" << key_path_src << "', reason: " << ec.message() << '\n';
-    }
-    catch (std::exception const &ex)
-    {
+    } catch (std::exception const& ex) {
         std::cerr << "error occurred: " << ex.what() << '\n';
-    }
-    catch (...)
-    {
+    } catch (...) {
         std::cerr << "unknown exception\n";
     }
 
 private:
-    CmdArgs                     args_;
+    CmdArgs args_;
     std::shared_ptr<LoggedUser> logged_user_;
 };
 

@@ -12,8 +12,8 @@ public:
     ~CmdState() override = default;
 
     cmds_names_t cmds() const override final;
-    void         process(args_t args) override;
-    prompt_t     prompt() const override { return ""; }
+    void process(args_t args) override;
+    prompt_t prompt() const override { return ""; }
 
 protected:
     explicit CmdState(cmds_t cmds = {});

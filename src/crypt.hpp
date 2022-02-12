@@ -34,14 +34,14 @@ inline auto sha3_256(std::string_view data)
 {
     using namespace CryptoPP;
     std::string digest;
-    SHA3_256    sha256_algo;
+    SHA3_256 sha256_algo;
     digest.resize(sha256_algo.DigestSize());
-    sha256_algo.CalculateDigest(reinterpret_cast<byte *>(digest.data()), reinterpret_cast<byte const *>(data.data()), data.size());
+    sha256_algo.CalculateDigest(reinterpret_cast<byte*>(digest.data()), reinterpret_cast<byte const*>(data.data()), data.size());
     return boost::algorithm::hex_lower(digest);
 }
 
 template <typename... Args>
-void secure_memset(Args &&...args) noexcept
+void secure_memset(Args&&... args) noexcept
 {
     auto volatile f = std::memset;
     f(std::forward<Args>(args)...);
@@ -52,7 +52,7 @@ template <typename KeyT, typename ReturnT = KeyT>
 using return_if_rsa = std::enable_if_t<std::is_same_v<KeyT, CryptoPP::RSA::PrivateKey> || std::is_same_v<KeyT, CryptoPP::RSA::PublicKey>, ReturnT>;
 
 template <typename KeyT>
-return_if_rsa<KeyT, void> save_key(KeyT const &key, std::filesystem::path const &key_path, int perms)
+return_if_rsa<KeyT, void> save_key(KeyT const& key, std::filesystem::path const& key_path, int perms)
 {
     using namespace CryptoPP;
     auto const fd = creat(key_path.c_str(), perms);
@@ -70,12 +70,12 @@ return_if_rsa<KeyT, void> save_key(KeyT const &key, std::filesystem::path const 
 }
 
 template <typename KeyT>
-return_if_rsa<KeyT> load_key(std::filesystem::path const &key_path)
+return_if_rsa<KeyT> load_key(std::filesystem::path const& key_path)
 {
     using namespace CryptoPP;
-    KeyT       key;
+    KeyT key;
     FileSource file(key_path.c_str(), true);
-    ByteQueue  bq;
+    ByteQueue bq;
     file.TransferTo(bq);
     bq.MessageEnd();
     if constexpr (std::is_same_v<KeyT, RSA::PrivateKey>)
@@ -89,12 +89,12 @@ inline rsa_key_pair_t generate_rsa_key_pair(size_t key_size)
 {
     using namespace CryptoPP;
     AutoSeededRandomPool rnd;
-    RSA::PrivateKey      priv_key;
+    RSA::PrivateKey priv_key;
     priv_key.GenerateRandomWithKeySize(rnd, key_size);
     return {priv_key, RSA::PublicKey(priv_key)};
 }
 
-inline void store(rsa_key_pair_t const &rsa_key_pair, std::filesystem::path const &keys_pair_dir)
+inline void store(rsa_key_pair_t const& rsa_key_pair, std::filesystem::path const& keys_pair_dir)
 {
     namespace fs = std::filesystem;
 
@@ -107,14 +107,13 @@ inline void store(rsa_key_pair_t const &rsa_key_pair, std::filesystem::path cons
     save_key(rsa_key_pair.second, key_path, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 }
 
-inline void encrypt(std::string &msg, CryptoPP::RSA::PublicKey const &rsa_key)
+inline void encrypt(std::string& msg, CryptoPP::RSA::PublicKey const& rsa_key)
 {
     using namespace CryptoPP;
 
     AutoSeededRandomPool rnd;
 
-    auto gen_byte_block = [rnd = AutoSeededRandomPool()](uint16_t size) mutable
-    {
+    auto gen_byte_block = [rnd = AutoSeededRandomPool()](uint16_t size) mutable {
         SecByteBlock sec_byte_block(0, size);
         rnd.GenerateBlock(sec_byte_block, sec_byte_block.size());
         return sec_byte_block;
@@ -132,10 +131,8 @@ inline void encrypt(std::string &msg, CryptoPP::RSA::PublicKey const &rsa_key)
                               msg.size());
     // clang-format on
 
-    auto cypher_byte_block = [&rsa_key](SecByteBlock const &sec_byte_block)
-    {
-        return rsa_key.ApplyFunction(
-            Integer(reinterpret_cast<byte const *>(sec_byte_block.data()), sec_byte_block.size()));
+    auto cypher_byte_block = [&rsa_key](SecByteBlock const& sec_byte_block) {
+        return rsa_key.ApplyFunction(Integer(reinterpret_cast<byte const*>(sec_byte_block.data()), sec_byte_block.size()));
     };
 
     auto const caesk = cypher_byte_block(aes_key);
@@ -144,23 +141,21 @@ inline void encrypt(std::string &msg, CryptoPP::RSA::PublicKey const &rsa_key)
     std::string out;
     out.resize(2 * sizeof(uint16_t) + caesk.MinEncodedSize() + civ.MinEncodedSize() + cmsg.size());
 
-    auto *pout = out.data();
-    auto *pend = pout + out.size();
+    auto* pout = out.data();
+    auto* pend = pout + out.size();
 
-    auto push_size = [&](uint16_t size)
-    {
+    auto push_size = [&](uint16_t size) {
         if (pend - pout < sizeof(size))
             throw std::invalid_argument("insufficient place, cannot encrypt");
-        std::memcpy(pout, reinterpret_cast<byte const *>(&size), sizeof(size));
+        std::memcpy(pout, reinterpret_cast<byte const*>(&size), sizeof(size));
         pout += sizeof(size);
     };
 
-    auto push_integer = [&](Integer const &integer)
-    {
+    auto push_integer = [&](Integer const& integer) {
         push_size(integer.MinEncodedSize());
         if (pend - pout < integer.MinEncodedSize())
             throw std::invalid_argument("insufficient place, cannot encrypt");
-        integer.Encode(reinterpret_cast<byte *>(pout), integer.MinEncodedSize());
+        integer.Encode(reinterpret_cast<byte*>(pout), integer.MinEncodedSize());
         pout += integer.MinEncodedSize();
     };
 
@@ -173,38 +168,35 @@ inline void encrypt(std::string &msg, CryptoPP::RSA::PublicKey const &rsa_key)
     msg = std::move(out);
 }
 
-inline void decrypt(std::string &cmsg, CryptoPP::RSA::PrivateKey const &rsa_key)
+inline void decrypt(std::string& cmsg, CryptoPP::RSA::PrivateKey const& rsa_key)
 {
     using namespace CryptoPP;
 
-    auto const *pin  = cmsg.data();
-    auto const *pend = pin + cmsg.size();
+    auto const* pin  = cmsg.data();
+    auto const* pend = pin + cmsg.size();
 
-    auto pop_size = [&]
-    {
+    auto pop_size = [&] {
         uint16_t size;
         if (pend - pin < sizeof(size))
             throw std::invalid_argument("malformed message, cannot decrypt");
-        std::memcpy(reinterpret_cast<byte *>(&size), pin, sizeof(size));
+        std::memcpy(reinterpret_cast<byte*>(&size), pin, sizeof(size));
         pin += sizeof(size);
         return size;
     };
 
-    auto pop_integer = [&]
-    {
+    auto pop_integer = [&] {
         auto const size = pop_size();
         if (pend - pin < size)
             throw std::invalid_argument("malformed message, cannot decrypt");
-        Integer const integer(reinterpret_cast<byte const *>(pin), size);
+        Integer const integer(reinterpret_cast<byte const*>(pin), size);
         pin += size;
         return integer;
     };
 
-    auto inv_byte_block = [&rsa_key, rnd = AutoSeededRandomPool()](Integer const &integer) mutable
-    {
-        auto const   inv_integer = rsa_key.CalculateInverse(rnd, integer);
+    auto inv_byte_block = [&rsa_key, rnd = AutoSeededRandomPool()](Integer const& integer) mutable {
+        auto const inv_integer = rsa_key.CalculateInverse(rnd, integer);
         SecByteBlock sec_byte_block(inv_integer.MinEncodedSize());
-        inv_integer.Encode(reinterpret_cast<byte *>(sec_byte_block.data()), sec_byte_block.size());
+        inv_integer.Encode(reinterpret_cast<byte*>(sec_byte_block.data()), sec_byte_block.size());
         return sec_byte_block;
     };
 
@@ -214,8 +206,7 @@ inline void decrypt(std::string &cmsg, CryptoPP::RSA::PrivateKey const &rsa_key)
     auto const civ = pop_integer();
     // empty message received
     auto const msg_size = pend - pin;
-    if (0 == msg_size)
-    {
+    if (0 == msg_size) {
         cmsg.clear();
         return;
     }

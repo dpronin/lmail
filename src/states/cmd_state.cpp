@@ -51,9 +51,7 @@ void CmdState::process(args_t args)
     // clang-format on
     {
         std::get<3> (*it)(std::move(args));
-    }
-    else
-    {
+    } else {
         std::cerr << "unknown command '" << cmd_name << "'\n";
         std::cerr << cred("cannot process") << " '" << cmd_name << ' ';
         boost::copy(args, std::ostream_iterator<arg_t>(std::cerr, " "));

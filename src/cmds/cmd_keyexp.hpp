@@ -22,36 +22,34 @@ class CmdKeyExp final
 {
 public:
     explicit CmdKeyExp(CmdArgs args, std::shared_ptr<LoggedUser> logged_user)
-        : args_(std::move(args)), logged_user_(std::move(logged_user))
+        : args_(std::move(args))
+        , logged_user_(std::move(logged_user))
     {
         if (!logged_user_)
             throw std::invalid_argument("logged user provided cannot be empty");
     }
 
     void operator()()
-    try
-    {
+    try {
         namespace fs = std::filesystem;
 
         keyname_t keyname = args_.front();
         if (keyname.empty() && !uread(keyname, "Enter key name: "))
             return;
 
-        if (keyname.empty())
-        {
+        if (keyname.empty()) {
             std::cerr << "key name is not specified\n";
             return;
         }
 
-        auto const &keys_pair_dir = logged_user_->profile().find_key(keyname);
-        if (keys_pair_dir.empty())
-        {
+        auto const& keys_pair_dir = logged_user_->profile().find_key(keyname);
+        if (keys_pair_dir.empty()) {
             std::cerr << "There is no key '" << keyname << "'\n";
             return;
         }
 
         std::string copy_to_str;
-        fs::path    key_path_dst = Application::instance().home_path() / keyname;
+        fs::path key_path_dst = Application::instance().home_path() / keyname;
         key_path_dst += Application::kPubKeySuffix;
         if (!uread(copy_to_str, "Where is key '" + keyname + "' to be exported to? (default: " + key_path_dst.string() + "): "))
             return;
@@ -66,18 +64,14 @@ public:
             std::cout << "successfully exported key '" << keyname << " to " << key_path_dst << "'\n";
         else
             std::cerr << "failed to export key '" << keyname << "', reason: " << ec.message() << '\n';
-    }
-    catch (std::exception const &ex)
-    {
+    } catch (std::exception const& ex) {
         std::cerr << "error occurred: " << ex.what() << '\n';
-    }
-    catch (...)
-    {
+    } catch (...) {
         std::cerr << "unknown exception\n";
     }
 
 private:
-    CmdArgs                     args_;
+    CmdArgs args_;
     std::shared_ptr<LoggedUser> logged_user_;
 };
 
