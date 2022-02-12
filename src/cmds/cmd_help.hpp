@@ -5,7 +5,7 @@
 
 #include "boost/algorithm/string/join.hpp"
 #include "boost/format.hpp"
-#include "boost/function_output_iterator.hpp"
+#include "boost/iterator/function_output_iterator.hpp"
 #include "boost/range/adaptor/transformed.hpp"
 #include "boost/range/algorithm/copy.hpp"
 #include "boost/range/algorithm/max_element.hpp"
@@ -45,7 +45,7 @@ public:
     }
 
 private:
-    cmds_t const &        cmds_;
+    cmds_t const         &cmds_;
     mutable boost::format fmt_;
 };
 

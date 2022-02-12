@@ -11,7 +11,7 @@ class LMail(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake"
 
-    requires = "boost/[~1.76]", \
+    requires = "boost/[~1.78]", \
         "sqlite_orm/[~1.6]", \
         "cryptopp/[~8.5.0]", \
         "readline/[~8.0]", \

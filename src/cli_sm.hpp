@@ -39,6 +39,12 @@ private:
 public:
     explicit CliCtx(Readline &rl) : rl_(rl), state_(std::make_shared<InitState>()) {}
 
+    CliCtx(CliCtx const &) = delete;
+    CliCtx &operator=(CliCtx const &) = delete;
+
+    CliCtx(CliCtx &&) = delete;
+    CliCtx &operator=(CliCtx &&) = delete;
+
     auto prompt() const { return state_->prompt(); }
     void process(args_t args) { state_->process(std::move(args)); }
 };
