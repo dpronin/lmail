@@ -28,9 +28,9 @@ public:
         return arg;
     }
 
-    bool empty() const noexcept { return args_.empty(); }
+    [[nodiscard]] bool empty() const noexcept { return args_.empty(); }
 
-    arg_t front() { return !args_.empty() ? args_.front() : arg_t{}; }
+    [[nodiscard]] arg_t front() { return !args_.empty() ? args_.front() : arg_t{}; }
 
 private:
     args_t args_;
