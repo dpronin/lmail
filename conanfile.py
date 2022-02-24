@@ -21,7 +21,7 @@ class LMail(ConanFile):
 
     def requirements(self):
         self.requires("boost/[~1.78]")
-        self.requires("cryptopp/[~8.6]")
+        self.requires("cryptopp/[~8.5]")
         self.requires("readline/[~8.1]")
         self.requires("sqlite3/[~3.37]")
 

@@ -12,14 +12,11 @@
 #include "states/cli_state.hpp"
 #include "states/init_state.hpp"
 
-namespace lmail
-{
-
-namespace sm
+namespace lmail::sm
 {
 
 class CliTransitions;
-class CliCtx
+class CliCtx final
 {
     friend class CliTransitions;
 
@@ -32,7 +29,6 @@ private:
         rl_.set_cmd_lister(state_);
     }
 
-private:
     std::shared_ptr<CliState> state_;
     Readline& rl_;
 
@@ -42,6 +38,7 @@ public:
         , state_(std::make_shared<InitState>())
     {
     }
+    ~CliCtx() = default;
 
     CliCtx(CliCtx const&) = delete;
     CliCtx& operator=(CliCtx const&) = delete;
@@ -49,7 +46,7 @@ public:
     CliCtx(CliCtx&&) = delete;
     CliCtx& operator=(CliCtx&&) = delete;
 
-    auto prompt() const { return state_->prompt(); }
+    [[nodiscard]] auto prompt() const { return state_->prompt(); }
     void process(args_t args) { state_->process(std::move(args)); }
 };
 
@@ -91,8 +88,8 @@ public:
         // clang-format off
         auto set_state        = [] (CliCtx &ctx, auto const &ev) { ctx.set_state(ev.state); };
         auto on_entry_initial = [] { std::cout << "Welcome to " << cbrown("lmail") << '!' << std::endl; };
-        auto on_entry         = [] (CliCtx &ctx, auto const &ev) { ev.on_entry(); };
-        auto on_exit          = [] (CliCtx &ctx, auto const &ev) { ev.on_exit(); };
+        auto on_entry         = [] (CliCtx &/*ctx*/, auto const &ev) { ev.on_entry(); };
+        auto on_exit          = [] (CliCtx &/*ctx*/, auto const &ev) { ev.on_exit(); };
         auto on_quit          = [] { std::cout << "Quitting " << cbrown("lmail") << ". Bye!" << std::endl; };
         return make_transition_table(
             // idle state
@@ -115,6 +112,4 @@ public:
 
 using Cli = boost::sml::sm<CliTransitions>;
 
-} // namespace sm
-
-} // namespace lmail
+} // namespace lmail::sm

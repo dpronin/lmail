@@ -40,11 +40,10 @@ inline auto sha3_256(std::string_view data)
     return boost::algorithm::hex_lower(digest);
 }
 
-template <typename... Args>
-void secure_memset(Args&&... args) noexcept
+void secure_memset(auto&&... args) noexcept
 {
     auto volatile f = std::memset;
-    f(std::forward<Args>(args)...);
+    f(std::forward<decltype(args)>(args)...);
 }
 
 // concept

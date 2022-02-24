@@ -12,18 +12,25 @@ namespace lmail
 
 class MainState : public CmdState
 {
+protected:
+    sm::Cli& fsm_;
+
 public:
     explicit MainState(sm::Cli& fsm, std::shared_ptr<Storage> storage);
     ~MainState() override = default;
 
-    prompt_t prompt() const override;
+    MainState(MainState const&) = delete;
+    MainState& operator=(MainState const&) = delete;
+
+    MainState(MainState&&) = delete;
+    MainState& operator=(MainState&&) = delete;
+
+    [[nodiscard]] prompt_t prompt() const override;
 
 protected:
     explicit MainState(sm::Cli& fsm, cmds_t cmds);
-    std::string default_colored(std::string_view input) const;
 
-protected:
-    sm::Cli& fsm_;
+    [[nodiscard]] std::string default_colored(std::string_view input) const;
 };
 
 } // namespace lmail

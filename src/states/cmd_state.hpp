@@ -8,18 +8,24 @@ namespace lmail
 
 class CmdState : public CliState
 {
+private:
+    cmds_t cmds_;
+
 public:
     ~CmdState() override = default;
 
-    cmds_names_t cmds() const override final;
+    CmdState(CmdState const&) = default;
+    CmdState& operator=(CmdState const&) = default;
+
+    CmdState(CmdState&&) = default;
+    CmdState& operator=(CmdState&&) = default;
+
+    [[nodiscard]] cmds_names_t cmds() const final;
     void process(args_t args) override;
-    prompt_t prompt() const override { return ""; }
+    [[nodiscard]] prompt_t prompt() const override { return ""; }
 
 protected:
     explicit CmdState(cmds_t cmds = {});
-
-private:
-    cmds_t cmds_;
 };
 
 } // namespace lmail

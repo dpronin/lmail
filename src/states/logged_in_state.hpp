@@ -13,14 +13,20 @@ namespace lmail
 
 class LoggedInState : public MainState
 {
+private:
+    std::shared_ptr<LoggedUser> user_;
+
 public:
     explicit LoggedInState(sm::Cli& fsm, std::shared_ptr<Storage> storage, std::shared_ptr<LoggedUser> user);
     ~LoggedInState() override = default;
 
-    prompt_t prompt() const override;
+    LoggedInState(LoggedInState const&) = delete;
+    LoggedInState& operator=(LoggedInState const&) = delete;
 
-private:
-    std::shared_ptr<LoggedUser> user_;
+    LoggedInState(LoggedInState&&) = delete;
+    LoggedInState& operator=(LoggedInState&&) = delete;
+
+    [[nodiscard]] prompt_t prompt() const override;
 };
 
 } // namespace lmail

@@ -10,9 +10,16 @@ namespace lmail
 class InitState : public CmdState
 {
 public:
+    InitState()           = default;
     ~InitState() override = default;
 
-    prompt_t prompt() const override { throw std::logic_error("invalid state to receive prompt"); }
+    InitState(InitState const&) = default;
+    InitState& operator=(InitState const&) = default;
+
+    InitState(InitState&&) = default;
+    InitState& operator=(InitState&&) = default;
+
+    [[nodiscard]] prompt_t prompt() const override { throw std::logic_error("invalid state to receive prompt"); }
 };
 
 } // namespace lmail

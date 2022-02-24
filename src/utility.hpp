@@ -16,7 +16,7 @@
 namespace lmail
 {
 
-void for_each_dir_entry(std::filesystem::path const& dir, std::invocable<std::filesystem::directory_entry> auto f)
+inline void for_each_dir_entry(std::filesystem::path const& dir, std::invocable<std::filesystem::directory_entry> auto f)
 {
     std::error_code ec;
     for (auto const& dir_entry : std::filesystem::directory_iterator(dir, ec))
@@ -44,7 +44,7 @@ inline std::filesystem::directory_entry find_dir_entry_if(std::filesystem::path 
     return dir_entry;
 }
 
-std::string username_to_keyname(std::convertible_to<std::string> auto const& username) { return username; }
+inline std::string username_to_keyname(std::convertible_to<std::string> auto const& username) { return username; }
 
 inline auto find_key(std::filesystem::path const& dir, std::string_view keyname)
 {

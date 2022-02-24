@@ -22,7 +22,7 @@ private:
 public:
     static Readline& instance();
 
-    bool operator()(std::string& user_input, std::string_view prompt = {});
+    bool operator()(user_input_t& user_input, std::string_view prompt = {});
 
     void set_cmd_lister(std::shared_ptr<ICommandLister> lister)
     {
@@ -31,7 +31,7 @@ public:
         lister_ = std::move(lister);
     }
 
-    auto cmds() const { return lister_->cmds(); }
+    [[nodiscard]] auto cmds() const { return lister_->cmds(); }
 
 private:
     std::shared_ptr<ICommandLister> lister_;

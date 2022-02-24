@@ -27,6 +27,10 @@ class Inbox
 public:
     using messages_t = std::deque<InboxMessage>;
 
+private:
+    std::shared_ptr<Profile> profile_;
+    messages_t messages_;
+
 public:
     explicit Inbox(std::shared_ptr<Profile> profile)
         : profile_(std::move(profile))
@@ -35,7 +39,6 @@ public:
             throw std::invalid_argument("profile provided cannot be empty");
     }
 
-public:
     std::pair<size_t, size_t> sync(std::vector<std::tuple<msg_id_t, topic_blob_t, bool, username_t>> records)
     {
         size_t old_messages = messages_.size();
@@ -75,7 +78,7 @@ public:
             show(msg_idx, messages_[msg_idx - 1], out);
     }
 
-    auto find(msg_idx_t msg_idx) const
+    [[nodiscard]] auto find(msg_idx_t msg_idx) const noexcept
     {
         std::optional<msg_id_t> msg_id;
         if (1 <= msg_idx && msg_idx <= messages_.size())
@@ -109,7 +112,7 @@ private:
         }
     }
 
-    void sync(messages_t::iterator msg_it, std::tuple<msg_id_t, topic_blob_t, bool, username_t, body_blob_t> message)
+    static void sync(messages_t::iterator msg_it, std::tuple<msg_id_t, topic_blob_t, bool, username_t, body_blob_t> message)
     {
         msg_it->id             = std::get<0>(message);
         auto const& topic_blob = std::get<1>(message);
@@ -136,7 +139,7 @@ private:
         return {msg_it, new_msg};
     }
 
-    std::pair<std::optional<CryptoPP::RSA::PrivateKey>, bool> cypher_params(InboxMessage const& msg) const
+    [[nodiscard]] std::pair<std::optional<CryptoPP::RSA::PrivateKey>, bool> cypher_params(InboxMessage const& msg) const
     {
         std::optional<CryptoPP::RSA::PrivateKey> priv_key;
         if (msg.cyphered)
@@ -144,7 +147,7 @@ private:
         return {priv_key, !msg.cyphered || priv_key};
     }
 
-    std::optional<CryptoPP::RSA::PrivateKey> fetch_priv_key(username_t const& user_from) const
+    [[nodiscard]] std::optional<CryptoPP::RSA::PrivateKey> fetch_priv_key(username_t const& user_from) const
     {
         if (auto const keys_pair_dir = profile_->find_assoc_key(username_to_keyname(user_from)); !keys_pair_dir.empty())
             try {
@@ -154,7 +157,7 @@ private:
         return {};
     }
 
-    std::string decrypt(std::string_view cyphered_msg, CryptoPP::RSA::PrivateKey const& key) const
+    [[nodiscard]] std::string decrypt(std::string_view cyphered_msg, CryptoPP::RSA::PrivateKey const& key) const
     {
         std::string msg{cyphered_msg.cbegin(), cyphered_msg.end()};
         try {
@@ -165,10 +168,6 @@ private:
         }
         return msg;
     }
-
-private:
-    std::shared_ptr<Profile> profile_;
-    messages_t messages_;
 };
 
 } // namespace lmail

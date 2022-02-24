@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -26,14 +27,14 @@ public:
             throw std::invalid_argument("user provided cannot be with empty name");
     }
 
-    user_id_t id() const noexcept { return user_.id; }
-    username_t const& name() const noexcept { return user_.username; }
-    password_t const& password() const noexcept { return user_.password; }
+    [[nodiscard]] user_id_t id() const noexcept { return user_.id; }
+    [[nodiscard]] username_t const& name() const noexcept { return user_.username; }
+    [[nodiscard]] password_t const& password() const noexcept { return user_.password; }
 
-    Profile const& profile() const noexcept { return *profile_; }
+    [[nodiscard]] Profile const& profile() const noexcept { return *profile_; }
 
     Inbox& inbox() noexcept { return inbox_; }
-    Inbox const& inbox() const noexcept { return inbox_; }
+    [[nodiscard]] Inbox const& inbox() const noexcept { return inbox_; }
 
 private:
     User user_;
