@@ -1,15 +1,13 @@
 #pragma once
 
-#include <memory>
+#include "cmds/cmd_lister_interface.hpp"
 
-#include "cmd_interface.hpp"
-#include "command_lister_interface.hpp"
 #include "types.hpp"
 
 namespace lmail
 {
 
-class CliState : public ICommandLister
+class CliState : public ICmdLister
 {
 public:
     CliState()           = default;
@@ -18,11 +16,10 @@ public:
     CliState(CliState const&)            = default;
     CliState& operator=(CliState const&) = default;
 
-    CliState(CliState&&)            = default;
-    CliState& operator=(CliState&&) = default;
+    CliState(CliState&&) noexcept            = default;
+    CliState& operator=(CliState&&) noexcept = default;
 
-    [[nodiscard]] virtual prompt_t prompt() const                  = 0;
-    [[nodiscard]] virtual std::unique_ptr<ICmd> parse(args_t args) = 0;
+    [[nodiscard]] virtual prompt_t prompt() const = 0;
 };
 
 } // namespace lmail

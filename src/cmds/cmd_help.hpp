@@ -13,6 +13,7 @@
 #include "boost/algorithm/string/join.hpp"
 #include "boost/format.hpp"
 
+#include "cmd.hpp"
 #include "cmd_interface.hpp"
 #include "color.hpp"
 #include "types.hpp"
@@ -40,9 +41,9 @@ public:
             return std::transform_reduce(std::begin(args), std::end(args), std::max(1zu, std::size(args)) - 1, std::plus<>{}, getsize);
         };
         auto const cmds_lens       = cmds_ | std::views::transform(proj_cmd_name) | std::views::transform(getsize);
-        auto const cmds_align_size = *std::ranges::max_element(cmds_lens) + cgreen("").size();
+        auto const cmds_align_size = *std::ranges::max_element(cmds_lens) + colorize::cgreen("").size();
         auto const args_lens       = cmds_ | std::views::transform(proj_cmd_args) | std::views::transform(getlen_args);
-        auto const args_align_size = *std::ranges::max_element(args_lens) + cblue("").size();
+        auto const args_align_size = *std::ranges::max_element(args_lens) + colorize::cblue("").size();
 
         fmt_ = boost::format{"%-" + std::to_string(cmds_align_size) + "s %-" + std::to_string(args_align_size) + "s %s"};
     }
@@ -51,8 +52,8 @@ public:
     {
         /* clang-format off */
     for (auto const &cmd : cmds_)
-      out_ << (fmt_ % (cgreen(std::get<0>(cmd)))
-                    % (cblue(boost::algorithm::join(std::get<1>(cmd), " ")))
+      out_ << (fmt_ % (colorize::cgreen(std::get<0>(cmd)))
+                    % (colorize::cblue(boost::algorithm::join(std::get<1>(cmd), " ")))
                     % std::get<2>(cmd))
            << std::endl;
         /* clang-format on */

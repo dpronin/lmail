@@ -8,8 +8,10 @@
 #include <system_error>
 #include <utility>
 
+#include "sm/cli.hpp"
+
+#include "cmd.hpp"
 #include "cmd_args.hpp"
-#include "cmd_interface.hpp"
 #include "logged_user.hpp"
 #include "types.hpp"
 #include "uread.hpp"
@@ -18,14 +20,13 @@
 namespace lmail
 {
 
-class CmdRmKey final : public ICmd
+class CmdRmKey final : public Cmd
 {
-    CmdArgs args_;
     std::shared_ptr<LoggedUser> logged_user_;
 
 public:
-    explicit CmdRmKey(CmdArgs args, std::shared_ptr<LoggedUser> logged_user)
-        : args_(std::move(args))
+    explicit CmdRmKey(sm::Cli& fsm, CmdArgs args, std::shared_ptr<LoggedUser> logged_user)
+        : Cmd(fsm, std::move(args))
         , logged_user_(std::move(logged_user))
     {
         if (!logged_user_)
@@ -33,7 +34,13 @@ public:
     }
 
     void exec() override
-    try {
+    {
+        fsm_.process_event(sm::ev::rmkey{{[this] { _exec_(); }}});
+    }
+
+private:
+    void _exec_()
+    {
         namespace fs = std::filesystem;
 
         auto keyname = keyname_t{args_.front().value_or(keyname_t{})};
@@ -74,10 +81,6 @@ public:
             else
                 std::cerr << "failed to remove key '" << keyname << "'\n";
         }
-    } catch (std::exception const& ex) {
-        std::cerr << "error occurred: " << ex.what() << '\n';
-    } catch (...) {
-        std::cerr << "unknown exception\n";
     }
 };
 

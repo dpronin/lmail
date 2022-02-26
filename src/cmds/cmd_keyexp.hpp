@@ -8,9 +8,11 @@
 #include <system_error>
 #include <utility>
 
+#include "sm/cli.hpp"
+
 #include "application.hpp"
+#include "cmd.hpp"
 #include "cmd_args.hpp"
-#include "cmd_interface.hpp"
 #include "logged_user.hpp"
 #include "types.hpp"
 #include "uread.hpp"
@@ -19,14 +21,13 @@
 namespace lmail
 {
 
-class CmdKeyExp final : public ICmd
+class CmdKeyExp final : public Cmd
 {
-    CmdArgs args_;
     std::shared_ptr<LoggedUser> logged_user_;
 
 public:
-    explicit CmdKeyExp(CmdArgs args, std::shared_ptr<LoggedUser> logged_user)
-        : args_(std::move(args))
+    explicit CmdKeyExp(sm::Cli& fsm, CmdArgs args, std::shared_ptr<LoggedUser> logged_user)
+        : Cmd(fsm, std::move(args))
         , logged_user_(std::move(logged_user))
     {
         if (!logged_user_)
@@ -34,7 +35,13 @@ public:
     }
 
     void exec() override
-    try {
+    {
+        fsm_.process_event(sm::ev::keyexp{{[this] { _exec_(); }}});
+    }
+
+private:
+    void _exec_()
+    {
         namespace fs = std::filesystem;
 
         auto keyname = keyname_t{args_.front().value_or(keyname_t{})};
@@ -53,7 +60,7 @@ public:
         }
 
         std::string copy_to_str;
-        fs::path key_path_dst = Application::instance().home_path() / keyname;
+        fs::path key_path_dst = Application::instance().key_path(keyname);
         key_path_dst += Application::kPubKeySuffix;
         if (!uread(copy_to_str, "Where is key '" + keyname + "' to be exported to? (default: " + key_path_dst.string() + "): "))
             return;
@@ -68,10 +75,6 @@ public:
             std::cout << "successfully exported key '" << keyname << " to " << key_path_dst << "'\n";
         else
             std::cerr << "failed to export key '" << keyname << "', reason: " << ec.message() << '\n';
-    } catch (std::exception const& ex) {
-        std::cerr << "error occurred: " << ex.what() << '\n';
-    } catch (...) {
-        std::cerr << "unknown exception\n";
     }
 };
 

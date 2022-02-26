@@ -9,8 +9,10 @@
 #include "crypt.hpp"
 #include "cryptopp/rsa.h"
 
+#include "sm/cli.hpp"
+
+#include "cmd.hpp"
 #include "cmd_args.hpp"
-#include "cmd_interface.hpp"
 #include "logged_user.hpp"
 #include "storage.hpp"
 #include "types.hpp"
@@ -20,15 +22,14 @@
 namespace lmail
 {
 
-class CmdSendMsg final : public ICmd
+class CmdSendMsg final : public Cmd
 {
-    CmdArgs args_;
     std::shared_ptr<LoggedUser> logged_user_;
     std::shared_ptr<Storage> storage_;
 
 public:
-    explicit CmdSendMsg(CmdArgs args, std::shared_ptr<LoggedUser> logged_user, std::shared_ptr<Storage> storage)
-        : args_(std::move(args))
+    explicit CmdSendMsg(sm::Cli& fsm, CmdArgs args, std::shared_ptr<LoggedUser> logged_user, std::shared_ptr<Storage> storage)
+        : Cmd(fsm, std::move(args))
         , logged_user_(std::move(logged_user))
         , storage_(std::move(storage))
     {
@@ -39,7 +40,13 @@ public:
     }
 
     void exec() override
-    try {
+    {
+        fsm_.process_event(sm::ev::sendmsg{{[this] { _exec_(); }}});
+    }
+
+private:
+    void _exec_()
+    {
         using namespace sqlite_orm;
 
         auto username_tgt = username_t{args_.front().value_or(username_t{})};
@@ -47,12 +54,12 @@ public:
             return;
 
         if (username_tgt.empty()) {
-            std::cerr << "target user name cannot be empty\n";
+            std::cerr << cred("target user name cannot be empty") << '\n';
             return;
         }
 
         if (username_tgt == logged_user_->name()) {
-            std::cerr << "you cannot send messages to yourself\n";
+            std::cerr << cred("you cannot send messages to yourself") << '\n';
             return;
         }
 
@@ -62,13 +69,10 @@ public:
             return;
         }
 
-        if (users_ids_to.size() != 1) {
-            std::cerr << "FATAL: inconsistent data base\n";
-            exit(EXIT_FAILURE);
-        }
+        if (users_ids_to.size() != 1)
+            throw std::runtime_error("inconsistent data base");
 
         auto topic = make_secure<topic_t>();
-
         if (!uread(*topic, "Enter the topic: "))
             return;
         if (topic->empty()) {
@@ -77,7 +81,6 @@ public:
         }
 
         auto body = make_secure<body_t>();
-
         if (!uread(*body, "Enter the message: "))
             return;
         if (body->empty()) {
@@ -86,7 +89,6 @@ public:
         }
 
         bool cyphered{false};
-
         if (auto const& key_path = logged_user_->profile().find_cypher_key(username_to_keyname(username_tgt)); !key_path.empty()) {
             std::string ans;
             while (uread(ans, "Would you like to cypher the message? (y/n): ") && ans != "y" && ans != "n")
@@ -111,10 +113,6 @@ public:
             std::cout << "message successfully sent to " << username_tgt << '\n';
         else
             std::cerr << "couldn't send the message to " << username_tgt << '\n';
-    } catch (std::exception const& ex) {
-        std::cerr << "error occurred: " << ex.what() << '\n';
-    } catch (...) {
-        std::cerr << "unknown exception\n";
     }
 
     static void encrypt(std::filesystem::path const& key_path, topic_t& topic, body_t& body)
@@ -123,7 +121,7 @@ public:
         ::lmail::encrypt(topic, key);
         ::lmail::encrypt(body, key);
     } catch (std::exception const& ex) {
-        std::cerr << "error occurred while cyphering message, reason: " << ex.what() << '\n';
+        throw std::runtime_error("cyphering message failed, reason: " + std::string{ex.what()});
     }
 };
 

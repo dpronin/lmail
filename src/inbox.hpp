@@ -89,11 +89,11 @@ private:
     void show_topic(msg_idx_t idx, InboxMessage const& msg, std::ostream& out) const
     {
         auto const params = cypher_params(msg);
-        out << '\t' << idx << ". (from " << clblue(msg.user_from) << ") ";
+        out << '\t' << idx << ". (from " << colorize::clblue(msg.user_from) << ") ";
         if (params.second) {
             out << "Topic: " << (params.first ? decrypt(msg.topic, *params.first) : msg.topic) << '\n';
         } else {
-            std::cerr << cpurple("Message cyphered but association is not found. Check your keys") << '\n';
+            std::cerr << colorize::cpurple("Message cyphered but association is not found. Check your keys") << '\n';
         }
     }
 
@@ -101,13 +101,13 @@ private:
     {
         auto const params = cypher_params(msg);
         out << "\tIndex: " << idx << '\n';
-        out << "\tFrom: " << clblue(msg.user_from) << '\n';
+        out << "\tFrom: " << colorize::clblue(msg.user_from) << '\n';
         if (params.second) {
             out << "\tTopic: " << (params.first ? decrypt(msg.topic, *params.first) : msg.topic) << "\n\n";
             out << "\tMessage: " << '\n';
             out << '\t' << (params.first ? decrypt(msg.body, *params.first) : msg.body) << '\n';
         } else {
-            std::cerr << '\t' << cpurple("Message cyphered but association is not found. Check your keys") << '\n';
+            std::cerr << '\t' << colorize::cpurple("Message cyphered but association is not found. Check your keys") << '\n';
         }
     }
 
@@ -162,7 +162,7 @@ private:
         try {
             ::lmail::decrypt(msg, key);
         } catch (std::exception const& ex) {
-            std::cerr << "error occurred while decrypting message, reason: " << ex.what() << '\n';
+            std::cerr << "decrypting message failed, reason: " << ex.what() << '\n';
             msg.clear();
         }
         return msg;

@@ -10,9 +10,12 @@
 #include <system_error>
 #include <utility>
 
+#include "sm/cli.hpp"
+
 #include "application.hpp"
+#include "cmd.hpp"
 #include "cmd_args.hpp"
-#include "cmd_interface.hpp"
+#include "color.hpp"
 #include "logged_user.hpp"
 #include "types.hpp"
 #include "uread.hpp"
@@ -21,14 +24,13 @@
 namespace lmail
 {
 
-class CmdKeyAssoc final : public ICmd
+class CmdKeyAssoc final : public Cmd
 {
-    CmdArgs args_;
     std::shared_ptr<LoggedUser> logged_user_;
 
 public:
-    explicit CmdKeyAssoc(CmdArgs args, std::shared_ptr<LoggedUser> logged_user)
-        : args_(std::move(args))
+    explicit CmdKeyAssoc(sm::Cli& fsm, CmdArgs args, std::shared_ptr<LoggedUser> logged_user)
+        : Cmd(fsm, std::move(args))
         , logged_user_(std::move(logged_user))
     {
         if (!logged_user_)
@@ -36,7 +38,13 @@ public:
     }
 
     void exec() override
-    try {
+    {
+        fsm_.process_event(sm::ev::keyassoc{{[this] { _exec_(); }}});
+    }
+
+private:
+    void _exec_()
+    {
         namespace fs = std::filesystem;
 
         auto args = args_;
@@ -46,7 +54,7 @@ public:
             return;
 
         if (keyname.empty()) {
-            std::cerr << "key name is not specified\n";
+            std::cerr << cred("key name is not specified") << '\n';
             return;
         }
 
@@ -61,18 +69,18 @@ public:
             return;
 
         if (username_tgt.empty()) {
-            std::cerr << "target user name cannot be empty\n";
+            std::cerr << cred("target user name cannot be empty") << '\n';
             return;
         }
 
         username_tgt = fs::path(username_tgt).filename();
         if (username_tgt.empty()) {
-            std::cerr << "target user name cannot be empty\n";
+            std::cerr << cred("target user name cannot be empty") << '\n';
             return;
         }
 
         if (logged_user_->name() == username_tgt) {
-            std::cerr << "you cannot create a new association between your key and yourself\n";
+            std::cerr << cred("you cannot create a new association between your key and yourself") << '\n';
             return;
         }
 
@@ -95,10 +103,6 @@ public:
             std::cout << "successfully created key-user association" << std::endl;
         else
             std::cerr << "failed to create association between key '" << keyname << "' and the user '" << username_tgt << "', reason: " << ec.message() << '\n';
-    } catch (std::exception const& ex) {
-        std::cerr << "error occurred: " << ex.what() << '\n';
-    } catch (...) {
-        std::cerr << "unknown exception\n";
     }
 };
 

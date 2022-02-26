@@ -5,9 +5,14 @@
 #include <algorithm>
 #include <filesystem>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <string_view>
 #include <utility>
+
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "boost/process/environment.hpp"
 #include "boost/property_tree/ini_parser.hpp"
@@ -52,7 +57,8 @@ public:
             if (auto db_path = conf_tree.get_optional<std::string>("db"))
                 conf.db_path = std::move(*db_path);
         } catch (std::exception const& ex) {
-            std::cout << cgrey(fmt::format("WARNING: couldn't read configuration file {}. Reason: {}. Use internal default values", conf_path, ex.what()))
+            std::cout << colorize::cgrey(
+                             fmt::format("WARNING: couldn't read configuration file {}. Reason: {}. Use internal default values", conf_path, ex.what()))
                       << std::endl;
         }
 
@@ -63,7 +69,8 @@ public:
     }
 
     [[nodiscard]] auto const& home_path() const noexcept { return home_path_; }
-    [[nodiscard]] auto lmail_path() const noexcept { return home_path_ / kLmailDirName; }
+    [[nodiscard]] auto key_path(std::string_view keyname) const { return home_path_ / keyname; }
+    [[nodiscard]] auto lmail_path() const { return home_path_ / kLmailDirName; }
     [[nodiscard]] auto profile_path(User const& user) const { return lmail_path() / user.username; }
 
     static void store(rsa_key_pair_t const& rsa_key_pair, std::filesystem::path const& keys_pair_dir)
