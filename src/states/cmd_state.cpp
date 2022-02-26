@@ -26,7 +26,7 @@ CmdState::CmdState(cmds_t cmds) : cmds_(std::move(cmds))
     if (auto it = boost::adjacent_find(cmds_, [](auto const &cmd1, auto const &cmd2){ return std::get<0>(cmd1) == std::get<0>(cmd2); }); cmds_.end() != it)
         throw std::invalid_argument("commands given are not unique, cmd=" + std::get<0>(*it));
     cmds_.push_back({"help", {}, "Shows this help page", {}});
-    std::get<3>(cmds_.back()) = [cmd = std::make_shared<CmdHelp>(std::cout, cmds_)](args_t) { return cmd; };
+    std::get<3>(cmds_.back()) = [this](args_t) { return std::make_unique<CmdHelp>(std::cout, cmds_); };
 }
 // clang-format on
 
@@ -38,9 +38,9 @@ cmds_names_t CmdState::cmds() const
     return {range.begin(), range.end()};
 }
 
-std::shared_ptr<ICmd> CmdState::parse(args_t args)
+std::unique_ptr<ICmd> CmdState::parse(args_t args)
 {
-    std::shared_ptr<ICmd> cmd;
+    std::unique_ptr<ICmd> cmd;
 
     if (args.empty())
         return cmd;

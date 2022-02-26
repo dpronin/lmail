@@ -49,8 +49,7 @@ public:
     CliCtx& operator=(CliCtx&&) = delete;
 
     [[nodiscard]] bool operator()(user_input_t& user_input) { return rl_(user_input, state_->prompt()); }
-
-    std::shared_ptr<ICmd> parse(args_t args) { return state_->parse(std::move(args)); }
+    [[nodiscard]] std::unique_ptr<ICmd> parse(args_t args) { return state_->parse(std::move(args)); }
 };
 
 namespace ev

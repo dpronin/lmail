@@ -19,7 +19,7 @@ using arg_t        = std::string;
 using args_t       = std::deque<arg_t>;
 using desc_cmd_t   = std::string;
 class ICmd;
-using help_cmd_t     = std::tuple<cmd_t, args_t, desc_cmd_t, std::function<std::shared_ptr<ICmd>(args_t)>>;
+using help_cmd_t     = std::tuple<cmd_t, args_t, desc_cmd_t, std::function<std::unique_ptr<ICmd>(args_t)>>;
 using cmds_t         = std::vector<help_cmd_t>;
 using cmd_f_t        = std::function<void()>;
 using db_path_t      = std::string;

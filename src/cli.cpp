@@ -27,7 +27,7 @@ void Cli::run()
     using namespace boost::sml;
     sm::CliCtx ctx{Readline::instance()};
     sm::Cli fsm{ctx};
-    fsm.process_event(sm::ev::run{std::make_shared<MainState>(fsm, std::make_shared<Storage>(conf_.db_path))});
+    fsm.process_event(sm::ev::run{std::make_shared<MainState>(fsm, std::make_unique<Storage>(conf_.db_path))});
     for (user_input_t user_input; !fsm.is(X) && ctx(user_input);) {
         args_t args;
         std::istringstream iss{user_input};

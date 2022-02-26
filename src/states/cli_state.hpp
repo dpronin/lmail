@@ -22,7 +22,7 @@ public:
     CliState& operator=(CliState&&) = default;
 
     [[nodiscard]] virtual prompt_t prompt() const                  = 0;
-    [[nodiscard]] virtual std::shared_ptr<ICmd> parse(args_t args) = 0;
+    [[nodiscard]] virtual std::unique_ptr<ICmd> parse(args_t args) = 0;
 };
 
 } // namespace lmail

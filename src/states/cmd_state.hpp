@@ -20,7 +20,7 @@ public:
     CmdState& operator=(CmdState&&) = default;
 
     [[nodiscard]] cmds_names_t cmds() const final;
-    [[nodiscard]] std::shared_ptr<ICmd> parse(args_t args) override;
+    [[nodiscard]] std::unique_ptr<ICmd> parse(args_t args) override;
     [[nodiscard]] prompt_t prompt() const override { return ""; }
 
 protected:
