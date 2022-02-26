@@ -6,9 +6,11 @@
 
 #include "db/user.hpp"
 
+#include "sm/cli.hpp"
+
 #include "application.hpp"
+#include "cmd.hpp"
 #include "cmd_args.hpp"
-#include "cmd_interface.hpp"
 #include "color.hpp"
 #include "crypt.hpp"
 #include "storage.hpp"
@@ -19,14 +21,13 @@
 namespace lmail
 {
 
-class CmdRegister final : public ICmd
+class CmdRegister final : public Cmd
 {
-    CmdArgs args_;
     std::shared_ptr<Storage> storage_;
 
 public:
-    explicit CmdRegister(CmdArgs args, std::shared_ptr<Storage> storage)
-        : args_(std::move(args))
+    explicit CmdRegister(sm::Cli& fsm, CmdArgs args, std::shared_ptr<Storage> storage)
+        : Cmd(fsm, std::move(args))
         , storage_(std::move(storage))
     {
         if (!storage_)
@@ -34,7 +35,13 @@ public:
     }
 
     void exec() override
-    try {
+    {
+        fsm_.process_event(sm::ev::reg{{[this] { _exec_(); }}});
+    }
+
+private:
+    void _exec_()
+    {
         auto username = username_t{args_.front().value_or(username_t{})};
         if (username.empty() && !uread(username, "Enter user name: "))
             return;
@@ -70,14 +77,10 @@ public:
 
         User user{-1, std::move(username), sha3_256(*password)};
         if (auto const user_id = (*storage_)->insert(user); -1 != user_id)
-            std::cout << "Successfully registered a user " << cgreen(user.username) << std::endl;
+            std::cout << "Successfully registered a user " << colorize::cgreen(user.username) << std::endl;
         else
             std::cerr << "couldn't register a new user '" << user.username << "'. "
                       << "User name is busy or password has incorrect format\n";
-    } catch (std::exception const& ex) {
-        std::cerr << "error occurred: " << ex.what() << '\n';
-    } catch (...) {
-        std::cerr << "unknown exception\n";
     }
 };
 

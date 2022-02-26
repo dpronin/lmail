@@ -1,19 +1,21 @@
 set(SOURCES
     cli.cpp
+    cmds/cmd_logout.cpp
+    cmds/cmd_parser_default.cpp
     main.cpp
-    states/cmd_state.cpp
-    states/logged_in_state.cpp
-    states/main_state.cpp
     readline.cpp
 )
 
 set(HEADERS
     application.hpp
     cli.hpp
-    cmd_interface.hpp
+    cmds/cmd.hpp
     cmds/cmd_args.hpp
     cmds/cmd_help.hpp
     cmds/cmd_inbox.hpp
+    cmds/cmd_init_parser.hpp
+    cmds/cmd_interface.hpp
+    cmds/cmd_invoker.hpp
     cmds/cmd_keyassoc.hpp
     cmds/cmd_keyassoc.hpp
     cmds/cmd_keyexp.hpp
@@ -21,8 +23,11 @@ set(HEADERS
     cmds/cmd_keyimp.hpp
     cmds/cmd_list_keys.hpp
     cmds/cmd_list_users.hpp
+    cmds/cmd_lister_interface.hpp
     cmds/cmd_login.hpp
     cmds/cmd_logout.hpp
+    cmds/cmd_parser_default.hpp
+    cmds/cmd_parser_interface.hpp
     cmds/cmd_quit.hpp
     cmds/cmd_readmsg.hpp
     cmds/cmd_register.hpp
@@ -30,7 +35,6 @@ set(HEADERS
     cmds/cmd_rmmsg.hpp
     cmds/cmd_sendmsg.hpp
     color.hpp
-    command_lister_interface.hpp
     crypt.hpp
     db/message.hpp
     db/user.hpp
@@ -40,11 +44,10 @@ set(HEADERS
     logged_user_utility.hpp
     profile.hpp
     readline.hpp
+    sm/cli.hpp
+    sm/cli_events.hpp
     states/cli_state.hpp
     states/cmd_state.hpp
-    states/init_state.hpp
-    states/logged_in_state.hpp
-    states/main_state.hpp
     storage.hpp
     types.hpp
     uread.hpp

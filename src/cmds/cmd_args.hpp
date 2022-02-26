@@ -2,7 +2,6 @@
 
 #include <functional>
 #include <optional>
-#include <stdexcept>
 #include <utility>
 
 #include "types.hpp"
@@ -15,7 +14,7 @@ class CmdArgs
     args_t args_;
 
 public:
-    CmdArgs(args_t args)
+    CmdArgs(args_t args = {})
         : args_(std::move(args))
     {
         std::erase_if(args_, std::mem_fn(&arg_t::empty));
@@ -24,7 +23,7 @@ public:
     std::optional<arg_t> pop()
     {
         if (!empty()) {
-            arg_t arg{std::move(args_.front())};
+            auto arg = arg_t{std::move(args_.front())};
             args_.pop_front();
             return arg;
         }

@@ -8,9 +8,11 @@
 #include <system_error>
 #include <utility>
 
+#include "sm/cli.hpp"
+
 #include "application.hpp"
+#include "cmd.hpp"
 #include "cmd_args.hpp"
-#include "cmd_interface.hpp"
 #include "logged_user.hpp"
 #include "types.hpp"
 #include "uread.hpp"
@@ -19,14 +21,13 @@
 namespace lmail
 {
 
-class CmdKeyImp final : public ICmd
+class CmdKeyImp final : public Cmd
 {
-    CmdArgs args_;
     std::shared_ptr<LoggedUser> logged_user_;
 
 public:
-    explicit CmdKeyImp(CmdArgs args, std::shared_ptr<LoggedUser> logged_user)
-        : args_(std::move(args))
+    explicit CmdKeyImp(sm::Cli& fsm, CmdArgs args, std::shared_ptr<LoggedUser> logged_user)
+        : Cmd(fsm, std::move(args))
         , logged_user_(std::move(logged_user))
     {
         if (!logged_user_)
@@ -34,7 +35,13 @@ public:
     }
 
     void exec() override
-    try {
+    {
+        fsm_.process_event(sm::ev::keyimp{{[this] { _exec_(); }}});
+    }
+
+private:
+    void _exec_()
+    {
         namespace fs = std::filesystem;
 
         auto args = args_;
@@ -44,7 +51,7 @@ public:
             return;
 
         if (key_path_str.empty()) {
-            std::cerr << "key path is not specified\n";
+            std::cerr << cred("key path is not specified") << '\n';
             return;
         }
 
@@ -64,12 +71,12 @@ public:
 
         username_tgt = fs::path(username_tgt).filename();
         if (username_tgt.empty()) {
-            std::cerr << "target user name cannot be empty\n";
+            std::cerr << cred("target user name cannot be empty") << '\n';
             return;
         }
 
         if (username_tgt == logged_user_->name()) {
-            std::cerr << "you cannot import the key from yourself\n";
+            std::cerr << cred("you cannot import the key from yourself") << '\n';
             return;
         }
 
@@ -86,10 +93,6 @@ public:
                       << username_tgt << "' for cyphering\n";
         else
             std::cerr << "failed to import key '" << key_path_src << "', reason: " << ec.message() << '\n';
-    } catch (std::exception const& ex) {
-        std::cerr << "error occurred: " << ex.what() << '\n';
-    } catch (...) {
-        std::cerr << "unknown exception\n";
     }
 };
 

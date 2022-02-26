@@ -16,8 +16,8 @@ public:
     InitState(InitState const&)            = default;
     InitState& operator=(InitState const&) = default;
 
-    InitState(InitState&&)            = default;
-    InitState& operator=(InitState&&) = default;
+    InitState(InitState&&) noexcept            = default;
+    InitState& operator=(InitState&&) noexcept = default;
 
     [[nodiscard]] prompt_t prompt() const override { throw std::logic_error("invalid state to receive prompt"); }
 };

@@ -2,7 +2,8 @@
 
 #include <utility>
 
-#include "cli_sm.hpp"
+#include "sm/cli.hpp"
+
 #include "cmd_interface.hpp"
 
 namespace lmail

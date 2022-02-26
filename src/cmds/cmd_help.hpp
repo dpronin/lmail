@@ -14,6 +14,7 @@
 
 #include <boost/algorithm/string/join.hpp>
 
+#include "cmd.hpp"
 #include "cmd_interface.hpp"
 #include "color.hpp"
 #include "types.hpp"
@@ -30,14 +31,14 @@ class CmdHelp final : public ICmd
     static std::string to_green(std::string_view s)
     {
         auto oss{std::ostringstream{}};
-        oss << cgreen(s);
+        oss << colorize::cgreen(s);
         return oss.str();
     }
 
     static std::string to_blue(std::string_view s)
     {
         auto oss{std::ostringstream{}};
-        oss << cblue(s);
+        oss << colorize::cblue(s);
         return oss.str();
     }
 
@@ -54,14 +55,9 @@ public:
         auto const getlen_args   = [=](auto const& args) {
             return std::transform_reduce(std::begin(args), std::end(args), std::max(1zu, std::size(args)) - 1, std::plus<>{}, getsize);
         };
-        auto const cmds_lens = cmds_ | std::views::transform(proj_cmd_name) | std::views::transform(getsize);
-
+        auto const cmds_lens       = cmds_ | std::views::transform(proj_cmd_name) | std::views::transform(getsize);
         auto const cmds_align_size = *std::ranges::max_element(cmds_lens) + to_green("").size();
         auto const args_lens       = cmds_ | std::views::transform(proj_cmd_args) | std::views::transform(getlen_args);
-
-        auto os2{std::ostringstream{}};
-        os2 << cblue("");
-
         auto const args_align_size = *std::ranges::max_element(args_lens) + to_blue("").size();
 
         fmt_ = std::format("{{:<{}}} {{:<{}}} {{}}", cmds_align_size, args_align_size);

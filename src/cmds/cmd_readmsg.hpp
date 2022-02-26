@@ -7,8 +7,11 @@
 
 #include "boost/lexical_cast.hpp"
 
+#include "sm/cli.hpp"
+
+#include "cmd.hpp"
 #include "cmd_args.hpp"
-#include "cmd_interface.hpp"
+#include "color.hpp"
 #include "logged_user.hpp"
 #include "storage.hpp"
 #include "types.hpp"
@@ -18,15 +21,14 @@
 namespace lmail
 {
 
-class CmdReadMsg final : public ICmd
+class CmdReadMsg final : public Cmd
 {
-    CmdArgs args_;
     std::shared_ptr<LoggedUser> logged_user_;
     std::shared_ptr<Storage> storage_;
 
 public:
-    explicit CmdReadMsg(CmdArgs args, std::shared_ptr<LoggedUser> logged_user, std::shared_ptr<Storage> storage)
-        : args_(std::move(args))
+    explicit CmdReadMsg(sm::Cli& fsm, CmdArgs args, std::shared_ptr<LoggedUser> logged_user, std::shared_ptr<Storage> storage)
+        : Cmd(fsm, std::move(args))
         , logged_user_(std::move(logged_user))
         , storage_(std::move(storage))
     {
@@ -37,6 +39,12 @@ public:
     }
 
     void exec() override
+    {
+        fsm_.process_event(sm::ev::readmsg{{[this] { _exec_(); }}});
+    }
+
+private:
+    void _exec_()
     try {
         using namespace sqlite_orm;
 
@@ -62,10 +70,8 @@ public:
                 return;
             }
 
-            if (messages.size() != 1) {
-                std::cerr << "FATAL: inconsistent data base\n";
-                exit(EXIT_FAILURE);
-            }
+            if (messages.size() != 1)
+                throw std::runtime_error("inconsistent data base");
 
             logged_user_->inbox().sync(msg_idx, std::move(messages.front()));
             logged_user_->inbox().show(msg_idx, std::cout);
@@ -73,11 +79,7 @@ public:
             std::cerr << "There is no message #" << msg_idx << " in inbox. Sync it first\n";
         }
     } catch (boost::bad_lexical_cast const&) {
-        std::cerr << "error: message ID expected as a positive integer number\n";
-    } catch (std::exception const& ex) {
-        std::cerr << "error occurred: " << ex.what() << '\n';
-    } catch (...) {
-        std::cerr << "unknown exception\n";
+        std::cerr << cred("message ID expected as a positive integer number") << '\n';
     }
 };
 

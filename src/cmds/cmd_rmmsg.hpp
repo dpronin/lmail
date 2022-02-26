@@ -7,9 +7,11 @@
 
 #include "boost/lexical_cast.hpp"
 
+#include "cmd.hpp"
 #include "cmd_args.hpp"
-#include "cmd_interface.hpp"
+#include "color.hpp"
 #include "logged_user.hpp"
+#include "sm/cli.hpp"
 #include "storage.hpp"
 #include "types.hpp"
 #include "uread.hpp"
@@ -17,15 +19,14 @@
 namespace lmail
 {
 
-class CmdRmMsg final : public ICmd
+class CmdRmMsg final : public Cmd
 {
-    CmdArgs args_;
     std::shared_ptr<LoggedUser> logged_user_;
     std::shared_ptr<Storage> storage_;
 
 public:
-    explicit CmdRmMsg(CmdArgs args, std::shared_ptr<LoggedUser> logged_user, std::shared_ptr<Storage> storage)
-        : args_(std::move(args))
+    explicit CmdRmMsg(sm::Cli& fsm, CmdArgs args, std::shared_ptr<LoggedUser> logged_user, std::shared_ptr<Storage> storage)
+        : Cmd(fsm, std::move(args))
         , logged_user_(std::move(logged_user))
         , storage_(std::move(storage))
     {
@@ -36,6 +37,12 @@ public:
     }
 
     void exec() override
+    {
+        fsm_.process_event(sm::ev::rmmsg{{[this] { _exec_(); }}});
+    }
+
+private:
+    void _exec_()
     try {
         using namespace sqlite_orm;
 
@@ -44,7 +51,7 @@ public:
             return;
 
         if (msg_idx_str.empty()) {
-            std::cerr << "message inbox index is not specified\n";
+            std::cerr << cred("message inbox index is not specified") << '\n';
             return;
         }
 
@@ -56,11 +63,7 @@ public:
             std::cout << "There is no message #" << msg_idx << " in inbox" << std::endl;
         }
     } catch (boost::bad_lexical_cast const&) {
-        std::cerr << "error: message ID expected as a positive integer number\n";
-    } catch (std::exception const& ex) {
-        std::cerr << "error occurred: " << ex.what() << '\n';
-    } catch (...) {
-        std::cerr << "unknown exception\n";
+        throw std::invalid_argument("message ID expected as a positive integer number");
     }
 };
 

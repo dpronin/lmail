@@ -10,9 +10,10 @@
 #include <system_error>
 #include <utility>
 
+#include "sm/cli.hpp"
+
 #include "application.hpp"
-#include "cmd_args.hpp"
-#include "cmd_interface.hpp"
+#include "cmd.hpp"
 #include "logged_user.hpp"
 #include "types.hpp"
 #include "uread.hpp"
@@ -21,14 +22,13 @@
 namespace lmail
 {
 
-class CmdRmKeyAssoc final : public ICmd
+class CmdRmKeyAssoc final : public Cmd
 {
-    CmdArgs args_;
     std::shared_ptr<LoggedUser> logged_user_;
 
 public:
-    explicit CmdRmKeyAssoc(CmdArgs args, std::shared_ptr<LoggedUser> logged_user)
-        : args_(std::move(args))
+    explicit CmdRmKeyAssoc(sm::Cli& fsm, CmdArgs args, std::shared_ptr<LoggedUser> logged_user)
+        : Cmd(fsm, std::move(args))
         , logged_user_(std::move(logged_user))
     {
         if (!logged_user_)
@@ -36,7 +36,13 @@ public:
     }
 
     void exec() override
-    try {
+    {
+        fsm_.process_event(sm::ev::rmkeyassoc{{[this] { _exec_(); }}});
+    }
+
+private:
+    void _exec_()
+    {
         namespace fs = std::filesystem;
 
         auto username_tgt = username_t{args_.front().value_or(username_t{})};
@@ -77,10 +83,6 @@ public:
             else
                 std::cerr << "failed to remove the association between key '" << keyname << "' and user '" << username_tgt << "'\n";
         }
-    } catch (std::exception const& ex) {
-        std::cerr << "error occurred: " << ex.what() << '\n';
-    } catch (...) {
-        std::cerr << "unknown exception\n";
     }
 };
 

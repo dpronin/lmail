@@ -5,21 +5,24 @@
 #include <stdexcept>
 #include <utility>
 
-#include "cmd_interface.hpp"
+#include "sm/cli.hpp"
+
+#include "cmd.hpp"
 #include "logged_user.hpp"
 #include "storage.hpp"
 
 namespace lmail
 {
 
-class CmdListUsers final : public ICmd
+class CmdListUsers final : public Cmd
 {
     std::shared_ptr<LoggedUser> logged_user_;
     std::shared_ptr<Storage> storage_;
 
 public:
-    explicit CmdListUsers(std::shared_ptr<LoggedUser> logged_user, std::shared_ptr<Storage> storage)
-        : logged_user_(std::move(logged_user))
+    explicit CmdListUsers(sm::Cli& fsm, std::shared_ptr<LoggedUser> logged_user, std::shared_ptr<Storage> storage)
+        : Cmd(fsm)
+        , logged_user_(std::move(logged_user))
         , storage_(std::move(storage))
     {
         if (!logged_user_)
@@ -29,7 +32,13 @@ public:
     }
 
     void exec() override
-    try {
+    {
+        fsm_.process_event(sm::ev::lsusers{{[this] { _exec_(); }}});
+    }
+
+private:
+    void _exec_()
+    {
         auto usernames = (*storage_)->select(&User::username);
         if (usernames.empty())
             std::cout << "There are no users\n";
@@ -40,13 +49,9 @@ public:
         for (auto const& username : usernames) {
             std::cout << "* " << username;
             if (username == logged_user_->name())
-                std::cout << " (" << cgreen("me") << ")";
+                std::cout << " (" << colorize::cgreen("me") << ")";
             std::cout << '\n';
         }
-    } catch (std::exception const& ex) {
-        std::cerr << "error occurred: " << ex.what() << '\n';
-    } catch (...) {
-        std::cerr << "unknown exception\n";
     }
 };
 

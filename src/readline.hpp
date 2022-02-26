@@ -8,7 +8,8 @@
 
 #include "readline/readline.h"
 
-#include "command_lister_interface.hpp"
+#include "cmds/cmd_lister_interface.hpp"
+
 #include "types.hpp"
 
 namespace lmail
@@ -16,14 +17,14 @@ namespace lmail
 
 class Readline
 {
-    std::shared_ptr<ICommandLister> lister_;
+    std::shared_ptr<ICmdLister> lister_;
 
 public:
     static Readline& instance();
 
-    bool operator()(user_input_t& user_input, std::string_view prompt = {});
+    user_input_t operator()(std::string_view prompt = "");
 
-    void set_cmd_lister(std::shared_ptr<ICommandLister> lister)
+    void set_cmd_lister(std::shared_ptr<ICmdLister> lister)
     {
         if (!lister)
             throw std::invalid_argument("command lister cannot be empty");
