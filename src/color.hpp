@@ -2,6 +2,8 @@
 
 #include <concepts>
 #include <ostream>
+#include <sstream>
+#include <string>
 #include <string_view>
 
 #include <termcolor/termcolor.hpp>
@@ -18,6 +20,9 @@ constexpr inline std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostrea
 } // namespace std
 
 namespace lmail
+{
+
+inline namespace colorize
 {
 
 constexpr auto cred(std::string_view input)
@@ -68,5 +73,14 @@ constexpr auto cgrey(std::string_view input)
         return os << termcolor::colorize << termcolor::grey << input << termcolor::reset << termcolor::nocolorize;
     };
 }
+
+inline std::string to_yellow(std::string_view s)
+{
+    auto oss{std::ostringstream{}};
+    oss << colorize::cyellow(s);
+    return oss.str();
+}
+
+} // namespace colorize
 
 } // namespace lmail

@@ -7,21 +7,25 @@
 
 #include "db/message.hpp"
 
-#include "cmd_interface.hpp"
+#include "sm/cli.hpp"
+#include "sm/cli_events.hpp"
+
+#include "cmd.hpp"
 #include "logged_user.hpp"
 #include "storage.hpp"
 
 namespace lmail
 {
 
-class CmdInbox final : public ICmd
+class CmdInbox final : public Cmd
 {
     std::shared_ptr<LoggedUser> logged_user_;
     std::shared_ptr<Storage> storage_;
 
 public:
-    explicit CmdInbox(std::shared_ptr<LoggedUser> logged_user, std::shared_ptr<Storage> storage)
-        : logged_user_(std::move(logged_user))
+    explicit CmdInbox(sm::Cli& fsm, std::shared_ptr<LoggedUser> logged_user, std::shared_ptr<Storage> storage)
+        : Cmd(fsm)
+        , logged_user_(std::move(logged_user))
         , storage_(std::move(storage))
     {
         if (!logged_user_)
@@ -31,7 +35,13 @@ public:
     }
 
     void exec() override
-    try {
+    {
+        fsm_.process_event(sm::ev::inbox{{[this] { _exec_(); }}});
+    }
+
+private:
+    void _exec_()
+    {
         using namespace sqlite_orm;
         // clang-format off
         auto items = (*storage_)->select(columns(&Message::id, &Message::topic, &Message::cyphered, &User::username),
@@ -39,8 +49,7 @@ public:
                                          where(c(&Message::dest_user_id) == logged_user_->id()));
         // clang-format on
         auto const [old_messages, new_messages] = logged_user_->inbox().sync(std::move(items));
-        auto const all_messages                 = old_messages + new_messages;
-        if (0 != all_messages) {
+        if (auto const all_messages = old_messages + new_messages) {
             if (1 == all_messages)
                 std::cout << "There is 1 " << (1 == new_messages ? "new" : "") << " message:\n";
             else
@@ -50,10 +59,6 @@ public:
             std::cout << "There are no messages\n";
         }
         std::cout.flush();
-    } catch (std::exception const& ex) {
-        std::cerr << "error occurred: " << ex.what() << '\n';
-    } catch (...) {
-        std::cerr << "unknown exception\n";
     }
 };
 

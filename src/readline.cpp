@@ -47,14 +47,14 @@ Readline& Readline::instance()
     return rl;
 }
 
-bool Readline::operator()(user_input_t& user_input, std::string_view prompt /* = {}*/)
+user_input_t Readline::operator()(std::string_view prompt /* = {}*/)
 {
+    user_input_t user_input;
     auto const deleter = [](char* p) noexcept(noexcept(std::free)) { std::free(p); };
     if (std::unique_ptr<char, decltype(deleter)> input = {readline(prompt.data()), deleter}) {
         user_input = input.get();
         if (!user_input.empty())
             add_history(user_input.c_str());
-        return true;
     }
-    return false;
+    return user_input;
 }

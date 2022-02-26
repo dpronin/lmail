@@ -37,8 +37,8 @@ public:
 
     [[nodiscard]] Profile const& profile() const noexcept { return *profile_; }
 
-    Inbox& inbox() noexcept { return inbox_; }
     [[nodiscard]] Inbox const& inbox() const noexcept { return inbox_; }
+    Inbox& inbox() noexcept { return inbox_; }
 };
 
 } // namespace lmail

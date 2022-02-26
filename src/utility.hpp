@@ -11,10 +11,22 @@
 #include <system_error>
 #include <utility>
 
+#include "boost/algorithm/string/trim_all.hpp"
+
 #include "types.hpp"
 
 namespace lmail
 {
+
+inline args_t normalize(args_t args)
+{
+    // trim all the possible whitespace symbols in arguments
+    for (auto& arg : args)
+        boost::algorithm::trim_all(arg);
+    // erase all the arguments that are empty strings
+    std::erase_if(args, [](auto const& arg) { return arg.empty(); });
+    return args;
+}
 
 inline void for_each_dir_entry(std::filesystem::path const& dir, std::invocable<std::filesystem::directory_entry> auto f)
 {
