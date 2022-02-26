@@ -1,5 +1,8 @@
 #pragma once
 
+#include <memory>
+
+#include "cmd_interface.hpp"
 #include "command_lister_interface.hpp"
 #include "types.hpp"
 
@@ -18,8 +21,8 @@ public:
     CliState(CliState&&) = default;
     CliState& operator=(CliState&&) = default;
 
-    [[nodiscard]] virtual prompt_t prompt() const = 0;
-    virtual void process(args_t args)             = 0;
+    [[nodiscard]] virtual prompt_t prompt() const                  = 0;
+    [[nodiscard]] virtual std::shared_ptr<ICmd> parse(args_t args) = 0;
 };
 
 } // namespace lmail

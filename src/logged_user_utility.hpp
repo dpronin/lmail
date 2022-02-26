@@ -19,7 +19,7 @@ inline auto make_logged_user_greeter(std::shared_ptr<LoggedUser> user, std::shar
     return [=] {
         std::cout << cbrown("You're logged in as") << " " << make_user_name_cgreen(*user);
         std::cout << "\nInbox:\n";
-        CmdInbox(user, storage)();
+        CmdInbox(user, storage).exec();
     };
 }
 

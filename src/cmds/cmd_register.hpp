@@ -9,6 +9,9 @@
 
 #include "application.hpp"
 #include "cmd_args.hpp"
+#include "cmd_interface.hpp"
+#include "color.hpp"
+#include "crypt.hpp"
 #include "storage.hpp"
 #include "types.hpp"
 #include "uread.hpp"
@@ -17,8 +20,11 @@
 namespace lmail
 {
 
-class CmdRegister final
+class CmdRegister final : public ICmd
 {
+    CmdArgs args_;
+    std::shared_ptr<Storage> storage_;
+
 public:
     explicit CmdRegister(CmdArgs args, std::shared_ptr<Storage> storage)
         : args_(std::move(args))
@@ -28,7 +34,7 @@ public:
             throw std::invalid_argument("storage provided cannot be empty");
     }
 
-    void operator()()
+    void exec() override
     try {
         username_t username = args_.front();
         if (username.empty() && !uread(username, "Enter user name: "))
@@ -78,10 +84,6 @@ public:
     } catch (...) {
         std::cerr << "unknown exception\n";
     }
-
-private:
-    CmdArgs args_;
-    std::shared_ptr<Storage> storage_;
 };
 
 } // namespace lmail

@@ -10,10 +10,10 @@
 #include "boost/range/algorithm/copy.hpp"
 #include "boost/range/algorithm/find_if.hpp"
 #include "boost/range/algorithm/sort.hpp"
-#include "boost/range/numeric.hpp"
 
 #include "cmds/cmd_help.hpp"
 
+#include "cmd_interface.hpp"
 #include "color.hpp"
 #include "types.hpp"
 
@@ -26,7 +26,7 @@ CmdState::CmdState(cmds_t cmds) : cmds_(std::move(cmds))
     if (auto it = boost::adjacent_find(cmds_, [](auto const &cmd1, auto const &cmd2){ return std::get<0>(cmd1) == std::get<0>(cmd2); }); cmds_.end() != it)
         throw std::invalid_argument("commands given are not unique, cmd=" + std::get<0>(*it));
     cmds_.push_back({"help", {}, "Shows this help page", {}});
-    std::get<3>(cmds_.back()) = [show_help = CmdHelp{cmds_}](args_t) { show_help(std::cout); };
+    std::get<3>(cmds_.back()) = [cmd = std::make_shared<CmdHelp>(std::cout, cmds_)](args_t) { return cmd; };
 }
 // clang-format on
 
@@ -38,23 +38,24 @@ cmds_names_t CmdState::cmds() const
     return {range.begin(), range.end()};
 }
 
-void CmdState::process(args_t args)
+std::shared_ptr<ICmd> CmdState::parse(args_t args)
 {
+    std::shared_ptr<ICmd> cmd;
+
     if (args.empty())
-        return;
+        return cmd;
 
     auto const cmd_name = std::move(args.front());
     args.pop_front();
 
-    // clang-format off
-    if (auto it = boost::find_if(cmds_, [&](auto const &cmd) { return std::get<0>(cmd) == cmd_name; }); cmds_.end() != it)
-    // clang-format on
-    {
-        std::get<3> (*it)(std::move(args));
+    if (auto it = boost::find_if(cmds_, [&](auto const& cmd) { return std::get<0>(cmd) == cmd_name; }); cmds_.end() != it) {
+        cmd = std::get<3>(*it)(std::move(args));
     } else {
         std::cerr << "unknown command '" << cmd_name << "'\n";
         std::cerr << cred("cannot process") << " '" << cmd_name << ' ';
         boost::copy(args, std::ostream_iterator<arg_t>(std::cerr, " "));
         std::cerr << "\b'\n";
     }
+
+    return cmd;
 }

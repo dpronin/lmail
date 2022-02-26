@@ -8,7 +8,7 @@
 
 using namespace lmail;
 
-int main(int argc, char const* argv[])
+int main(int /*argc*/, char const* /*argv*/[])
 try {
     Cli(Application::parse_conf()).run();
     return EXIT_SUCCESS;

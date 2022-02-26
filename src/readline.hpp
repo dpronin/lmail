@@ -16,8 +16,7 @@ namespace lmail
 
 class Readline
 {
-private:
-    explicit Readline(rl_completion_func_t completer) { rl_attempted_completion_function = completer; }
+    std::shared_ptr<ICommandLister> lister_;
 
 public:
     static Readline& instance();
@@ -34,7 +33,7 @@ public:
     [[nodiscard]] auto cmds() const { return lister_->cmds(); }
 
 private:
-    std::shared_ptr<ICommandLister> lister_;
+    explicit Readline(rl_completion_func_t completer) { rl_attempted_completion_function = completer; }
 };
 
 } // namespace lmail

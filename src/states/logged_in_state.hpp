@@ -13,7 +13,6 @@ namespace lmail
 
 class LoggedInState : public MainState
 {
-private:
     std::shared_ptr<LoggedUser> user_;
 
 public:

@@ -7,12 +7,11 @@ namespace lmail
 
 class Cli final
 {
+    Application::Conf conf_;
+
 public:
     explicit Cli(Application::Conf conf);
     void run();
-
-private:
-    Application::Conf conf_;
 };
 
 } // namespace lmail

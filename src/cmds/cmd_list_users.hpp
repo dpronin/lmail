@@ -5,14 +5,18 @@
 #include <stdexcept>
 #include <utility>
 
+#include "cmd_interface.hpp"
 #include "logged_user.hpp"
 #include "storage.hpp"
 
 namespace lmail
 {
 
-class CmdListUsers final
+class CmdListUsers final : public ICmd
 {
+    std::shared_ptr<LoggedUser> logged_user_;
+    std::shared_ptr<Storage> storage_;
+
 public:
     explicit CmdListUsers(std::shared_ptr<LoggedUser> logged_user, std::shared_ptr<Storage> storage)
         : logged_user_(std::move(logged_user))
@@ -24,7 +28,7 @@ public:
             throw std::invalid_argument("storage provided cannot be empty");
     }
 
-    void operator()()
+    void exec() override
     try {
         auto usernames = (*storage_)->select(&User::username);
         if (usernames.empty())
@@ -44,10 +48,6 @@ public:
     } catch (...) {
         std::cerr << "unknown exception\n";
     }
-
-private:
-    std::shared_ptr<LoggedUser> logged_user_;
-    std::shared_ptr<Storage> storage_;
 };
 
 } // namespace lmail

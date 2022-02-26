@@ -12,6 +12,7 @@
 
 #include "application.hpp"
 #include "cmd_args.hpp"
+#include "cmd_interface.hpp"
 #include "logged_user.hpp"
 #include "types.hpp"
 #include "uread.hpp"
@@ -20,18 +21,21 @@
 namespace lmail
 {
 
-class CmdKeyGen final
+class CmdKeyGen final : public ICmd
 {
+    CmdArgs args_;
+    std::shared_ptr<LoggedUser> logged_user_;
+
 public:
     explicit CmdKeyGen(CmdArgs args, std::shared_ptr<LoggedUser> logged_user)
         : args_(std::move(args))
-        , logged_user_(logged_user)
+        , logged_user_(std::move(logged_user))
     {
         if (!logged_user_)
             throw std::invalid_argument("logged user provided cannot be empty");
     }
 
-    void operator()()
+    void exec() override
     try {
         namespace fs = std::filesystem;
 
@@ -90,10 +94,6 @@ public:
     } catch (...) {
         std::cerr << "unknown exception\n";
     }
-
-private:
-    CmdArgs args_;
-    std::shared_ptr<LoggedUser> logged_user_;
 };
 
 } // namespace lmail

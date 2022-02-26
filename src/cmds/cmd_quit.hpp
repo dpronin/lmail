@@ -3,22 +3,22 @@
 #include <utility>
 
 #include "cli_sm.hpp"
+#include "cmd_interface.hpp"
 
 namespace lmail
 {
 
-class CmdQuit final
+class CmdQuit final : public ICmd
 {
+    sm::Cli& fsm_;
+
 public:
     explicit CmdQuit(sm::Cli& fsm)
         : fsm_(fsm)
     {
     }
 
-    void operator()() { fsm_.process_event(sm::ev::quit{}); }
-
-private:
-    sm::Cli& fsm_;
+    void exec() override { fsm_.process_event(sm::ev::quit{}); }
 };
 
 } // namespace lmail

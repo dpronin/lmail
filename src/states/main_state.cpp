@@ -22,8 +22,8 @@ namespace
 // clang-format off
 MainState::MainState(sm::Cli &fsm, std::shared_ptr<Storage> storage)
     : MainState(fsm, {
-        { "login",    { "[username]" }, "Logs in as a user with username specified or entered",    [=, this](args_t args){ CmdLogin{std::move(args), fsm_, storage}(); } },
-        { "register", { "[username]" }, "Registers a new user with username specified or entered", [=](args_t args){ CmdRegister{std::move(args), storage}(); } }
+        { "login",    { "[username]" }, "Logs in as a user with username specified or entered",    [=, this](args_t args){ return std::make_shared<CmdLogin>(std::move(args), fsm_, storage); } },
+        { "register", { "[username]" }, "Registers a new user with username specified or entered", [=](args_t args){ return std::make_shared<CmdRegister>(std::move(args), storage); } }
     })
 // clang-format on
 {
@@ -31,7 +31,7 @@ MainState::MainState(sm::Cli &fsm, std::shared_ptr<Storage> storage)
 
 // clang-format off
 MainState::MainState(sm::Cli &fsm, cmds_t cmds)
-    : CmdState((cmds.push_back({"quit", {}, "Quits the application", [=](args_t){ CmdQuit{fsm_}(); }}), std::move(cmds)))
+    : CmdState((cmds.push_back({"quit", {}, "Quits the application", [=](args_t){ return std::make_shared<CmdQuit>(fsm_); }}), std::move(cmds)))
     , fsm_(fsm)
 // clang-format on
 {

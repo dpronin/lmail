@@ -11,17 +11,23 @@
 #include "boost/range/algorithm/max_element.hpp"
 #include "boost/range/numeric.hpp"
 
+#include "cmd_interface.hpp"
 #include "color.hpp"
 #include "types.hpp"
 
 namespace lmail
 {
 
-class CmdHelp final
+class CmdHelp final : public ICmd
 {
+    std::ostream& out_;
+    cmds_t const& cmds_;
+    mutable boost::format fmt_;
+
 public:
-    explicit CmdHelp(cmds_t const& cmds)
-        : cmds_(cmds)
+    explicit CmdHelp(std::ostream& out, cmds_t const& cmds)
+        : out_(out)
+        , cmds_(cmds)
     {
         // clang-format off
         auto getsize = [](auto const &cmd)
@@ -36,18 +42,14 @@ public:
         fmt_                    = boost::format("%-" + std::to_string(align_size + 1) + "s %s");
     }
 
-    void operator()(std::ostream& out) const
+    void exec() override
     {
         // clang-format off
         boost::copy(cmds_, boost::make_function_output_iterator([&](auto const &cmd) {
-            out << (fmt_ % (cgreen(std::get<0>(cmd)) + ' ' + cblue(boost::algorithm::join(std::get<1>(cmd), " "))) % std::get<2>(cmd)) << std::endl;
+            out_ << (fmt_ % (cgreen(std::get<0>(cmd)) + ' ' + cblue(boost::algorithm::join(std::get<1>(cmd), " "))) % std::get<2>(cmd)) << std::endl;
         }));
         // clang-format on
     }
-
-private:
-    cmds_t const& cmds_;
-    mutable boost::format fmt_;
 };
 
 } // namespace lmail

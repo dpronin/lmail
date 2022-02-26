@@ -17,6 +17,10 @@ namespace lmail
 
 class LoggedUser
 {
+    User user_;
+    std::shared_ptr<Profile> profile_;
+    Inbox inbox_;
+
 public:
     explicit LoggedUser(User user)
         : user_(std::move(user))
@@ -35,11 +39,6 @@ public:
 
     Inbox& inbox() noexcept { return inbox_; }
     [[nodiscard]] Inbox const& inbox() const noexcept { return inbox_; }
-
-private:
-    User user_;
-    std::shared_ptr<Profile> profile_;
-    Inbox inbox_;
 };
 
 } // namespace lmail

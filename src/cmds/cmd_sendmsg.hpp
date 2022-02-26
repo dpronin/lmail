@@ -11,6 +11,7 @@
 #include "cryptopp/rsa.h"
 
 #include "cmd_args.hpp"
+#include "cmd_interface.hpp"
 #include "logged_user.hpp"
 #include "storage.hpp"
 #include "types.hpp"
@@ -20,8 +21,12 @@
 namespace lmail
 {
 
-class CmdSendMsg final
+class CmdSendMsg final : public ICmd
 {
+    CmdArgs args_;
+    std::shared_ptr<LoggedUser> logged_user_;
+    std::shared_ptr<Storage> storage_;
+
 public:
     explicit CmdSendMsg(CmdArgs args, std::shared_ptr<LoggedUser> logged_user, std::shared_ptr<Storage> storage)
         : args_(std::move(args))
@@ -34,7 +39,7 @@ public:
             throw std::invalid_argument("storage provided cannot be empty");
     }
 
-    void operator()()
+    void exec() override
     try {
         using namespace sqlite_orm;
         namespace fs = std::filesystem;
@@ -129,11 +134,6 @@ private:
     } catch (std::exception const& ex) {
         std::cerr << "error occurred while cyphering message, reason: " << ex.what() << '\n';
     }
-
-private:
-    CmdArgs args_;
-    std::shared_ptr<LoggedUser> logged_user_;
-    std::shared_ptr<Storage> storage_;
 };
 
 } // namespace lmail

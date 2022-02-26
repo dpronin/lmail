@@ -12,6 +12,7 @@
 #include "application.hpp"
 #include "cli_sm.hpp"
 #include "cmd_args.hpp"
+#include "cmd_interface.hpp"
 #include "logged_user.hpp"
 #include "logged_user_utility.hpp"
 #include "storage.hpp"
@@ -24,8 +25,12 @@
 namespace lmail
 {
 
-class CmdLogin final
+class CmdLogin final : public ICmd
 {
+    CmdArgs args_;
+    sm::Cli& fsm_;
+    std::shared_ptr<Storage> storage_;
+
 public:
     explicit CmdLogin(CmdArgs args, sm::Cli& fsm, std::shared_ptr<Storage> storage)
         : args_(std::move(args))
@@ -36,7 +41,7 @@ public:
             throw std::invalid_argument("storage provided cannot be empty");
     }
 
-    void operator()()
+    void exec() override
     try {
         username_t username = args_.front();
         if (username.empty() && !uread(username, "Enter user name: "))
@@ -88,11 +93,6 @@ public:
     } catch (...) {
         std::cerr << "unknown exception\n";
     }
-
-private:
-    CmdArgs args_;
-    sm::Cli& fsm_;
-    std::shared_ptr<Storage> storage_;
 };
 
 } // namespace lmail

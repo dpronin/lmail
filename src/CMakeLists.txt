@@ -10,6 +10,7 @@ set(SOURCES
 set(HEADERS
     application.hpp
     cli.hpp
+    cmd_interface.hpp
     cmds/cmd_args.hpp
     cmds/cmd_help.hpp
     cmds/cmd_inbox.hpp

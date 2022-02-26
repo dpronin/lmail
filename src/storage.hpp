@@ -38,6 +38,8 @@ inline decltype(auto) make_sqlite3_storage(std::string_view db_path)
 
 class Storage
 {
+    decltype(detail::make_sqlite3_storage(std::string_view{})) storage_;
+
 public:
     explicit Storage(std::string_view db_path)
         : storage_(detail::make_sqlite3_storage(db_path))
@@ -45,9 +47,6 @@ public:
     }
     auto* operator->() noexcept { return std::addressof(storage_); }
     auto const* operator->() const noexcept { return std::addressof(storage_); }
-
-private:
-    decltype(detail::make_sqlite3_storage(std::string_view{})) storage_;
 };
 
 } // namespace lmail

@@ -12,6 +12,8 @@
 #include "states/cli_state.hpp"
 #include "states/init_state.hpp"
 
+#include "cmd_interface.hpp"
+
 namespace lmail::sm
 {
 
@@ -46,8 +48,9 @@ public:
     CliCtx(CliCtx&&) = delete;
     CliCtx& operator=(CliCtx&&) = delete;
 
-    [[nodiscard]] auto prompt() const { return state_->prompt(); }
-    void process(args_t args) { state_->process(std::move(args)); }
+    [[nodiscard]] bool operator()(user_input_t& user_input) { return rl_(user_input, state_->prompt()); }
+
+    std::shared_ptr<ICmd> parse(args_t args) { return state_->parse(std::move(args)); }
 };
 
 namespace ev

@@ -13,7 +13,6 @@ namespace lmail
 
 class Profile
 {
-private:
     std::filesystem::path profile_path_;
 
 public:

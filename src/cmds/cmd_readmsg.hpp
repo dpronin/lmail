@@ -8,6 +8,7 @@
 #include "boost/lexical_cast.hpp"
 
 #include "cmd_args.hpp"
+#include "cmd_interface.hpp"
 #include "logged_user.hpp"
 #include "storage.hpp"
 #include "types.hpp"
@@ -17,8 +18,12 @@
 namespace lmail
 {
 
-class CmdReadMsg final
+class CmdReadMsg final : public ICmd
 {
+    CmdArgs args_;
+    std::shared_ptr<LoggedUser> logged_user_;
+    std::shared_ptr<Storage> storage_;
+
 public:
     explicit CmdReadMsg(CmdArgs args, std::shared_ptr<LoggedUser> logged_user, std::shared_ptr<Storage> storage)
         : args_(std::move(args))
@@ -31,7 +36,7 @@ public:
             throw std::invalid_argument("storage provided cannot be empty");
     }
 
-    void operator()()
+    void exec() override
     try {
         using namespace sqlite_orm;
 
@@ -74,11 +79,6 @@ public:
     } catch (...) {
         std::cerr << "unknown exception\n";
     }
-
-private:
-    CmdArgs args_;
-    std::shared_ptr<LoggedUser> logged_user_;
-    std::shared_ptr<Storage> storage_;
 };
 
 } // namespace lmail

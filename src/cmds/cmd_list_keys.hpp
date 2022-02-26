@@ -13,14 +13,17 @@
 #include "boost/algorithm/string/join.hpp"
 
 #include "application.hpp"
+#include "cmd_interface.hpp"
 #include "logged_user.hpp"
 #include "utility.hpp"
 
 namespace lmail
 {
 
-class CmdListKeys final
+class CmdListKeys final : public ICmd
 {
+    std::shared_ptr<LoggedUser> logged_user_;
+
 public:
     explicit CmdListKeys(std::shared_ptr<LoggedUser> logged_user)
         : logged_user_(std::move(logged_user))
@@ -29,7 +32,7 @@ public:
             throw std::invalid_argument("logged user provided cannot be empty");
     }
 
-    void operator()()
+    void exec() override
     try {
         print_own();
         print_imported();
@@ -81,9 +84,6 @@ private:
         if (0 == count)
             std::cout << "There are no keys available" << std::endl;
     }
-
-private:
-    std::shared_ptr<LoggedUser> logged_user_;
 };
 
 } // namespace lmail
