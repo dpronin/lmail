@@ -68,7 +68,7 @@ bash> cmake --build .
 
 `-DINSTALL_EMPTY_SCHEMA_DB=ON` option provided tells to install an empty database schema with tables and their relationships. While installing __cmake__ will run the script that would interactively with you configure your enviroment to prepare the system use this database with lmail application installed. __WARNING:__ the script that will be run will ask you whether you like to substitute an old database (if any) by a new one, be careful, you are possible to leave that dangerous step and proceed
 
-To enable building __unit and integrational tests__, provide an additional parameter `-DENABLE_TEST=ON` to __cmake__ while configuring
+To enable building __unit and integrational tests__, provide an additional parameter `-DBUILD_TESTING=ON` to __cmake__ while configuring
 
 There are more parameters you can provide to cmake
 
