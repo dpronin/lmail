@@ -1,9 +1,9 @@
 [requires]
-boost/[~1.81]
+boost/[~1.82]
 cryptopp/[~8.7]
 readline/[~8.1]
-sqlite3/[>=3.37 <3.39]
-gtest/[~1.12]
+sqlite3/[~3.42]
+gtest/[~1.13]
 
 [generators]
 CMakeToolchain
