@@ -30,10 +30,6 @@ if (ENABLE_PROFILING)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
 endif()
 
-if (ENABLE_GDB_SYMBOLS)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ggdb")
-endif()
-
 add_definitions(-DCONF_PREFIX="${CONF_PREFIX}" -DSCHEMA_DB_PREFIX="${SCHEMA_DB_PREFIX}")
 
 find_package(Boost REQUIRED)
