@@ -4,16 +4,16 @@ bash> git clone git@github.com:dpronin/lmail.git
 ```
 # Build requirements
 - [cmake](https://cmake.org/) to configure the project. Minimum required version is __3.16__
-- [conan](https://conan.io/) to download all the dependencies of the application and configure with a certain set of parameters. You can install __conan__ by giving a command to __pip__:
+- [conan](https://conan.io/) to download all the dependencies of the application and configure with a certain set of parameters. You can install __conan__ (_we use conan version >= 2_) by giving a command to __pip__:
     ```bash
         bash> pip install --user conan
     ```
     To use __pip__ you need to install __python__ interpreter. I highly recommend to install __python3__-based versions in order to avoid unexpected results with __conan__
 
-- A C++ compiler with __C++17__, __boost-1.76__ and __gtest-1.11__ support. The package has been successfully tested on compilation with __gcc-10.3__ (g++ with libstdc++11)
+- A C++ compiler with __C++20__, __boost-1.81__ and __gtest-1.12__ support. The package has been successfully tested on compilation with __gcc-12.2.1__ (libstdc++11) and __clang-15.0.7__ (with libstdc++11)
 
 # Preparing conan
-First you need to set __conan's remote list__ to be able to download packages prescribed in the `conanfile.py` as requirements (dependencies). You need at least one remote known by conan. We need __conancenter__ repository available. To check if it already exists run the following command:
+First you need to set __conan's remote list__ to be able to download packages prescribed in the `conanfile.txt` as requirements (dependencies). You need at least one remote known by conan. We need __conancenter__ repository available. To check if it already exists run the following command:
 ```bash
 bash> conan remote list
 ```
@@ -30,19 +30,19 @@ Since now you're ready to perform conan installation.
 
     WARNING: if you have variables CC or/and CXX set in your environment you need to unset them before executing next commands, otherwise, if conan decides to build a dependency on host the compiler selected from parameters and compiler from CC/CXX may contradict, as the result some cmake configuring processes while bulding dependencies may fail
 
-If you have resolved all the possible issues described above, you can start installation with conan. Below there is installed a conan's environment with making use of __gcc-10.3__, __libstdc++11__, architecture __x86\_64__. If something does not correspond to your environment (for example, __gcc__ is a lower version), change it. Installation with __gcc-10.3__, __libstdc++11__, __x86\_64__, __Debug mode__:
+If you have resolved all the possible issues described above, you can start installation with conan. Below there is installed a conan's environment with making use of __gcc-12.2.1__, __libstdc++11__, architecture __x86\_64__. If something does not correspond to your environment (for example, __gcc__ is a lower version), change it. Installation with __gcc-12.2.1__, __libstdc++11__, __x86\_64__, __Debug mode__:
 ```
 bash> cd lmail
-bash> conan install . -if debug/ -s arch=x86_64 -s arch_build=x86_64 -s compiler=gcc -s compiler.version=9.3 -s compiler.libcxx=libstdc++11 -s build_type=Debug --build missing
+bash> conan install . -pr default -pr:b default -s build_type=Debug --build missing
 ```
 All the parameters provided to conan are vital. By using them conan determines whether it can download already built binary package from a remote or it must build a dependency up on the host by itself (if `--build missing` parameter is passed)
-By the time the command has finished you will have got `debug` directory in the root of the project
+By the time the command has finished you will have got `build/Debug` directory in the root of the project
 
 To install prerequisites for __Release mode__ leaving other parameters untouched, use the following command:
 ```bash
-bash> conan install . -if release/ -s arch=x86_64 -s arch_build=x86_64 -s compiler=gcc -s compiler.version=9.3 -s compiler.libcxx=libstdc++11 -s build_type=Release --build missing
+bash> conan install . -pr default -pr:b default -s build_type=Release --build missing
 ```
-As just the command has worked out `release` directory will appear in the root of the project
+As just the command has worked out `build/Release` directory will appear in the root of the project
 
 You can vary conan's parameters according to your needs. For instance, if you like to build a package with __gcc-6.5__ provide the `-s compiler.version=6.5`leaving all the rest parameters untouched
 
@@ -50,14 +50,14 @@ To learn more about conan available actions and parameters consult `conan --help
 
 # Configuring and building with conan and cmake
 
-Suppose, you have prepared __Debug mode__ with conan and got `debug` directory.
+Suppose, you have prepared __Debug mode__ with conan and got `build/Debug` directory.
 
     WARNING: Before configuring make sure you don't have CC/CXX environment variables set, otherwise they may contradict with those having been configured by conan
 
 To configure the project with `cmake` run the commands:
 ```bash
-bash> cd debug
-bash> cmake -DCMAKE_BUILD_TYPE=Debug -DINSTALL_DEFAULT_CONF=ON -DINSTALL_EMPTY_SCHEMA_DB=ON ../
+bash> cd build/Debug
+bash> cmake ../../ --preset conan-debug -DCMAKE_CXX_COMPILER=clang++ -DINSTALL_DEFAULT_CONF=ON -DINSTALL_EMPTY_SCHEMA_DB=ON -DBUILD_TESTING=ON
 ```
 The project is configured. To built it run:
 ```bash
@@ -98,7 +98,15 @@ This will try to generate conan and cmake info automatically and configure the p
 
 # Afterwords
 
-To configure project in __Release mode__ provide `-DCMAKE_BUILD_TYPE=Release` instead of `-DCMAKE_BUILD_TYPE=Debug`
+To configure project in __Release mode__:
+```bash
+bash> cd build/Release
+bash> cmake ../../ --preset conan-release -DCMAKE_CXX_COMPILER=clang++ -DINSTALL_DEFAULT_CONF=ON -DINSTALL_EMPTY_SCHEMA_DB=ON -DBUILD_TESTING=ON
+```
+The project is configured. To built it run:
+```bash
+bash> cmake --build .
+```
 
 __Release__ version accomplishes better performance results
 
