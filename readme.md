@@ -10,7 +10,7 @@ bash> git clone git@github.com:dpronin/lmail.git
     ```
     To use __pip__ you need to install __python__ interpreter. I highly recommend to install __python3__-based versions in order to avoid unexpected results with __conan__
 
-- A C++ compiler with __C++20__, __boost-1.81__ and __gtest-1.12__ support. The package has been successfully tested on compilation with __gcc-12.2.1__ (libstdc++11) and __clang-15.0.7__ (with libstdc++11)
+- A C++ compiler with __C++20__, __boost-1.82__ and __gtest-1.13__ support. The package has been successfully tested on compilation with __gcc-12.2.1__ (libstdc++11) and __clang-15.0.7__ (with libstdc++11)
 
 # Preparing conan
 First you need to set __conan's remote list__ to be able to download packages prescribed in the `conanfile.txt` as requirements (dependencies). You need at least one remote known by conan. We need __conancenter__ repository available. To check if it already exists run the following command:
