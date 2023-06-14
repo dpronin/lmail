@@ -3,8 +3,6 @@
 #include <stdexcept>
 #include <utility>
 
-#include "boost/range/algorithm_ext/erase.hpp"
-
 #include "types.hpp"
 
 namespace lmail
@@ -18,7 +16,7 @@ public:
     CmdArgs(args_t args)
         : args_(std::move(args))
     {
-        boost::remove_erase_if(args_, [](auto const& arg) { return arg.empty(); });
+        std::erase_if(args_, [](auto const& arg) { return arg.empty(); });
     }
 
     arg_t pop()

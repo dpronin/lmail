@@ -4,9 +4,8 @@
 #include <cstring>
 
 #include <iterator>
+#include <ranges>
 #include <string_view>
-
-#include "boost/range/algorithm/remove_copy_if.hpp"
 
 #include "readline/history.h"
 #include "readline/readline.h"
@@ -27,7 +26,7 @@ char* completion_generator(const char* text, int state)
         match_idx                = 0;
         std::string_view textstr = text;
         // clang-format off
-        boost::remove_copy_if(Readline::instance().cmds(), std::back_inserter(matches), [&textstr](auto const &pattern) {
+        std::ranges::remove_copy_if(Readline::instance().cmds(), std::back_inserter(matches), [&textstr](auto const &pattern) {
             return pattern.size() < textstr.size() || pattern.compare(0, textstr.size(), textstr) != 0;
         });
         // clang-format on

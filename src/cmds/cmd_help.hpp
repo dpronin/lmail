@@ -1,14 +1,11 @@
 #pragma once
 
 #include <ostream>
+#include <ranges>
 #include <utility>
 
 #include "boost/algorithm/string/join.hpp"
 #include "boost/format.hpp"
-#include "boost/iterator/function_output_iterator.hpp"
-#include "boost/range/adaptor/transformed.hpp"
-#include "boost/range/algorithm/copy.hpp"
-#include "boost/range/algorithm/max_element.hpp"
 #include "boost/range/numeric.hpp"
 
 #include "cmd_interface.hpp"
@@ -37,18 +34,15 @@ public:
                 + std::size(std::get<1>(cmd)) - 1;
         };
         // clang-format on
-        auto const cmds_lens    = cmds_ | boost::adaptors::transformed(getsize);
-        size_t const align_size = *boost::range::max_element(cmds_lens) + cgreen("").size() + cblue("").size();
-        fmt_                    = boost::format("%-" + std::to_string(align_size + 1) + "s %s");
+        auto const cmds_lens    = cmds_ | std::views::transform(getsize);
+        size_t const align_size = *std::ranges::max_element(cmds_lens) + cgreen("").size() + cblue("").size();
+        fmt_                    = boost::format{"%-" + std::to_string(align_size + 1) + "s %s"};
     }
 
     void exec() override
     {
-        // clang-format off
-        boost::copy(cmds_, boost::make_function_output_iterator([&](auto const &cmd) {
+        for (auto const& cmd : cmds_)
             out_ << (fmt_ % (cgreen(std::get<0>(cmd)) + ' ' + cblue(boost::algorithm::join(std::get<1>(cmd), " "))) % std::get<2>(cmd)) << std::endl;
-        }));
-        // clang-format on
     }
 };
 

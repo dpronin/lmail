@@ -31,7 +31,7 @@ MainState::MainState(sm::Cli &fsm, std::shared_ptr<Storage> storage)
 
 // clang-format off
 MainState::MainState(sm::Cli &fsm, cmds_t cmds)
-    : CmdState((cmds.push_back({"quit", {}, "Quits the application", [=](args_t){ return std::make_unique<CmdQuit>(fsm_); }}), std::move(cmds)))
+    : CmdState((cmds.push_back({"quit", {}, "Quits the application", [this](args_t){ return std::make_unique<CmdQuit>(fsm_); }}), std::move(cmds)))
     , fsm_(fsm)
 // clang-format on
 {

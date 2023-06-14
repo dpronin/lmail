@@ -2,7 +2,9 @@
 
 #include <cstring>
 
+#include <algorithm>
 #include <filesystem>
+#include <ranges>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -13,7 +15,6 @@
 #include <sys/types.h>
 
 #include "boost/algorithm/hex.hpp"
-#include "boost/range/algorithm/copy.hpp"
 
 #include "cryptopp/aes.h"
 #include "cryptopp/cryptlib.h"
@@ -55,7 +56,7 @@ template <typename KeyT, typename ReturnT = KeyT>
 using return_if_rsa = std::enable_if_t<std::is_same_v<KeyT, CryptoPP::RSA::PrivateKey> || std::is_same_v<KeyT, CryptoPP::RSA::PublicKey>, ReturnT>;
 
 template <typename KeyT>
-return_if_rsa<KeyT, void> save_key(KeyT const& key, std::filesystem::path const& key_path, int perms)
+return_if_rsa<KeyT, void> save_key(KeyT const& key, std::filesystem::path const& key_path, mode_t perms)
 {
     using namespace CryptoPP;
     auto const fd = creat(key_path.c_str(), perms);
@@ -154,7 +155,7 @@ inline void encrypt(std::string& msg, CryptoPP::RSA::PublicKey const& rsa_key)
     // encoding cyphered initial vector and its size coming first
     push_integer(civ);
     // copying the message cyphered with AES key and initial vector
-    boost::copy(cmsg, pout);
+    std::ranges::copy(cmsg, pout);
     msg = std::move(out);
 }
 

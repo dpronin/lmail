@@ -65,7 +65,6 @@ public:
 
     static void store(rsa_key_pair_t const& rsa_key_pair, std::filesystem::path const& keys_pair_dir)
     {
-        namespace fs = std::filesystem;
         if (!create_dir_if_doesnt_exist(keys_pair_dir))
             throw std::runtime_error("couldn't create key pair");
         auto key_path = keys_pair_dir / Application::kPrivKeyName;

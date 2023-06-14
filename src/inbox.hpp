@@ -4,11 +4,10 @@
 #include <iostream>
 #include <memory>
 #include <optional>
+#include <ranges>
 #include <stdexcept>
 #include <tuple>
 #include <utility>
-
-#include "boost/range/algorithm/find_if.hpp"
 
 #include "db/message.hpp"
 
@@ -126,7 +125,7 @@ private:
     std::pair<messages_t::iterator, bool> sync(std::tuple<msg_id_t, topic_blob_t, bool, username_t, body_blob_t> message)
     {
         // clang-format off
-        auto msg_it  = boost::find_if(messages_, [msg_id = std::get<0>(message)](auto const &msg) {
+        auto msg_it  = std::ranges::find_if(messages_, [msg_id = std::get<0>(message)](auto const &msg) {
             return msg.id == msg_id;
         });
         // clang-format on
