@@ -32,9 +32,9 @@ public:
     {
         auto cmds             = cmds_with_help({
             // clang-format off
-            {"login",    {"[username]"}, "Logs in as a user with username specified or entered",    [&f = fsm_, s = storage, this](args_t args) { return std::make_unique<CmdLogin>(f, std::move(args), s); }},
-            {"register", {"[username]"}, "Registers a new user with username specified or entered", [&f = fsm_, s = storage      ](args_t args) { return std::make_unique<CmdRegister>(f, std::move(args), s); }},
-            {"quit",     {            }, "Quits the application",                                   [&f = fsm_,              this](args_t&&)    { return std::make_unique<CmdQuit>(f); }},
+            {"login",    {"[username]"}, "Logs in as a user with username specified or entered",    [=, this] (args_t args) { return std::make_unique<CmdLogin>(fsm_, std::move(args), storage); }},
+            {"register", {"[username]"}, "Registers a new user with username specified or entered", [=, this] (args_t args) { return std::make_unique<CmdRegister>(fsm_, std::move(args), storage); }},
+            {"quit",     {            }, "Quits the application",                                   [this]    (args_t&&)    { return std::make_unique<CmdQuit>(fsm_); }},
             // clang-format on
         });
         auto const cmds_names = cmds | std::views::transform([](auto const& cmd) { return std::get<0>(cmd); });
