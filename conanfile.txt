@@ -4,6 +4,7 @@ cryptopp/[~8.7]
 readline/[~8.1]
 sqlite3/[~3.42]
 fmt/[~10.0]
+sml/[~1.1.8]
 gtest/[~1.13]
 
 [generators]
