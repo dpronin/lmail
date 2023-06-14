@@ -35,6 +35,7 @@ add_definitions(-DRSA_KEY_SIZE_DEFAULT=3072)
 find_package(Boost REQUIRED)
 find_package(fmt REQUIRED)
 find_package(sml REQUIRED)
+find_package(SqliteOrm REQUIRED)
 find_package(cryptopp QUIET)
 find_package(readline QUIET)
 

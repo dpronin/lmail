@@ -55,13 +55,13 @@ add_executable(lmail ${SOURCES} ${HEADERS})
 target_compile_definitions(lmail PRIVATE CONF_PREFIX="${CONF_PREFIX}" SCHEMA_DB_PREFIX="${SCHEMA_DB_PREFIX}")
 
 target_include_directories(lmail PRIVATE ${CMAKE_CURRENT_LIST_DIR})
-target_include_directories(lmail PRIVATE ${CMAKE_CURRENT_LIST_DIR}/third_party/include)
 
 target_link_libraries(lmail PRIVATE Boost::boost)
 target_link_libraries(lmail PRIVATE sml::sml)
 target_link_libraries(lmail PRIVATE fmt::fmt)
 target_link_libraries(lmail PRIVATE cryptopp::cryptopp)
 target_link_libraries(lmail PRIVATE readline::readline)
+target_link_libraries(lmail PRIVATE sqlite_orm::sqlite_orm)
 target_link_libraries(lmail PRIVATE SQLite::SQLite3)
 
 install(TARGETS lmail RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

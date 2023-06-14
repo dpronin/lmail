@@ -1,10 +1,10 @@
 [requires]
 boost/[~1.82]
 cryptopp/[~8.7]
-readline/[~8.1]
-sqlite3/[~3.42]
 fmt/[~10.0]
+readline/[~8.1]
 sml/[~1.1.8]
+sqlite_orm/[~1.8.2]
 gtest/[~1.13]
 
 [generators]
