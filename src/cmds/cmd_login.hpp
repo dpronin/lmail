@@ -11,6 +11,7 @@
 #include "cli_sm.hpp"
 #include "cmd_args.hpp"
 #include "cmd_interface.hpp"
+#include "crypt.hpp"
 #include "logged_user.hpp"
 #include "logged_user_utility.hpp"
 #include "storage.hpp"
