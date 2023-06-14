@@ -52,6 +52,7 @@ set(HEADERS
 )
 
 add_executable(lmail ${SOURCES} ${HEADERS})
+target_compile_definitions(lmail PRIVATE CONF_PREFIX="${CONF_PREFIX}" SCHEMA_DB_PREFIX="${SCHEMA_DB_PREFIX}")
 
 target_include_directories(lmail PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 target_include_directories(lmail PRIVATE ${CMAKE_CURRENT_LIST_DIR}/third_party/include)

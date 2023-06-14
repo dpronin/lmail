@@ -30,7 +30,7 @@ if (ENABLE_PROFILING)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
 endif()
 
-add_definitions(-DCONF_PREFIX="${CONF_PREFIX}" -DSCHEMA_DB_PREFIX="${SCHEMA_DB_PREFIX}")
+add_definitions(-DRSA_KEY_SIZE_DEFAULT=3072)
 
 find_package(Boost REQUIRED)
 find_package(cryptopp QUIET)

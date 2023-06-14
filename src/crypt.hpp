@@ -24,7 +24,6 @@
 #include "cryptopp/rsa.h"
 #include "cryptopp/sha3.h"
 
-#include "application.hpp"
 #include "utility.hpp"
 
 namespace lmail
@@ -40,11 +39,16 @@ inline auto sha3_256(std::string_view data)
     return boost::algorithm::hex_lower(digest);
 }
 
-inline void secure_memset(auto&&... args) noexcept
+inline void secure_memset(void* p, int v, size_t sz) noexcept
 {
     auto volatile f = std::memset;
-    f(std::forward<decltype(args)>(args)...);
+    f(p, v, sz);
 }
+
+auto const secure_deleter = [](std::string* p) {
+    secure_memset(p->data(), 0, p->size());
+    delete p;
+};
 
 // concept
 template <typename KeyT, typename ReturnT = KeyT>
@@ -91,19 +95,6 @@ inline rsa_key_pair_t generate_rsa_key_pair(size_t key_size)
     RSA::PrivateKey priv_key;
     priv_key.GenerateRandomWithKeySize(rnd, key_size);
     return {priv_key, RSA::PublicKey(priv_key)};
-}
-
-inline void store(rsa_key_pair_t const& rsa_key_pair, std::filesystem::path const& keys_pair_dir)
-{
-    namespace fs = std::filesystem;
-
-    if (!create_dir_if_doesnt_exist(keys_pair_dir))
-        throw std::runtime_error("couldn't create key pair");
-
-    auto key_path = keys_pair_dir / Application::kPrivKeyName;
-    save_key(rsa_key_pair.first, key_path, S_IRUSR | S_IWUSR);
-    key_path += Application::kPubKeySuffix;
-    save_key(rsa_key_pair.second, key_path, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 }
 
 inline void encrypt(std::string& msg, CryptoPP::RSA::PublicKey const& rsa_key)

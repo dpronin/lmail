@@ -85,7 +85,7 @@ public:
         }
         std::cout << "generation key '" << keyname << "', key size " << key_size << ". Wait a while ...";
         std::cout.flush();
-        store(generate_rsa_key_pair(key_size), keys_pair_dir);
+        Application::instance().store(generate_rsa_key_pair(key_size), keys_pair_dir);
         std::cout << "\nsuccessfully generated key '" << keyname << "', key size " << key_size << std::endl;
     } catch (boost::bad_lexical_cast const&) {
         std::cerr << "error: key size expected as a positive integer number\n";

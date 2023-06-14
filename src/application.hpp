@@ -17,6 +17,7 @@
 
 #include "db/user.hpp"
 
+#include "crypt.hpp"
 #include "types.hpp"
 
 namespace lmail
@@ -62,6 +63,17 @@ public:
     [[nodiscard]] auto lmail_path() const noexcept { return home_path_ / kLmailDirName; }
     [[nodiscard]] auto profile_path(User const& user) const { return lmail_path() / user.username; }
 
+    static void store(rsa_key_pair_t const& rsa_key_pair, std::filesystem::path const& keys_pair_dir)
+    {
+        namespace fs = std::filesystem;
+        if (!create_dir_if_doesnt_exist(keys_pair_dir))
+            throw std::runtime_error("couldn't create key pair");
+        auto key_path = keys_pair_dir / Application::kPrivKeyName;
+        save_key(rsa_key_pair.first, key_path, S_IRUSR | S_IWUSR);
+        key_path += Application::kPubKeySuffix;
+        save_key(rsa_key_pair.second, key_path, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    }
+
 private:
     Application()
         : home_path_(boost::this_process::environment()["HOME"].to_string())
@@ -86,7 +98,7 @@ public:
     static constexpr size_t kMinRSAKeyLen        =
         std::max(static_cast<size_t>(::CryptoPP::AES::DEFAULT_KEYLENGTH), static_cast<size_t>(::CryptoPP::AES::BLOCKSIZE)) * CHAR_BIT;
     static constexpr size_t kDefaultRSAKeySize   =
-        std::max(kMinRSAKeyLen, static_cast<size_t>(3072u));
+        std::max(kMinRSAKeyLen, static_cast<size_t>(RSA_KEY_SIZE_DEFAULT));
     // clang-format on
 
 private:
