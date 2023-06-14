@@ -13,10 +13,13 @@
 #include "boost/property_tree/ini_parser.hpp"
 #include "boost/property_tree/ptree.hpp"
 
+#include "fmt/format.h"
+
 #include "cryptopp/aes.h"
 
 #include "db/user.hpp"
 
+#include "color.hpp"
 #include "crypt.hpp"
 #include "types.hpp"
 
@@ -44,13 +47,13 @@ public:
             conf_path = kDefaultConfPath;
 
         try {
-            boost::property_tree::ptree conf_tree;
+            boost::property_tree::ptree conf_tree{};
             read_ini(conf_path.data(), conf_tree);
             if (auto db_path = conf_tree.get_optional<std::string>("db"))
                 conf.db_path = std::move(*db_path);
         } catch (std::exception const& ex) {
-            std::cout << "WARNING: couldn't read configuration file " << conf_path << ". Reason: " << ex.what() << '\n'
-                      << "Use internal default values" << std::endl;
+            std::cout << cgrey(fmt::format("WARNING: couldn't read configuration file {}. Reason: {}. Use internal default values", conf_path, ex.what()))
+                      << std::endl;
         }
 
         if (conf.db_path.empty())
