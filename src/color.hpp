@@ -13,6 +13,7 @@ enum class color_e {
     kBlue   = 4,
     kPurple = 5,
     kLblue  = 6,
+    kGrey   = 60,
 };
 
 inline std::string_view color_escape_reset() noexcept { return "\e[0m"; }
@@ -31,5 +32,6 @@ inline auto cbrown(std::string_view input) { return colored(input, color_e::kBro
 inline auto cblue(std::string_view input) { return colored(input, color_e::kBlue); }
 inline auto cpurple(std::string_view input) { return colored(input, color_e::kPurple); }
 inline auto clblue(std::string_view input) { return colored(input, color_e::kLblue); }
+inline auto cgrey(std::string_view input) { return colored(input, color_e::kGrey); }
 
 } // namespace lmail
