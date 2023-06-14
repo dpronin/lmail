@@ -58,6 +58,7 @@ target_include_directories(lmail PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 target_include_directories(lmail PRIVATE ${CMAKE_CURRENT_LIST_DIR}/third_party/include)
 
 target_link_libraries(lmail PRIVATE Boost::boost)
+target_link_libraries(lmail PRIVATE fmt::fmt)
 target_link_libraries(lmail PRIVATE cryptopp::cryptopp)
 target_link_libraries(lmail PRIVATE readline::readline)
 target_link_libraries(lmail PRIVATE SQLite::SQLite3)

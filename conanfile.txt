@@ -3,6 +3,7 @@ boost/[~1.82]
 cryptopp/[~8.7]
 readline/[~8.1]
 sqlite3/[~3.42]
+fmt/[~10.0]
 gtest/[~1.13]
 
 [generators]
