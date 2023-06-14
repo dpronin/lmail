@@ -41,7 +41,6 @@ public:
     void exec() override
     try {
         using namespace sqlite_orm;
-        namespace fs = std::filesystem;
 
         auto username_tgt = username_t{args_.front().value_or(username_t{})};
         if (username_tgt.empty() && !uread(username_tgt, "Enter a target user the message is sent to: "))
@@ -118,7 +117,6 @@ public:
         std::cerr << "unknown exception\n";
     }
 
-private:
     static void encrypt(std::filesystem::path const& key_path, topic_t& topic, body_t& body)
     try {
         auto const key = load_key<CryptoPP::RSA::PublicKey>(key_path);
