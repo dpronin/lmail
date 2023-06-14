@@ -2,6 +2,7 @@
 
 #include <ostream>
 #include <ranges>
+#include <stdexcept>
 #include <utility>
 
 #include "boost/algorithm/string/join.hpp"
@@ -26,6 +27,8 @@ public:
         : out_(out)
         , cmds_(cmds)
     {
+        if (cmds_.empty())
+            throw std::invalid_argument("cmds provided cannot be empty");
         // clang-format off
         auto getsize = [](auto const &cmd)
         {
