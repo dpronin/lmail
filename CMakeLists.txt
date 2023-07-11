@@ -20,7 +20,7 @@ endif()
 option(INSTALL_EMPTY_SCHEMA_DB "install an empty database into the ${SCHEMA_DB_PREFIX}/lmail")
 option(INSTALL_DEFAULT_CONF "install a default configuration into the ${CONF_PREFIX}/etc")
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_EXPORT_COMPILE_COMMANDS true)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 
