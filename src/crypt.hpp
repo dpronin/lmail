@@ -46,10 +46,15 @@ inline void secure_memset(void* p, int v, size_t sz) noexcept
     f(p, v, sz);
 }
 
-auto const secure_deleter = [](std::string* p) {
-    secure_memset(p->data(), 0, p->size());
-    delete p;
-};
+template <typename T, typename... Args>
+auto make_secure(Args&&... args)
+{
+    auto const secure_deleter = [](T* p) {
+        secure_memset(p->data(), 0, p->size());
+        delete p;
+    };
+    return std::unique_ptr<T, decltype(secure_deleter)>{new T{std::forward<Args>(args)...}, secure_deleter};
+}
 
 // concept
 template <typename KeyT, typename ReturnT = KeyT>

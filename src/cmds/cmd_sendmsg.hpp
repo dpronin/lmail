@@ -6,8 +6,7 @@
 #include <stdexcept>
 #include <utility>
 
-#include "boost/scope_exit.hpp"
-
+#include "crypt.hpp"
 #include "cryptopp/rsa.h"
 
 #include "cmd_args.hpp"
@@ -69,38 +68,32 @@ public:
             exit(EXIT_FAILURE);
         }
 
-        bool cyphered = false;
-        topic_t topic;
-        body_t body;
+        auto topic = make_secure<topic_t>();
 
-        BOOST_SCOPE_EXIT_ALL(&)
-        {
-            if (cyphered) {
-                secure_memset(topic.data(), 0, topic.size());
-                secure_memset(body.data(), 0, body.size());
-            }
-        };
-
-        if (!uread(topic, "Enter the topic: "))
+        if (!uread(*topic, "Enter the topic: "))
             return;
-        if (topic.empty()) {
+        if (topic->empty()) {
             std::cerr << "topic cannot be empty\n";
             return;
         }
 
-        if (!uread(body, "Enter the message: "))
+        auto body = make_secure<body_t>();
+
+        if (!uread(*body, "Enter the message: "))
             return;
-        if (body.empty()) {
+        if (body->empty()) {
             std::cerr << "message cannot be empty\n";
             return;
         }
+
+        bool cyphered{false};
 
         if (auto const& key_path = logged_user_->profile().find_cypher_key(username_to_keyname(username_tgt)); !key_path.empty()) {
             std::string ans;
             while (uread(ans, "Would you like to cypher the message? (y/n): ") && ans != "y" && ans != "n")
                 ;
             if ("y" == ans) {
-                encrypt(key_path, topic, body);
+                encrypt(key_path, *topic, *body);
                 cyphered = true;
             }
         }
@@ -114,7 +107,7 @@ public:
         if (ans == "n")
             return;
 
-        Message message{-1, logged_user_->id(), users_ids_to.front(), {topic.cbegin(), topic.cend()}, {body.cbegin(), body.cend()}, cyphered};
+        Message message{-1, logged_user_->id(), users_ids_to.front(), {topic->cbegin(), topic->cend()}, {body->cbegin(), body->cend()}, cyphered};
         if (auto const msg_id = (*storage_)->insert(message); -1 != msg_id)
             std::cout << "message successfully sent to " << username_tgt << '\n';
         else
@@ -126,7 +119,7 @@ public:
     }
 
 private:
-    void encrypt(std::filesystem::path const& key_path, topic_t& topic, body_t& body)
+    static void encrypt(std::filesystem::path const& key_path, topic_t& topic, body_t& body)
     try {
         auto const key = load_key<CryptoPP::RSA::PublicKey>(key_path);
         ::lmail::encrypt(topic, key);

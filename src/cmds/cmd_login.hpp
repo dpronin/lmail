@@ -7,8 +7,6 @@
 #include <stdexcept>
 #include <utility>
 
-#include "boost/scope_exit.hpp"
-
 #include "application.hpp"
 #include "cli_sm.hpp"
 #include "cmd_args.hpp"
@@ -52,18 +50,16 @@ public:
             return;
         }
 
-        password_t password;
-        if (!uread_hidden(password, "Enter password: "))
+        auto password = make_secure<password_t>();
+        if (!uread_hidden(*password, "Enter password: "))
             return;
 
-        if (password.empty()) {
+        if (password->empty()) {
             std::cerr << "password cannot be empty\n";
             return;
         }
 
-        BOOST_SCOPE_EXIT_ALL(&password) { secure_memset(password.data(), 0, password.size()); };
-
-        bool b_success;
+        bool b_success{false};
         using namespace sqlite_orm;
         if (auto users = (*storage_)->get_all<User>(where(c(&User::username) == username)); (b_success = !users.empty())) {
             if (1 != users.size()) {
@@ -74,10 +70,10 @@ public:
             auto& user = users.front();
 
             // salting the password
-            password.push_back(':');
-            password += Application::kSalt;
+            password->push_back(':');
+            (*password) += Application::kSalt;
 
-            b_success = user.username == username && user.password == sha3_256(password);
+            b_success = user.username == username && user.password == sha3_256(*password);
             if (b_success) {
                 auto logged_user  = std::make_shared<LoggedUser>(std::move(user));
                 auto user_greeter = make_logged_user_greeter(logged_user, storage_);
