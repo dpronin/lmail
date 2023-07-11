@@ -13,10 +13,10 @@ class CmdState : public CliState
 public:
     ~CmdState() override = default;
 
-    CmdState(CmdState const&) = default;
+    CmdState(CmdState const&)            = default;
     CmdState& operator=(CmdState const&) = default;
 
-    CmdState(CmdState&&) = default;
+    CmdState(CmdState&&)            = default;
     CmdState& operator=(CmdState&&) = default;
 
     [[nodiscard]] cmds_names_t cmds() const final;

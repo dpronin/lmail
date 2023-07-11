@@ -39,7 +39,7 @@ public:
 
         auto args = args_;
 
-        auto key_path_str = args.pop();
+        auto key_path_str = args.pop().value_or(std::string{});
         if (key_path_str.empty() && !uread(key_path_str, "Enter public key path: "))
             return;
 
@@ -58,7 +58,7 @@ public:
         if (!create_dir_if_doesnt_exist(cypher_dir))
             throw std::runtime_error("failed to import a public key");
 
-        username_t username_tgt = args.pop();
+        auto username_tgt = username_t{args.pop().value_or(username_t{})};
         if (username_tgt.empty() && !uread(username_tgt, "Enter a target user that the key is linked to: "))
             return;
 

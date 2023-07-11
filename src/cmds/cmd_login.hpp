@@ -43,7 +43,7 @@ public:
 
     void exec() override
     try {
-        username_t username = args_.front();
+        auto username = username_t{args_.front().value_or(username_t{})};
         if (username.empty() && !uread(username, "Enter user name: "))
             return;
 

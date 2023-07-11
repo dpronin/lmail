@@ -19,10 +19,10 @@ public:
     explicit LoggedInState(sm::Cli& fsm, std::shared_ptr<Storage> storage, std::shared_ptr<LoggedUser> user);
     ~LoggedInState() override = default;
 
-    LoggedInState(LoggedInState const&) = delete;
+    LoggedInState(LoggedInState const&)            = delete;
     LoggedInState& operator=(LoggedInState const&) = delete;
 
-    LoggedInState(LoggedInState&&) = delete;
+    LoggedInState(LoggedInState&&)            = delete;
     LoggedInState& operator=(LoggedInState&&) = delete;
 
     [[nodiscard]] prompt_t prompt() const override;

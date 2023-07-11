@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+#include <optional>
 #include <stdexcept>
 #include <utility>
 
@@ -16,26 +18,26 @@ public:
     CmdArgs(args_t args)
         : args_(std::move(args))
     {
-        std::erase_if(args_, [](auto const& arg) { return arg.empty(); });
+        std::erase_if(args_, std::mem_fn(&arg_t::empty));
     }
 
-    arg_t pop()
+    std::optional<arg_t> pop()
     {
         if (!empty()) {
             arg_t arg{std::move(args_.front())};
             args_.pop_front();
             return arg;
         }
-        throw std::runtime_error("cannot access 'pop' argument, reason: argument list is empty");
+        return {};
     }
 
     [[nodiscard]] bool empty() const noexcept { return args_.empty(); }
 
-    [[nodiscard]] arg_t const& front() const
+    [[nodiscard]] std::optional<arg_t> front() const
     {
         if (!empty())
             return args_.front();
-        throw std::runtime_error("cannot access 'front' argument, reason: argument list is empty");
+        return {};
     }
 };
 

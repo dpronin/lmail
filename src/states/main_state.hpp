@@ -19,10 +19,10 @@ public:
     explicit MainState(sm::Cli& fsm, std::shared_ptr<Storage> storage);
     ~MainState() override = default;
 
-    MainState(MainState const&) = delete;
+    MainState(MainState const&)            = delete;
     MainState& operator=(MainState const&) = delete;
 
-    MainState(MainState&&) = delete;
+    MainState(MainState&&)            = delete;
     MainState& operator=(MainState&&) = delete;
 
     [[nodiscard]] prompt_t prompt() const override;

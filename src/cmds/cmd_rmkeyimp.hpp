@@ -39,7 +39,7 @@ public:
     try {
         namespace fs = std::filesystem;
 
-        username_t username_tgt = args_.front();
+        auto username_tgt = username_t{args_.front().value_or(username_t{})};
         if (username_tgt.empty() && !uread(username_tgt, "Enter a target user name the key is linked to: "))
             return;
 

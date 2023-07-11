@@ -41,7 +41,7 @@ public:
 
         auto args = args_;
 
-        keyname_t keyname = args.pop();
+        auto keyname = keyname_t{args.pop().value_or(keyname_t{})};
         if (keyname.empty() && !uread(keyname, "Enter key name: "))
             return;
 
@@ -56,7 +56,7 @@ public:
             return;
         }
 
-        username_t username_tgt = args.pop();
+        auto username_tgt = username_t{args.pop().value_or(username_t{})};
         if (username_tgt.empty() && !uread(username_tgt, "Enter a target user name the key is linked to: "))
             return;
 

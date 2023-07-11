@@ -36,7 +36,7 @@ public:
     try {
         namespace fs = std::filesystem;
 
-        keyname_t keyname = args_.front();
+        auto keyname = keyname_t{args_.front().value_or(keyname_t{})};
         if (keyname.empty() && !uread(keyname, "Enter key name: "))
             return;
 

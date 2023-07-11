@@ -42,10 +42,10 @@ public:
     }
     ~CliCtx() = default;
 
-    CliCtx(CliCtx const&) = delete;
+    CliCtx(CliCtx const&)            = delete;
     CliCtx& operator=(CliCtx const&) = delete;
 
-    CliCtx(CliCtx&&) = delete;
+    CliCtx(CliCtx&&)            = delete;
     CliCtx& operator=(CliCtx&&) = delete;
 
     [[nodiscard]] bool operator()(user_input_t& user_input) { return rl_(user_input, state_->prompt()); }

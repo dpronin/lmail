@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <memory>
+#include <string>
 
 #include "boost/scope_exit.hpp"
 
@@ -36,7 +37,7 @@ public:
 
     void exec() override
     try {
-        username_t username = args_.front();
+        auto username = username_t{args_.front().value_or(username_t{})};
         if (username.empty() && !uread(username, "Enter user name: "))
             return;
 
@@ -74,7 +75,7 @@ public:
         password += Application::kSalt;
 
         User user{-1, std::move(username), sha3_256(password)};
-        if (auto const user_id = (*storage_)->insert(user); - 1 != user_id)
+        if (auto const user_id = (*storage_)->insert(user); -1 != user_id)
             std::cout << "Successfully registered a user " << cgreen(user.username) << std::endl;
         else
             std::cerr << "couldn't register a new user '" << user.username << "'. "

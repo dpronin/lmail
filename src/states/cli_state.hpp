@@ -15,10 +15,10 @@ public:
     CliState()           = default;
     ~CliState() override = default;
 
-    CliState(CliState const&) = default;
+    CliState(CliState const&)            = default;
     CliState& operator=(CliState const&) = default;
 
-    CliState(CliState&&) = default;
+    CliState(CliState&&)            = default;
     CliState& operator=(CliState&&) = default;
 
     [[nodiscard]] virtual prompt_t prompt() const                  = 0;

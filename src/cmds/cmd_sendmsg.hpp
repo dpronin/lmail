@@ -44,7 +44,7 @@ public:
         using namespace sqlite_orm;
         namespace fs = std::filesystem;
 
-        username_t username_tgt = args_.front();
+        auto username_tgt = username_t{args_.front().value_or(username_t{})};
         if (username_tgt.empty() && !uread(username_tgt, "Enter a target user the message is sent to: "))
             return;
 
@@ -115,7 +115,7 @@ public:
             return;
 
         Message message{-1, logged_user_->id(), users_ids_to.front(), {topic.cbegin(), topic.cend()}, {body.cbegin(), body.cend()}, cyphered};
-        if (auto const msg_id = (*storage_)->insert(message); - 1 != msg_id)
+        if (auto const msg_id = (*storage_)->insert(message); -1 != msg_id)
             std::cout << "message successfully sent to " << username_tgt << '\n';
         else
             std::cerr << "couldn't send the message to " << username_tgt << '\n';

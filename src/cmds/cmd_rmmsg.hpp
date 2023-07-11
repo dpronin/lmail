@@ -39,7 +39,7 @@ public:
     try {
         using namespace sqlite_orm;
 
-        auto msg_idx_str = args_.front();
+        auto msg_idx_str = args_.front().value_or(std::string{});
         if (msg_idx_str.empty() && !uread(msg_idx_str, "Enter message inbox index: "))
             return;
 
