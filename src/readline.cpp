@@ -23,15 +23,14 @@ char* completion_generator(const char* text, int state)
     static size_t match_idx = 0;
     if (0 == state) {
         matches.clear();
-        match_idx                = 0;
-        std::string_view textstr = text;
-        // clang-format off
-        std::ranges::remove_copy_if(Readline::instance().cmds(), std::back_inserter(matches), [&textstr](auto const &pattern) {
-            return pattern.size() < textstr.size() || pattern.compare(0, textstr.size(), textstr) != 0;
+        match_idx = 0;
+        /* clang-format off */
+        std::ranges::copy_if(Readline::instance().cmds(), std::back_inserter(matches), [text](auto const &pattern) {
+            return pattern.starts_with(text);
         });
-        // clang-format on
+        /* clang-format on */
     }
-    return match_idx < matches.size() ? strdup(matches[match_idx++].c_str()) : nullptr;
+    return match_idx < matches.size() ? ::strdup(matches[match_idx++].c_str()) : nullptr;
 }
 
 char** completer(const char* text, int /*start*/, int /*end*/)
