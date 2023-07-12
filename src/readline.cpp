@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <algorithm>
 #include <iterator>
 #include <ranges>
 #include <string_view>
