@@ -14,12 +14,6 @@
 
 using namespace lmail;
 
-namespace
-{
-
-
-} // anonymous namespace
-
 // clang-format off
 MainState::MainState(sm::Cli &fsm, std::shared_ptr<Storage> storage)
     : MainState(fsm, {
