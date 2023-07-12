@@ -8,8 +8,6 @@
 #include <stdexcept>
 #include <utility>
 
-#include "cmds/cmd_help.hpp"
-
 #include "color.hpp"
 #include "types.hpp"
 #include "utility.hpp"
@@ -32,7 +30,7 @@ std::unique_ptr<ICmd> CmdParserDefault::parse(args_t args)
     auto const cmd_name = std::move(args.front());
     args.pop_front();
 
-    if (auto it = std::ranges::find_if(cmds_, [&](auto const& cmd) { return std::get<0>(cmd) == cmd_name; }); cmds_.end() != it) {
+    if (auto it = std::ranges::find(cmds_, cmd_name, [](auto const& cmd) { return std::get<0>(cmd); }); cmds_.end() != it) {
         cmd = std::get<3>(*it)(std::move(args));
     } else {
         std::ostringstream oss;
