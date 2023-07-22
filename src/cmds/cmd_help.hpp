@@ -2,7 +2,9 @@
 
 #include <algorithm>
 #include <iostream>
+#include <iterator>
 #include <memory>
+#include <numeric>
 #include <ostream>
 #include <ranges>
 #include <stdexcept>
@@ -10,7 +12,6 @@
 
 #include "boost/algorithm/string/join.hpp"
 #include "boost/format.hpp"
-#include "boost/range/numeric.hpp"
 
 #include "cmd_interface.hpp"
 #include "color.hpp"
@@ -30,28 +31,30 @@ public:
         : out_(out)
         , cmds_(std::move(cmds))
     {
+
         std::ranges::sort(cmds_, std::less<>{}, [](auto const& cmd) { return std::get<0>(cmd); });
-        auto getlen_cmd = [](auto const& cmd) { return std::size(std::get<0>(cmd)); };
-        auto getlen_arg = [](auto const& cmd) {
-            auto const& args       = std::get<1>(cmd);
-            auto const whilespaces = std::max(1zu, std::size(args)) - 1;
-            return boost::accumulate(args, 0, [](auto sum, auto const& args) { return sum + std::size(args); }) + whilespaces;
+        auto const getsize       = [](auto const& v) { return std::size(v); };
+        auto const proj_cmd_name = [=](auto const& cmd) { return std::get<0>(cmd); };
+        auto const proj_cmd_args = [=](auto const& cmd) { return std::get<1>(cmd); };
+        auto const getlen_args   = [=](auto const& args) {
+            return std::transform_reduce(std::begin(args), std::end(args), std::max(1zu, std::size(args)) - 1, std::plus<>{}, getsize);
         };
-        auto const cmds_lens         = cmds_ | std::views::transform(getlen_cmd);
-        size_t const cmds_align_size = *std::ranges::max_element(cmds_lens) + cgreen("").size();
-        auto const args_lens         = cmds_ | std::views::transform(getlen_arg);
-        size_t const args_align_size = *std::ranges::max_element(args_lens) + cblue("").size();
-        fmt_                         = boost::format{"%-" + std::to_string(cmds_align_size) + "s %-" + std::to_string(args_align_size) + "s %s"};
+        auto const cmds_lens       = cmds_ | std::views::transform(proj_cmd_name) | std::views::transform(getsize);
+        auto const cmds_align_size = *std::ranges::max_element(cmds_lens) + cgreen("").size();
+        auto const args_lens       = cmds_ | std::views::transform(proj_cmd_args) | std::views::transform(getlen_args);
+        auto const args_align_size = *std::ranges::max_element(args_lens) + cblue("").size();
+
+        fmt_ = boost::format{"%-" + std::to_string(cmds_align_size) + "s %-" + std::to_string(args_align_size) + "s %s"};
     }
 
     void exec() override
     {
         /* clang-format off */
-        for (auto const& cmd : cmds_)
-            out_ << (fmt_ % (cgreen(std::get<0>(cmd)))
+    for (auto const &cmd : cmds_)
+      out_ << (fmt_ % (cgreen(std::get<0>(cmd)))
                     % (cblue(boost::algorithm::join(std::get<1>(cmd), " ")))
                     % std::get<2>(cmd))
-                 << std::endl;
+           << std::endl;
         /* clang-format on */
     }
 };
