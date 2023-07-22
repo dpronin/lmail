@@ -1,5 +1,8 @@
 #pragma once
 
+#include <algorithm>
+#include <iostream>
+#include <memory>
 #include <ostream>
 #include <ranges>
 #include <stdexcept>
@@ -19,34 +22,45 @@ namespace lmail
 class CmdHelp final : public ICmd
 {
     std::ostream& out_;
-    cmds_t const& cmds_;
-    mutable boost::format fmt_;
+    cmds_t cmds_;
+    boost::format fmt_;
 
 public:
-    explicit CmdHelp(std::ostream& out, cmds_t const& cmds)
+    explicit CmdHelp(std::ostream& out, cmds_t cmds)
         : out_(out)
-        , cmds_(cmds)
+        , cmds_(std::move(cmds))
     {
-        if (cmds_.empty())
-            throw std::invalid_argument("cmds provided cannot be empty");
-        // clang-format off
-        auto getsize = [](auto const &cmd)
-        {
-            return std::size(std::get<0>(cmd))
-                + boost::accumulate(std::get<1>(cmd), 0, [](auto sum, auto const &cmd) { return sum + cmd.size(); })
-                + std::size(std::get<1>(cmd)) - 1;
+        std::ranges::sort(cmds_, std::less<>{}, [](auto const& cmd) { return std::get<0>(cmd); });
+        auto getlen_cmd = [](auto const& cmd) { return std::size(std::get<0>(cmd)); };
+        auto getlen_arg = [](auto const& cmd) {
+            auto const& args       = std::get<1>(cmd);
+            auto const whilespaces = std::max(1zu, std::size(args)) - 1;
+            return boost::accumulate(args, 0, [](auto sum, auto const& args) { return sum + std::size(args); }) + whilespaces;
         };
-        // clang-format on
-        auto const cmds_lens    = cmds_ | std::views::transform(getsize);
-        size_t const align_size = *std::ranges::max_element(cmds_lens) + cgreen("").size() + cblue("").size();
-        fmt_                    = boost::format{"%-" + std::to_string(align_size + 1) + "s %s"};
+        auto const cmds_lens         = cmds_ | std::views::transform(getlen_cmd);
+        size_t const cmds_align_size = *std::ranges::max_element(cmds_lens) + cgreen("").size();
+        auto const args_lens         = cmds_ | std::views::transform(getlen_arg);
+        size_t const args_align_size = *std::ranges::max_element(args_lens) + cblue("").size();
+        fmt_                         = boost::format{"%-" + std::to_string(cmds_align_size) + "s %-" + std::to_string(args_align_size) + "s %s"};
     }
 
     void exec() override
     {
+        /* clang-format off */
         for (auto const& cmd : cmds_)
-            out_ << (fmt_ % (cgreen(std::get<0>(cmd)) + ' ' + cblue(boost::algorithm::join(std::get<1>(cmd), " "))) % std::get<2>(cmd)) << std::endl;
+            out_ << (fmt_ % (cgreen(std::get<0>(cmd)))
+                    % (cblue(boost::algorithm::join(std::get<1>(cmd), " ")))
+                    % std::get<2>(cmd))
+                 << std::endl;
+        /* clang-format on */
     }
 };
+
+inline cmds_t cmds_with_help(cmds_t cmds)
+{
+    cmds.push_back({"help", {}, "Shows this help page", {}});
+    std::get<3>(cmds.back()) = [cmds](args_t&&) { return std::make_unique<CmdHelp>(std::cout, cmds); };
+    return cmds;
+}
 
 } // namespace lmail
