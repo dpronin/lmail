@@ -32,15 +32,15 @@ endif()
 
 add_definitions(-DRSA_KEY_SIZE_DEFAULT=3072)
 
-find_package(Boost REQUIRED)
-find_package(fmt REQUIRED)
-find_package(sml REQUIRED)
-find_package(SqliteOrm REQUIRED)
-find_package(cryptopp QUIET)
-find_package(readline QUIET)
+find_package(Boost CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
+find_package(sml CONFIG REQUIRED)
+find_package(SqliteOrm CONFIG REQUIRED)
+find_package(cryptopp CONFIG QUIET)
+find_package(readline CONFIG QUIET)
 
 if (NOT ${cryptopp_FOUND} OR NOT ${readline_FOUND})
-    find_package(PkgConfig REQUIRED)
+    find_package(PkgConfig CONFIG REQUIRED)
 endif()
 
 if (NOT ${cryptopp_FOUND})
@@ -57,7 +57,7 @@ if (NOT ${readline_FOUND})
     target_link_libraries(readline::readline INTERFACE "${readline_LIBRARIES}")
 endif()
 
-find_package(SQLite3 REQUIRED)
+find_package(SQLite3 CONFIG REQUIRED)
 
 add_subdirectory(src)
 

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <format>
 #include <iostream>
 #include <stdexcept>
 #include <string_view>
@@ -12,8 +13,6 @@
 #include "boost/process/environment.hpp"
 #include "boost/property_tree/ini_parser.hpp"
 #include "boost/property_tree/ptree.hpp"
-
-#include "fmt/format.h"
 
 #include "cryptopp/aes.h"
 
@@ -52,7 +51,7 @@ public:
             if (auto db_path = conf_tree.get_optional<std::string>("db"))
                 conf.db_path = std::move(*db_path);
         } catch (std::exception const& ex) {
-            std::cout << cgrey(fmt::format("WARNING: couldn't read configuration file {}. Reason: {}. Use internal default values", conf_path, ex.what()))
+            std::cout << cgrey(std::format("WARNING: couldn't read configuration file {}. Reason: {}. Use internal default values", conf_path, ex.what()))
                       << std::endl;
         }
 
