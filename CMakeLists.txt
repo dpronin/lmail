@@ -57,8 +57,6 @@ if (NOT ${readline_FOUND})
     target_link_libraries(readline::readline INTERFACE "${readline_LIBRARIES}")
 endif()
 
-find_package(SQLite3 CONFIG REQUIRED)
-
 add_subdirectory(src)
 
 if (BUILD_TESTING)
