@@ -27,20 +27,33 @@ set(CMAKE_CXX_STANDARD_REQUIRED on)
 set(LMAIL_SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/src)
 
 if (ENABLE_PROFILING)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
+    add_compile_options(-pg)
 endif()
 
-add_definitions(-DRSA_KEY_SIZE_DEFAULT=3072)
+add_compile_definitions(
+    RSA_KEY_SIZE_DEFAULT=3072
+    PROJECT_VERSION=${PROJECT_VERSION}
+)
 
-find_package(Boost CONFIG REQUIRED)
-find_package(fmt CONFIG REQUIRED)
+find_package(Boost CONFIG QUIET)
 find_package(sml CONFIG REQUIRED)
 find_package(SqliteOrm CONFIG REQUIRED)
 find_package(cryptopp CONFIG QUIET)
 find_package(readline CONFIG QUIET)
 
-if (NOT ${cryptopp_FOUND} OR NOT ${readline_FOUND})
+if (NOT ${Boost_FOUND} OR
+    # NOT ${sml_FOUND} OR
+    # NOT ${SqliteOrm_FOUND} OR
+    NOT ${cryptopp_FOUND} OR
+    NOT ${readline_FOUND})
     find_package(PkgConfig CONFIG REQUIRED)
+endif()
+
+if (NOT ${Boost_FOUND})
+    pkg_check_modules(Boost REQUIRED)
+    add_library(Boost::boost INTERFACE IMPORTED)
+    target_include_directories(Boost::boost INTERFACE "${Boost_INCLUDE_DIRS}")
+    target_link_libraries(Boost::boost INTERFACE "${Boost_LIBRARIES}")
 endif()
 
 if (NOT ${cryptopp_FOUND})
