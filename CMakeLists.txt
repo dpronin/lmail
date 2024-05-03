@@ -33,7 +33,7 @@ add_compile_definitions(
     PROJECT_VERSION=${PROJECT_VERSION}
 )
 
-find_package(Boost CONFIG QUIET)
+find_package(Boost CONFIG QUIET COMPONENTS headers system)
 find_package(sml CONFIG REQUIRED)
 find_package(SqliteOrm CONFIG REQUIRED)
 find_package(cryptopp CONFIG QUIET)

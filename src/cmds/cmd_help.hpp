@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <format>
 #include <iostream>
 #include <iterator>
 #include <memory>
@@ -8,11 +9,10 @@
 #include <ostream>
 #include <ranges>
 #include <sstream>
-#include <stdexcept>
+#include <string_view>
 #include <utility>
 
-#include "boost/algorithm/string/join.hpp"
-#include "boost/format.hpp"
+#include <boost/algorithm/string/join.hpp>
 
 #include "cmd_interface.hpp"
 #include "color.hpp"
@@ -25,7 +25,21 @@ class CmdHelp final : public ICmd
 {
     std::ostream& out_;
     cmds_t cmds_;
-    boost::format fmt_;
+    std::string fmt_;
+
+    static std::string to_green(std::string_view s)
+    {
+        auto oss{std::ostringstream{}};
+        oss << cgreen(s);
+        return oss.str();
+    }
+
+    static std::string to_blue(std::string_view s)
+    {
+        auto oss{std::ostringstream{}};
+        oss << cblue(s);
+        return oss.str();
+    }
 
 public:
     explicit CmdHelp(std::ostream& out, cmds_t cmds)
@@ -33,7 +47,7 @@ public:
         , cmds_(std::move(cmds))
     {
 
-        std::ranges::sort(cmds_, std::less<>{}, [](auto const& cmd) { return std::get<0>(cmd); });
+        std::ranges::sort(cmds_, {}, [](auto const& cmd) { return std::get<0>(cmd); });
         auto const getsize       = [](auto const& v) { return std::size(v); };
         auto const proj_cmd_name = [=](auto const& cmd) { return std::get<0>(cmd); };
         auto const proj_cmd_args = [=](auto const& cmd) { return std::get<1>(cmd); };
@@ -42,29 +56,29 @@ public:
         };
         auto const cmds_lens = cmds_ | std::views::transform(proj_cmd_name) | std::views::transform(getsize);
 
-        auto os1{std::ostringstream{}};
-        os1 << cgreen("");
-
-        auto const cmds_align_size = *std::ranges::max_element(cmds_lens) + os1.str().size();
+        auto const cmds_align_size = *std::ranges::max_element(cmds_lens) + to_green("").size();
         auto const args_lens       = cmds_ | std::views::transform(proj_cmd_args) | std::views::transform(getlen_args);
 
         auto os2{std::ostringstream{}};
         os2 << cblue("");
 
-        auto const args_align_size = *std::ranges::max_element(args_lens) + os2.str().size();
+        auto const args_align_size = *std::ranges::max_element(args_lens) + to_blue("").size();
 
-        fmt_ = boost::format{"%-" + std::to_string(cmds_align_size) + "s %-" + std::to_string(args_align_size) + "s %s"};
+        fmt_ = std::format("{{:<{}}} {{:<{}}} {{}}", cmds_align_size, args_align_size);
     }
 
     void exec() override
     {
-        /* clang-format off */
-    for (auto const &cmd : cmds_)
-      out_ << (fmt_ % (cgreen(std::get<0>(cmd)))
-                    % (cblue(boost::algorithm::join(std::get<1>(cmd), " ")))
-                    % std::get<2>(cmd))
-           << std::endl;
-        /* clang-format on */
+        for (auto const& cmd : cmds_) {
+            auto to_const_ref = []<typename T>(T&& x) -> const T& { return x; };
+            out_ << std::vformat(
+                        fmt_,
+                        std::make_format_args(
+                            to_const_ref(to_green(std::get<0>(cmd))),
+                            to_const_ref(to_blue(boost::algorithm::join(std::get<1>(cmd), " "))),
+                            std::get<2>(cmd)))
+                 << std::endl;
+        }
     }
 };
 

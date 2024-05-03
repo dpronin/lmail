@@ -56,11 +56,14 @@ target_compile_definitions(lmail PRIVATE CONF_PREFIX="${CONF_PREFIX}" SCHEMA_DB_
 
 target_include_directories(lmail PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
-target_link_libraries(lmail PRIVATE Boost::boost)
-target_link_libraries(lmail PRIVATE sml::sml)
-target_link_libraries(lmail PRIVATE cryptopp::cryptopp)
-target_link_libraries(lmail PRIVATE readline::readline)
-target_link_libraries(lmail PRIVATE sqlite_orm::sqlite_orm)
-target_link_libraries(lmail PRIVATE termcolor::termcolor)
+target_link_libraries(lmail PRIVATE
+    Boost::headers
+    Boost::system
+    sml::sml
+    cryptopp::cryptopp
+    readline::readline
+    sqlite_orm::sqlite_orm
+    termcolor::termcolor
+)
 
 install(TARGETS lmail RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
