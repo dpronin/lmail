@@ -61,5 +61,6 @@ target_link_libraries(lmail PRIVATE sml::sml)
 target_link_libraries(lmail PRIVATE cryptopp::cryptopp)
 target_link_libraries(lmail PRIVATE readline::readline)
 target_link_libraries(lmail PRIVATE sqlite_orm::sqlite_orm)
+target_link_libraries(lmail PRIVATE termcolor::termcolor)
 
 install(TARGETS lmail RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

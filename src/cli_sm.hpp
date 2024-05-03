@@ -89,10 +89,12 @@ public:
         using namespace boost::sml;
         // clang-format off
         auto set_state        = [] (CliCtx &ctx, auto const &ev) { ctx.set_state(ev.state); };
-        auto on_entry_initial = [] { std::cout << "Welcome to " << cbrown("lmail") << '!' << std::endl; };
+        auto on_entry_initial = [] {
+            std::cout << "Welcome to " << cyellow("lmail") << '!' << std::endl;
+        };
         auto on_entry         = [] (CliCtx &/*ctx*/, auto const &ev) { ev.on_entry(); };
         auto on_exit          = [] (CliCtx &/*ctx*/, auto const &ev) { ev.on_exit(); };
-        auto on_quit          = [] { std::cout << "Quitting " << cbrown("lmail") << ". Bye!" << std::endl; };
+        auto on_quit          = [] { std::cout << "Quitting " << cyellow("lmail") << ". Bye!" << std::endl; };
         return make_transition_table(
             // idle state
             *"idle"_s     + boost::sml::on_entry<initial>    / on_entry_initial,

@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <utility>
 
 #include "color.hpp"
@@ -39,4 +40,9 @@ MainState::MainState(sm::Cli &fsm, cmds_t cmds)
 
 prompt_t MainState::prompt() const { return default_colored("lmail > "); }
 
-std::string MainState::default_colored(std::string_view input) const { return cbrown(input); }
+std::string MainState::default_colored(std::string_view input) const
+{
+    auto oss{std::ostringstream{}};
+    oss << cyellow(input);
+    return oss.str();
+}

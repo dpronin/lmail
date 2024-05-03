@@ -1,37 +1,72 @@
 #pragma once
 
-#include <string>
+#include <concepts>
+#include <ostream>
 #include <string_view>
+
+#include <termcolor/termcolor.hpp>
+
+namespace std
+{
+
+template <typename CharT, typename Traits = std::char_traits<CharT>>
+constexpr inline std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, std::invocable<decltype(os)> auto const& f)
+{
+    return f(os);
+}
+
+} // namespace std
 
 namespace lmail
 {
 
-enum class color_e {
-    kRed    = 1,
-    kGreen  = 2,
-    kBrown  = 3,
-    kBlue   = 4,
-    kPurple = 5,
-    kLblue  = 6,
-    kGrey   = 60,
-};
-
-inline std::string_view color_escape_reset() noexcept { return "\e[0m"; }
-
-inline std::string color_escape(color_e color)
+constexpr auto cred(std::string_view input)
 {
-    constexpr int kBase = 30;
-    return "\e[" + std::to_string(kBase + static_cast<int>(color)) + 'm';
+    return [=]<typename CharT, typename Traits = std::char_traits<CharT>>(std::basic_ostream<CharT, Traits>& os) -> std::basic_ostream<CharT, Traits>& {
+        return os << termcolor::colorize << termcolor::red << input << termcolor::reset << termcolor::nocolorize;
+    };
 }
 
-inline std::string colored(std::string_view input, color_e color) { return color_escape(color) + input.data() + color_escape_reset().data(); }
+constexpr auto cgreen(std::string_view input)
+{
+    return [=]<typename CharT, typename Traits = std::char_traits<CharT>>(std::basic_ostream<CharT, Traits>& os) -> std::basic_ostream<CharT, Traits>& {
+        return os << termcolor::colorize << termcolor::green << input << termcolor::reset << termcolor::nocolorize;
+    };
+}
 
-inline auto cred(std::string_view input) { return colored(input, color_e::kRed); }
-inline auto cgreen(std::string_view input) { return colored(input, color_e::kGreen); }
-inline auto cbrown(std::string_view input) { return colored(input, color_e::kBrown); }
-inline auto cblue(std::string_view input) { return colored(input, color_e::kBlue); }
-inline auto cpurple(std::string_view input) { return colored(input, color_e::kPurple); }
-inline auto clblue(std::string_view input) { return colored(input, color_e::kLblue); }
-inline auto cgrey(std::string_view input) { return colored(input, color_e::kGrey); }
+constexpr auto cyellow(std::string_view input)
+{
+    return [=]<typename CharT, typename Traits = std::char_traits<CharT>>(std::basic_ostream<CharT, Traits>& os) -> std::basic_ostream<CharT, Traits>& {
+        return os << termcolor::colorize << termcolor::yellow << input << termcolor::reset << termcolor::nocolorize;
+    };
+}
+
+constexpr auto cblue(std::string_view input)
+{
+    return [=]<typename CharT, typename Traits = std::char_traits<CharT>>(std::basic_ostream<CharT, Traits>& os) -> std::basic_ostream<CharT, Traits>& {
+        return os << termcolor::colorize << termcolor::blue << input << termcolor::reset << termcolor::nocolorize;
+    };
+}
+
+constexpr auto cpurple(std::string_view input)
+{
+    return [=]<typename CharT, typename Traits = std::char_traits<CharT>>(std::basic_ostream<CharT, Traits>& os) -> std::basic_ostream<CharT, Traits>& {
+        return os << termcolor::colorize << termcolor::magenta << input << termcolor::reset << termcolor::nocolorize;
+    };
+}
+
+constexpr auto clblue(std::string_view input)
+{
+    return [=]<typename CharT, typename Traits = std::char_traits<CharT>>(std::basic_ostream<CharT, Traits>& os) -> std::basic_ostream<CharT, Traits>& {
+        return os << termcolor::colorize << termcolor::bright_blue << input << termcolor::reset << termcolor::nocolorize;
+    };
+}
+
+constexpr auto cgrey(std::string_view input)
+{
+    return [=]<typename CharT, typename Traits = std::char_traits<CharT>>(std::basic_ostream<CharT, Traits>& os) -> std::basic_ostream<CharT, Traits>& {
+        return os << termcolor::colorize << termcolor::grey << input << termcolor::reset << termcolor::nocolorize;
+    };
+}
 
 } // namespace lmail

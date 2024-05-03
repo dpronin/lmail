@@ -40,6 +40,7 @@ find_package(sml CONFIG REQUIRED)
 find_package(SqliteOrm CONFIG REQUIRED)
 find_package(cryptopp CONFIG QUIET)
 find_package(readline CONFIG QUIET)
+find_package(termcolor CONFIG QUIET)
 
 if (NOT ${Boost_FOUND} OR
     # NOT ${sml_FOUND} OR
@@ -68,6 +69,13 @@ if (NOT ${readline_FOUND})
     add_library(readline::readline INTERFACE IMPORTED)
     target_include_directories(readline::readline INTERFACE "${readline_INCLUDE_DIRS}")
     target_link_libraries(readline::readline INTERFACE "${readline_LIBRARIES}")
+endif()
+
+if (NOT ${termcolor_FOUND})
+    pkg_check_modules(termcolor REQUIRED termcolor)
+    add_library(termcolor::termcolor INTERFACE IMPORTED)
+    target_include_directories(termcolor::termcolor INTERFACE "${readline_INCLUDE_DIRS}")
+    target_link_libraries(termcolor::termcolor INTERFACE "${readline_LIBRARIES}")
 endif()
 
 add_subdirectory(src)

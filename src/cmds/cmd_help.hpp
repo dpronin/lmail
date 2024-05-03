@@ -7,6 +7,7 @@
 #include <numeric>
 #include <ostream>
 #include <ranges>
+#include <sstream>
 #include <stdexcept>
 #include <utility>
 
@@ -39,10 +40,18 @@ public:
         auto const getlen_args   = [=](auto const& args) {
             return std::transform_reduce(std::begin(args), std::end(args), std::max(1zu, std::size(args)) - 1, std::plus<>{}, getsize);
         };
-        auto const cmds_lens       = cmds_ | std::views::transform(proj_cmd_name) | std::views::transform(getsize);
-        auto const cmds_align_size = *std::ranges::max_element(cmds_lens) + cgreen("").size();
+        auto const cmds_lens = cmds_ | std::views::transform(proj_cmd_name) | std::views::transform(getsize);
+
+        auto os1{std::ostringstream{}};
+        os1 << cgreen("");
+
+        auto const cmds_align_size = *std::ranges::max_element(cmds_lens) + os1.str().size();
         auto const args_lens       = cmds_ | std::views::transform(proj_cmd_args) | std::views::transform(getlen_args);
-        auto const args_align_size = *std::ranges::max_element(args_lens) + cblue("").size();
+
+        auto os2{std::ostringstream{}};
+        os2 << cblue("");
+
+        auto const args_align_size = *std::ranges::max_element(args_lens) + os2.str().size();
 
         fmt_ = boost::format{"%-" + std::to_string(cmds_align_size) + "s %-" + std::to_string(args_align_size) + "s %s"};
     }

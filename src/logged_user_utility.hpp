@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <memory>
+#include <sstream>
 
 #include "color.hpp"
 #include "logged_user.hpp"
@@ -12,12 +13,17 @@
 namespace lmail
 {
 
-inline auto make_user_name_cgreen(LoggedUser const& user) { return cgreen(user.name()); }
+inline std::string make_user_name_cgreen(LoggedUser const& user)
+{
+    auto oss{std::ostringstream{}};
+    oss << cgreen(user.name());
+    return oss.str();
+}
 
 inline auto make_logged_user_greeter(std::shared_ptr<LoggedUser> user, std::shared_ptr<Storage> storage)
 {
     return [=] {
-        std::cout << cbrown("You're logged in as") << " " << make_user_name_cgreen(*user);
+        std::cout << cyellow("You're logged in as") << " " << make_user_name_cgreen(*user);
         std::cout << "\nInbox:\n";
         CmdInbox(user, storage).exec();
     };
