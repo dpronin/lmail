@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+
 project(lmail VERSION 1.8.0 LANGUAGES CXX)
 
 include(CTest)
-
-set(CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR} ${CMAKE_MODULE_PATH})
 
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
@@ -21,7 +20,6 @@ option(INSTALL_EMPTY_SCHEMA_DB "install an empty database into the ${SCHEMA_DB_P
 option(INSTALL_DEFAULT_CONF "install a default configuration into the ${CONF_PREFIX}/etc")
 
 set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_EXPORT_COMPILE_COMMANDS true)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 
 set(LMAIL_SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/src)
