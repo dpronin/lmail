@@ -1,5 +1,5 @@
 [requires]
-boost/[~1.84]
+boost/[~1.85]
 cryptopp/[~8.9]
 readline/[~8.2]
 sml/[~1.1.11]
