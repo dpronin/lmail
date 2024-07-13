@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
-project(lmail VERSION 1.8.2 LANGUAGES CXX)
+project(lmail VERSION 1.8.3 LANGUAGES CXX)
 
 include(CTest)
 
